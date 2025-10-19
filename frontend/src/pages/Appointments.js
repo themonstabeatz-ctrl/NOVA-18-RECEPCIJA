@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { appointmentService, therapistService, serviceService } from '../services/api';
-import { Plus, Edit2, Trash2, X, Calendar as CalendarIcon, Check } from 'lucide-react';
+import { appointmentService, therapistService, serviceService, businessHoursService } from '../services/api';
+import { Plus, Edit2, Trash2, X, Calendar as CalendarIcon, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [therapists, setTherapists] = useState([]);
   const [services, setServices] = useState([]);
+  const [businessHours, setBusinessHours] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
   const [formData, setFormData] = useState({
     client_first_name: '',
     client_last_name: '',
@@ -31,15 +33,17 @@ const Appointments = () => {
       const startOfDay = `${selectedDate}T00:00:00`;
       const endOfDay = `${selectedDate}T23:59:59`;
 
-      const [appointmentsRes, therapistsRes, servicesRes] = await Promise.all([
+      const [appointmentsRes, therapistsRes, servicesRes, hoursRes] = await Promise.all([
         appointmentService.getAll({ start_date: startOfDay, end_date: endOfDay }),
         therapistService.getAll(true),
         serviceService.getAll(),
+        businessHoursService.get(),
       ]);
 
       setAppointments(appointmentsRes.data);
       setTherapists(therapistsRes.data);
       setServices(servicesRes.data);
+      setBusinessHours(hoursRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -50,9 +54,14 @@ const Appointments = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Convert datetime-local to ISO string properly
+      const localDate = new Date(formData.start_time);
+      // Remove timezone offset to get the correct local time
+      const isoString = localDate.toISOString().slice(0, -1); // Remove 'Z'
+      
       const data = {
         ...formData,
-        start_time: new Date(formData.start_time).toISOString(),
+        start_time: isoString,
       };
 
       if (editingAppointment) {
@@ -83,7 +92,6 @@ const Appointments = () => {
 
   const handleEdit = (appointment) => {
     setEditingAppointment(appointment);
-    // Convert ISO string to datetime-local format
     const startTime = new Date(appointment.start_time);
     const localDateTime = new Date(startTime.getTime() - startTime.getTimezoneOffset() * 60000)
       .toISOString()
@@ -110,6 +118,16 @@ const Appointments = () => {
       console.error('Error updating status:', error);
       alert('Greška pri ažuriranju statusa');
     }
+  };
+
+  const handleQuickBook = (time, therapistId) => {
+    const dateTime = `${selectedDate}T${time}`;
+    setFormData({
+      ...formData,
+      start_time: dateTime,
+      therapist_id: therapistId || '',
+    });
+    setShowModal(true);
   };
 
   const handleCloseModal = () => {
@@ -142,6 +160,59 @@ const Appointments = () => {
     return date.toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' });
   };
 
+  const changeDate = (days) => {
+    const currentDate = new Date(selectedDate);
+    currentDate.setDate(currentDate.setDate(currentDate.getDate() + days));
+    setSelectedDate(currentDate.toISOString().split('T')[0]);
+  };
+
+  const generateTimeSlots = () => {
+    if (!businessHours) return [];
+    
+    const slots = [];
+    const [startHour, startMin] = businessHours.start_time.split(':').map(Number);
+    const [endHour, endMin] = businessHours.end_time.split(':').map(Number);
+    
+    let currentHour = startHour;
+    let currentMin = startMin;
+    
+    while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
+      const timeStr = `${String(currentHour).padStart(2, '0')}:${String(currentMin).padStart(2, '0')}`;
+      slots.push(timeStr);
+      
+      currentMin += businessHours.slot_duration;
+      if (currentMin >= 60) {
+        currentHour += Math.floor(currentMin / 60);
+        currentMin = currentMin % 60;
+      }
+    }
+    
+    return slots;
+  };
+
+  const isSlotOccupied = (time, therapistId) => {
+    return appointments.some(apt => {
+      if (apt.therapist_id !== therapistId || apt.status === 'cancelled') return false;
+      
+      const aptStart = new Date(apt.start_time);
+      const aptEnd = new Date(apt.end_time);
+      const slotTime = new Date(`${selectedDate}T${time}`);
+      
+      return slotTime >= aptStart && slotTime < aptEnd;
+    });
+  };
+
+  const getAppointmentAtSlot = (time, therapistId) => {
+    return appointments.find(apt => {
+      if (apt.therapist_id !== therapistId) return false;
+      
+      const aptStart = new Date(apt.start_time);
+      const slotTime = new Date(`${selectedDate}T${time}`);
+      
+      return Math.abs(aptStart - slotTime) < 60000; // Within 1 minute
+    });
+  };
+
   const statusLabels = {
     scheduled: 'Zakazan',
     completed: 'Završen',
@@ -153,6 +224,8 @@ const Appointments = () => {
     completed: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800',
   };
+
+  const timeSlots = generateTimeSlots();
 
   return (
     <div className="min-h-screen bg-gray-50 py-8" data-testid="appointments-page">
@@ -174,23 +247,67 @@ const Appointments = () => {
           </button>
         </div>
 
-        {/* Date Picker */}
-        <div className="mb-6 flex items-center gap-4">
-          <CalendarIcon className="w-5 h-5 text-gray-500" />
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            data-testid="date-picker"
-          />
+        {/* Date Navigation & View Toggle */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => changeDate(-1)}
+              className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+              data-testid="prev-day-btn"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-4">
+              <CalendarIcon className="w-5 h-5 text-gray-500" />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                data-testid="date-picker"
+              />
+            </div>
+            <button
+              onClick={() => changeDate(1)}
+              className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+              data-testid="next-day-btn"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+              data-testid="list-view-btn"
+            >
+              Lista
+            </button>
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                viewMode === 'calendar'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+              data-testid="calendar-view-btn"
+            >
+              Kalendar
+            </button>
+          </div>
         </div>
 
         {loading ? (
           <div className="text-center py-12" data-testid="appointments-loading">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
-        ) : (
+        ) : viewMode === 'list' ? (
+          /* List View */
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -294,6 +411,84 @@ const Appointments = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        ) : (
+          /* Calendar View */
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50">
+                      Vreme
+                    </th>
+                    {therapists.map((therapist) => (
+                      <th
+                        key={therapist.id}
+                        className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]"
+                      >
+                        {therapist.name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {timeSlots.map((time) => (
+                    <tr key={time} className="hover:bg-gray-50">
+                      <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white border-r">
+                        {time}
+                      </td>
+                      {therapists.map((therapist) => {
+                        const appointment = getAppointmentAtSlot(time, therapist.id);
+                        const isOccupied = isSlotOccupied(time, therapist.id);
+                        
+                        return (
+                          <td
+                            key={`${time}-${therapist.id}`}
+                            className={`px-2 py-2 text-center text-sm cursor-pointer ${
+                              isOccupied ? 'bg-blue-100' : 'hover:bg-green-50'
+                            }`}
+                            onClick={() => !isOccupied && handleQuickBook(time, therapist.id)}
+                            data-testid={`slot-${time}-${therapist.id}`}
+                          >
+                            {appointment ? (
+                              <div
+                                className="bg-blue-600 text-white rounded p-2 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEdit(appointment);
+                                }}
+                              >
+                                <div className="font-semibold">
+                                  {appointment.client_first_name} {appointment.client_last_name}
+                                </div>
+                                <div className="text-xs opacity-90">
+                                  {getServiceName(appointment.service_id)}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-gray-400 text-xs">Slobodno</div>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t">
+              <div className="flex items-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-blue-600 rounded"></div>
+                  <span>Zauzeto</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-white border border-gray-300 rounded"></div>
+                  <span>Slobodno (kliknite za zakazivanje)</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
