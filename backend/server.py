@@ -316,11 +316,11 @@ async def create_appointment(appointment: AppointmentCreate):
     if overlapping:
         raise HTTPException(status_code=400, detail="Therapist is not available at this time")
     
-    appointment_obj = Appointment(
-        **appointment.model_dump(),
-        start_time=start_time,
-        end_time=end_time
-    )
+    # Create appointment object with corrected start_time
+    appointment_dict = appointment.model_dump()
+    appointment_dict['start_time'] = start_time
+    appointment_dict['end_time'] = end_time
+    appointment_obj = Appointment(**appointment_dict)
     
     doc = appointment_obj.model_dump()
     doc['start_time'] = doc['start_time'].isoformat()
