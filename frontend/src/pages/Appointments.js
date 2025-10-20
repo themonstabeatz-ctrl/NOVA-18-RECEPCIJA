@@ -161,66 +161,61 @@ const Appointments = () => {
     const appointmentTime = formatTime(appointment.start_time);
     const appointmentEndTime = formatTime(appointment.end_time);
 
-    // Generate SVG based on gender
-    const generateBodySVG = () => {
-      if (appointment.body_map_gender === 'male') {
-        return `
-          <svg viewBox="0 0 200 400" style="width: 300px; height: 600px; margin: 0 auto; display: block;">
-            <rect width="200" height="400" fill="#f3f4f6" />
-            <ellipse cx="100" cy="40" rx="25" ry="30" fill="#e5e7eb" stroke="#6b7280" stroke-width="2" />
-            <rect x="90" y="65" width="20" height="15" fill="#e5e7eb" stroke="#6b7280" stroke-width="2" />
-            <ellipse cx="100" cy="140" rx="45" ry="65" fill="#e5e7eb" stroke="#6b7280" stroke-width="2" />
-            <line x1="55" y1="90" x2="145" y2="90" stroke="#6b7280" stroke-width="2" />
-            <line x1="55" y1="90" x2="30" y2="150" stroke="#6b7280" stroke-width="3" />
-            <line x1="30" y1="150" x2="25" y2="210" stroke="#6b7280" stroke-width="3" />
-            <circle cx="25" cy="210" r="6" fill="#e5e7eb" stroke="#6b7280" stroke-width="2" />
-            <line x1="145" y1="90" x2="170" y2="150" stroke="#6b7280" stroke-width="3" />
-            <line x1="170" y1="150" x2="175" y2="210" stroke="#6b7280" stroke-width="3" />
-            <circle cx="175" cy="210" r="6" fill="#e5e7eb" stroke="#6b7280" stroke-width="2" />
-            <rect x="70" y="200" width="60" height="30" rx="5" fill="#e5e7eb" stroke="#6b7280" stroke-width="2" />
-            <line x1="80" y1="230" x2="75" y2="330" stroke="#6b7280" stroke-width="3" />
-            <line x1="75" y1="330" x2="70" y2="380" stroke="#6b7280" stroke-width="3" />
-            <ellipse cx="70" cy="385" rx="8" ry="5" fill="#e5e7eb" stroke="#6b7280" stroke-width="2" />
-            <line x1="120" y1="230" x2="125" y2="330" stroke="#6b7280" stroke-width="3" />
-            <line x1="125" y1="330" x2="130" y2="380" stroke="#6b7280" stroke-width="3" />
-            <ellipse cx="130" cy="385" rx="8" ry="5" fill="#e5e7eb" stroke="#6b7280" stroke-width="2" />
-            ${(appointment.body_map_points || []).map(point => `
-              <circle cx="${(point.x / 100) * 200}" cy="${(point.y / 100) * 400}" r="6" fill="#ef4444" stroke="#991b1b" stroke-width="2" />
-              <text x="${(point.x / 100) * 200}" y="${(point.y / 100) * 400 - 10}" text-anchor="middle" fill="#991b1b" font-size="10" font-weight="bold">●</text>
-            `).join('')}
-          </svg>
-        `;
-      } else if (appointment.body_map_gender === 'female') {
-        return `
-          <svg viewBox="0 0 200 400" style="width: 300px; height: 600px; margin: 0 auto; display: block;">
-            <rect width="200" height="400" fill="#fef3c7" />
-            <ellipse cx="100" cy="40" rx="23" ry="28" fill="#fde68a" stroke="#d97706" stroke-width="2" />
-            <path d="M 77 25 Q 77 15, 100 15 Q 123 15, 123 25" fill="#92400e" />
-            <rect x="92" y="65" width="16" height="12" fill="#fde68a" stroke="#d97706" stroke-width="2" />
-            <ellipse cx="100" cy="110" rx="35" ry="30" fill="#fde68a" stroke="#d97706" stroke-width="2" />
-            <path d="M 65 140 Q 75 165, 100 170 Q 125 165, 135 140" fill="#fde68a" stroke="#d97706" stroke-width="2" />
-            <line x1="65" y1="85" x2="135" y2="85" stroke="#d97706" stroke-width="2" />
-            <line x1="65" y1="85" x2="40" y2="145" stroke="#d97706" stroke-width="3" />
-            <line x1="40" y1="145" x2="35" y2="205" stroke="#d97706" stroke-width="3" />
-            <circle cx="35" cy="205" r="5" fill="#fde68a" stroke="#d97706" stroke-width="2" />
-            <line x1="135" y1="85" x2="160" y2="145" stroke="#d97706" stroke-width="3" />
-            <line x1="160" y1="145" x2="165" y2="205" stroke="#d97706" stroke-width="3" />
-            <circle cx="165" cy="205" r="5" fill="#fde68a" stroke="#d97706" stroke-width="2" />
-            <ellipse cx="100" cy="200" rx="38" ry="28" fill="#fde68a" stroke="#d97706" stroke-width="2" />
-            <line x1="80" y1="225" x2="75" y2="325" stroke="#d97706" stroke-width="3" />
-            <line x1="75" y1="325" x2="70" y2="380" stroke="#d97706" stroke-width="3" />
-            <ellipse cx="70" cy="385" rx="7" ry="5" fill="#fde68a" stroke="#d97706" stroke-width="2" />
-            <line x1="120" y1="225" x2="125" y2="325" stroke="#d97706" stroke-width="3" />
-            <line x1="125" y1="325" x2="130" y2="380" stroke="#d97706" stroke-width="3" />
-            <ellipse cx="130" cy="385" rx="7" ry="5" fill="#fde68a" stroke="#d97706" stroke-width="2" />
-            ${(appointment.body_map_points || []).map(point => `
-              <circle cx="${(point.x / 100) * 200}" cy="${(point.y / 100) * 400}" r="6" fill="#dc2626" stroke="#991b1b" stroke-width="2" />
-              <text x="${(point.x / 100) * 200}" y="${(point.y / 100) * 400 - 10}" text-anchor="middle" fill="#991b1b" font-size="10" font-weight="bold">●</text>
-            `).join('')}
-          </svg>
-        `;
-      }
-      return '<p style="text-align: center; color: #999;">Nema mape tela</p>';
+    // Generate body maps with real images
+    const generateBodyMaps = () => {
+      const bodyImageUrl = 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/npczje4d_konture%20tela.jpg';
+      const frontPoints = (appointment.body_map_points || []).filter(p => p.side === 'front');
+      const backPoints = (appointment.body_map_points || []).filter(p => p.side === 'back');
+      
+      const getImageStyle = (side) => {
+        if (appointment.body_map_gender === 'male') {
+          if (side === 'front') {
+            return 'object-position: 0% 0%; transform: scale(2); transform-origin: top left;';
+          } else {
+            return 'object-position: 100% 0%; transform: scale(2); transform-origin: top right;';
+          }
+        } else {
+          if (side === 'front') {
+            return 'object-position: 0% 100%; transform: scale(2); transform-origin: bottom left;';
+          } else {
+            return 'object-position: 100% 100%; transform: scale(2); transform-origin: bottom right;';
+          }
+        }
+      };
+
+      const renderPoints = (points) => {
+        return points.map(point => `
+          <div style="position: absolute; left: ${point.x}%; top: ${point.y}%; transform: translate(-50%, -50%);">
+            <div style="width: 16px; height: 16px; border-radius: 50%; background-color: #ef4444; border: 2px solid #991b1b; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+          </div>
+        `).join('');
+      };
+
+      return `
+        <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 30px;">
+          <div style="text-align: center;">
+            <h3 style="color: #78350f; margin-bottom: 15px; font-size: 18px;">Prednja strana</h3>
+            <div style="position: relative; width: 250px; height: 500px; border: 2px solid #d97706; border-radius: 8px; overflow: hidden;">
+              <img src="${bodyImageUrl}" alt="Front" style="position: absolute; width: 100%; height: 100%; object-fit: cover; ${getImageStyle('front')}" />
+              <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                ${renderPoints(frontPoints)}
+              </div>
+            </div>
+            <p style="margin-top: 10px; color: #92400e; font-weight: bold;">${frontPoints.length} označenih tačaka</p>
+          </div>
+          
+          <div style="text-align: center;">
+            <h3 style="color: #78350f; margin-bottom: 15px; font-size: 18px;">Zadnja strana</h3>
+            <div style="position: relative; width: 250px; height: 500px; border: 2px solid #d97706; border-radius: 8px; overflow: hidden;">
+              <img src="${bodyImageUrl}" alt="Back" style="position: absolute; width: 100%; height: 100%; object-fit: cover; ${getImageStyle('back')}" />
+              <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                ${renderPoints(backPoints)}
+              </div>
+            </div>
+            <p style="margin-top: 10px; color: #92400e; font-weight: bold;">${backPoints.length} označenih tačaka</p>
+          </div>
+        </div>
+      `;
     };
 
     const html = `
