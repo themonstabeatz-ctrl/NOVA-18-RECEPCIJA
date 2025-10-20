@@ -110,6 +110,8 @@ const Appointments = () => {
       service_id: appointment.service_id,
       start_time: localDateTime,
       status: appointment.status,
+      body_map_gender: appointment.body_map_gender || '',
+      body_map_points: appointment.body_map_points || [],
     });
     setShowModal(true);
   };
