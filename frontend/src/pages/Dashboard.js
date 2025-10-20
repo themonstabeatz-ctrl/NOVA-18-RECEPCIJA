@@ -329,11 +329,11 @@ const Dashboard = () => {
             </div>
 
             {/* Therapist Statistics Table */}
-            <div className="bg-white rounded-lg shadow" data-testid="therapist-stats-table">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Statistike po terapeutu</h2>
+            <div className="bg-white rounded-lg shadow overflow-hidden" data-testid="therapist-stats-table">
+              <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-200">
+                <h2 className="text-base md:text-lg font-semibold text-gray-900">Statistike po terapeutu</h2>
               </div>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto -webkit-overflow-scrolling-touch">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
