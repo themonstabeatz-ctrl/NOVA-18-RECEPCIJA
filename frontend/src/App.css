@@ -64,6 +64,55 @@ button, a, input, select, textarea {
   input, select, textarea {
     font-size: 16px;
   }
+
+  /* Better table handling on mobile */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* Ensure modals are scrollable on mobile */
+  .modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ensure cards stack nicely */
+  .responsive-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Android specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* iOS specific */
+  body {
+    cursor: pointer;
+  }
+}
+
+/* Touch friendly hit areas */
+@media (hover: none) and (pointer: coarse) {
+  /* Mobile touch devices */
+  button, a, .clickable {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px;
+  }
+}
+
+/* Landscape mode optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+  .min-h-screen {
+    min-height: auto;
+  }
+  
+  body {
+    min-height: 100vh;
+  }
 }
 
 .App-header {
