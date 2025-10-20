@@ -143,11 +143,7 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
         <div className="flex gap-4">
           <button
             type="button"
-            onClick={() => {
-              onGenderChange('male');
-              // Clear points when changing gender
-              onPointsChange([]);
-            }}
+            onClick={() => onGenderChange('male')}
             className={`px-6 py-3 rounded-lg font-medium transition-all ${
               gender === 'male'
                 ? 'bg-blue-600 text-white shadow-lg scale-105'
@@ -159,11 +155,7 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
           </button>
           <button
             type="button"
-            onClick={() => {
-              onGenderChange('female');
-              // Clear points when changing gender
-              onPointsChange([]);
-            }}
+            onClick={() => onGenderChange('female')}
             className={`px-6 py-3 rounded-lg font-medium transition-all ${
               gender === 'female'
                 ? 'bg-pink-600 text-white shadow-lg scale-105'
