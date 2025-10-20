@@ -235,7 +235,7 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
             {points.length > 0 && (
               <button
                 type="button"
-                onClick={() => onPointsChange([])
+                onClick={() => onPointsChange([])}
                 className="text-sm text-red-600 hover:text-red-800"
                 data-testid="clear-points-btn"
               >
