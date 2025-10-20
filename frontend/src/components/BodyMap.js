@@ -58,10 +58,15 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
     return (
       <div className="relative" style={{ width: '100%', maxWidth: '350px', margin: '0 auto' }}>
         <div 
-          className="relative cursor-crosshair border-2 border-gray-300 rounded-lg overflow-hidden bg-white shadow-lg"
+          className="relative cursor-crosshair border-2 border-indigo-400 rounded-lg overflow-hidden bg-white shadow-lg hover:border-indigo-600 transition-colors"
           onClick={(e) => handleBodyClick(e, viewSide)}
           data-testid={`body-map-${viewSide}`}
-          style={{ aspectRatio: '1/2' }}
+          style={{ 
+            aspectRatio: '1/2',
+            minHeight: '500px',
+            userSelect: 'none'
+          }}
+          title="Kliknite na telo da dodate tačku"
         >
           <img 
             src={imageUrl}
@@ -71,6 +76,7 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
               width: '100%',
               height: '100%',
               objectFit: 'contain',
+              pointerEvents: 'none',
             }}
             draggable={false}
           />
