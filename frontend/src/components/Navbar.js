@@ -18,8 +18,13 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <span className="text-2xl font-bold text-indigo-600">Spa Manager</span>
+            <div className="flex-shrink-0 flex items-center gap-3">
+              <img 
+                src="https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/oeoyckdv_Bua%20luang%20logo.png" 
+                alt="Bua Luang Thai Spa Logo" 
+                className="h-10 w-auto"
+              />
+              <span className="text-xl font-bold text-amber-700">Bua Luang Thai Spa</span>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {navItems.map((item) => {
