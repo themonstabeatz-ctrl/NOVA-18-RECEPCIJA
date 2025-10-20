@@ -308,7 +308,7 @@ async def create_appointment(appointment: AppointmentCreate):
         "$or": [
             {
                 "start_time": {"$lt": end_time.isoformat()},
-                "end_time": {"$gt": appointment.start_time.isoformat()}
+                "end_time": {"$gt": start_time.isoformat()}
             }
         ]
     }).to_list(1)
@@ -318,6 +318,7 @@ async def create_appointment(appointment: AppointmentCreate):
     
     appointment_obj = Appointment(
         **appointment.model_dump(),
+        start_time=start_time,
         end_time=end_time
     )
     
