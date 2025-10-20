@@ -218,8 +218,8 @@ async def get_therapists_availability(date: Optional[str] = Query(None)):
 @api_router.post("/services", response_model=Service)
 async def create_service(service: ServiceCreate):
     """Create a new service"""
-    if service.duration not in [30, 45, 60, 120]:
-        raise HTTPException(status_code=400, detail="Duration must be 30, 45, 60, or 120 minutes")
+    if service.duration not in [30, 45, 60, 90, 120]:
+        raise HTTPException(status_code=400, detail="Duration must be 30, 45, 60, 90, or 120 minutes")
     
     service_obj = Service(**service.model_dump())
     doc = service_obj.model_dump()
