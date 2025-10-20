@@ -340,7 +340,7 @@ const Appointments = () => {
 
         <div class="footer">
           <p>Dokument kreiran: ${new Date().toLocaleString('sr-RS')}</p>
-          <p>© Spa & Massage Booking System</p>
+          <p>© Bua Luang Thai Spa</p>
         </div>
 
         <div class="no-print" style="text-align: center; margin-top: 30px;">
