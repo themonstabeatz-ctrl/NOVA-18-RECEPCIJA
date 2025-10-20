@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
 
 const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
+  const [side, setSide] = useState('front'); // 'front' or 'back'
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
-  const handleBodyClick = (e) => {
-    const svg = e.currentTarget;
-    const rect = svg.getBoundingClientRect();
+  const handleBodyClick = (e, viewSide) => {
+    const container = e.currentTarget;
+    const rect = container.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
@@ -14,6 +14,7 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
       id: Date.now(),
       x: x.toFixed(2),
       y: y.toFixed(2),
+      side: viewSide,
       timestamp: new Date().toISOString(),
     };
 
@@ -24,171 +25,137 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
     onPointsChange(points.filter((p) => p.id !== pointId));
   };
 
-  // Jednostavna kontura muškog tela
-  const MaleBodySVG = () => (
-    <svg
-      viewBox="0 0 200 400"
-      className="w-full h-full cursor-crosshair"
-      onClick={handleBodyClick}
-      data-testid="body-map-svg"
-    >
-      {/* Pozadina */}
-      <rect width="200" height="400" fill="#f3f4f6" />
-      
-      {/* Glava */}
-      <ellipse cx="100" cy="40" rx="25" ry="30" fill="#e5e7eb" stroke="#6b7280" strokeWidth="2" />
-      
-      {/* Vrat */}
-      <rect x="90" y="65" width="20" height="15" fill="#e5e7eb" stroke="#6b7280" strokeWidth="2" />
-      
-      {/* Trup */}
-      <ellipse cx="100" cy="140" rx="45" ry="65" fill="#e5e7eb" stroke="#6b7280" strokeWidth="2" />
-      
-      {/* Ramena */}
-      <line x1="55" y1="90" x2="145" y2="90" stroke="#6b7280" strokeWidth="2" />
-      
-      {/* Leva ruka */}
-      <line x1="55" y1="90" x2="30" y2="150" stroke="#6b7280" strokeWidth="3" />
-      <line x1="30" y1="150" x2="25" y2="210" stroke="#6b7280" strokeWidth="3" />
-      <circle cx="25" cy="210" r="6" fill="#e5e7eb" stroke="#6b7280" strokeWidth="2" />
-      
-      {/* Desna ruka */}
-      <line x1="145" y1="90" x2="170" y2="150" stroke="#6b7280" strokeWidth="3" />
-      <line x1="170" y1="150" x2="175" y2="210" stroke="#6b7280" strokeWidth="3" />
-      <circle cx="175" cy="210" r="6" fill="#e5e7eb" stroke="#6b7280" strokeWidth="2" />
-      
-      {/* Kukovi */}
-      <rect x="70" y="200" width="60" height="30" rx="5" fill="#e5e7eb" stroke="#6b7280" strokeWidth="2" />
-      
-      {/* Leva noga */}
-      <line x1="80" y1="230" x2="75" y2="330" stroke="#6b7280" strokeWidth="3" />
-      <line x1="75" y1="330" x2="70" y2="380" stroke="#6b7280" strokeWidth="3" />
-      <ellipse cx="70" cy="385" rx="8" ry="5" fill="#e5e7eb" stroke="#6b7280" strokeWidth="2" />
-      
-      {/* Desna noga */}
-      <line x1="120" y1="230" x2="125" y2="330" stroke="#6b7280" strokeWidth="3" />
-      <line x1="125" y1="330" x2="130" y2="380" stroke="#6b7280" strokeWidth="3" />
-      <ellipse cx="130" cy="385" rx="8" ry="5" fill="#e5e7eb" stroke="#6b7280" strokeWidth="2" />
-      
-      {/* Označene tačke */}
-      {points.map((point) => (
-        <g key={point.id}>
-          <circle
-            cx={(point.x / 100) * 200}
-            cy={(point.y / 100) * 400}
-            r="6"
-            fill="#ef4444"
-            stroke="#991b1b"
-            strokeWidth="2"
-            onMouseEnter={() => setHoveredPoint(point.id)}
-            onMouseLeave={() => setHoveredPoint(null)}
-            onClick={(e) => {
-              e.stopPropagation();
-              removePoint(point.id);
-            }}
-            style={{ cursor: 'pointer' }}
-          />
-          {hoveredPoint === point.id && (
-            <text
-              x={(point.x / 100) * 200}
-              y={(point.y / 100) * 400 - 10}
-              textAnchor="middle"
-              fill="#991b1b"
-              fontSize="10"
-              fontWeight="bold"
-            >
-              Klik za brisanje
-            </text>
-          )}
-        </g>
-      ))}
-    </svg>
-  );
+  const getPointsForSide = (viewSide) => {
+    return points.filter(p => p.side === viewSide);
+  };
 
-  // Jednostavna kontura ženskog tela
-  const FemaleBodySVG = () => (
-    <svg
-      viewBox="0 0 200 400"
-      className="w-full h-full cursor-crosshair"
-      onClick={handleBodyClick}
-      data-testid="body-map-svg"
-    >
-      {/* Pozadina */}
-      <rect width="200" height="400" fill="#fef3c7" />
-      
-      {/* Glava */}
-      <ellipse cx="100" cy="40" rx="23" ry="28" fill="#fde68a" stroke="#d97706" strokeWidth="2" />
-      
-      {/* Kosa */}
-      <path d="M 77 25 Q 77 15, 100 15 Q 123 15, 123 25" fill="#92400e" />
-      
-      {/* Vrat */}
-      <rect x="92" y="65" width="16" height="12" fill="#fde68a" stroke="#d97706" strokeWidth="2" />
-      
-      {/* Trup - ženska silueta */}
-      <ellipse cx="100" cy="110" rx="35" ry="30" fill="#fde68a" stroke="#d97706" strokeWidth="2" />
-      <path d="M 65 140 Q 75 165, 100 170 Q 125 165, 135 140" fill="#fde68a" stroke="#d97706" strokeWidth="2" />
-      
-      {/* Ramena */}
-      <line x1="65" y1="85" x2="135" y2="85" stroke="#d97706" strokeWidth="2" />
-      
-      {/* Leva ruka */}
-      <line x1="65" y1="85" x2="40" y2="145" stroke="#d97706" strokeWidth="3" />
-      <line x1="40" y1="145" x2="35" y2="205" stroke="#d97706" strokeWidth="3" />
-      <circle cx="35" cy="205" r="5" fill="#fde68a" stroke="#d97706" strokeWidth="2" />
-      
-      {/* Desna ruka */}
-      <line x1="135" y1="85" x2="160" y2="145" stroke="#d97706" strokeWidth="3" />
-      <line x1="160" y1="145" x2="165" y2="205" stroke="#d97706" strokeWidth="3" />
-      <circle cx="165" cy="205" r="5" fill="#fde68a" stroke="#d97706" strokeWidth="2" />
-      
-      {/* Kukovi */}
-      <ellipse cx="100" cy="200" rx="38" ry="28" fill="#fde68a" stroke="#d97706" strokeWidth="2" />
-      
-      {/* Leva noga */}
-      <line x1="80" y1="225" x2="75" y2="325" stroke="#d97706" strokeWidth="3" />
-      <line x1="75" y1="325" x2="70" y2="380" stroke="#d97706" strokeWidth="3" />
-      <ellipse cx="70" cy="385" rx="7" ry="5" fill="#fde68a" stroke="#d97706" strokeWidth="2" />
-      
-      {/* Desna noga */}
-      <line x1="120" y1="225" x2="125" y2="325" stroke="#d97706" strokeWidth="3" />
-      <line x1="125" y1="325" x2="130" y2="380" stroke="#d97706" strokeWidth="3" />
-      <ellipse cx="130" cy="385" rx="7" ry="5" fill="#fde68a" stroke="#d97706" strokeWidth="2" />
-      
-      {/* Označene tačke */}
-      {points.map((point) => (
-        <g key={point.id}>
-          <circle
-            cx={(point.x / 100) * 200}
-            cy={(point.y / 100) * 400}
-            r="6"
-            fill="#dc2626"
-            stroke="#991b1b"
-            strokeWidth="2"
-            onMouseEnter={() => setHoveredPoint(point.id)}
-            onMouseLeave={() => setHoveredPoint(null)}
-            onClick={(e) => {
-              e.stopPropagation();
-              removePoint(point.id);
+  // Image URLs from uploaded file - 4 body contours
+  const bodyImageUrl = 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/npczje4d_konture%20tela.jpg';
+
+  const BodyView = ({ viewSide, imageStyle }) => {
+    const sidePoints = getPointsForSide(viewSide);
+    
+    return (
+      <div className="relative" style={{ width: '100%', maxWidth: '300px', margin: '0 auto' }}>
+        <div 
+          className="relative cursor-crosshair border-2 border-gray-300 rounded-lg overflow-hidden bg-white"
+          onClick={(e) => handleBodyClick(e, viewSide)}
+          data-testid={`body-map-${viewSide}`}
+          style={{ aspectRatio: '1/2' }}
+        >
+          <img 
+            src={bodyImageUrl}
+            alt={`Body ${viewSide}`}
+            style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              ...imageStyle
             }}
-            style={{ cursor: 'pointer' }}
+            draggable={false}
           />
-          {hoveredPoint === point.id && (
-            <text
-              x={(point.x / 100) * 200}
-              y={(point.y / 100) * 400 - 10}
-              textAnchor="middle"
-              fill="#991b1b"
-              fontSize="10"
-              fontWeight="bold"
-            >
-              Klik za brisanje
-            </text>
-          )}
-        </g>
-      ))}
-    </svg>
-  );
+          
+          {/* Overlay for points */}
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+            {sidePoints.map((point) => (
+              <div
+                key={point.id}
+                style={{
+                  position: 'absolute',
+                  left: `${point.x}%`,
+                  top: `${point.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={() => setHoveredPoint(point.id)}
+                onMouseLeave={() => setHoveredPoint(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removePoint(point.id);
+                }}
+              >
+                <div
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '50%',
+                    backgroundColor: '#ef4444',
+                    border: '2px solid #991b1b',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                  }}
+                />
+                {hoveredPoint === point.id && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '100%',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      marginBottom: '8px',
+                      padding: '4px 8px',
+                      backgroundColor: '#991b1b',
+                      color: 'white',
+                      fontSize: '10px',
+                      borderRadius: '4px',
+                      whiteSpace: 'nowrap',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Klik za brisanje
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        <p className="text-xs text-center text-gray-600 mt-2 font-medium">
+          {viewSide === 'front' ? 'Prednja strana' : 'Zadnja strana'}
+        </p>
+      </div>
+    );
+  };
+
+  // Calculate image crop positions for 4 body types
+  const getImageStyle = () => {
+    if (gender === 'male') {
+      if (side === 'front') {
+        // Top-left quadrant (male front)
+        return {
+          objectPosition: '0% 0%',
+          transform: 'scale(2)',
+          transformOrigin: 'top left'
+        };
+      } else {
+        // Top-right quadrant (male back)
+        return {
+          objectPosition: '100% 0%',
+          transform: 'scale(2)',
+          transformOrigin: 'top right'
+        };
+      }
+    } else {
+      if (side === 'front') {
+        // Bottom-left quadrant (female front)
+        return {
+          objectPosition: '0% 100%',
+          transform: 'scale(2)',
+          transformOrigin: 'bottom left'
+        };
+      } else {
+        // Bottom-right quadrant (female back)
+        return {
+          objectPosition: '100% 100%',
+          transform: 'scale(2)',
+          transformOrigin: 'bottom right'
+        };
+      }
+    }
+  };
+
+  const frontPoints = getPointsForSide('front');
+  const backPoints = getPointsForSide('back');
+  const totalPoints = points.length;
 
   return (
     <div className="space-y-4" data-testid="body-map-component">
@@ -232,25 +199,62 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
             <label className="block text-sm font-medium text-gray-700">
               Kliknite na telo da označite mesta za masažu:
             </label>
-            {points.length > 0 && (
+            {totalPoints > 0 && (
               <button
                 type="button"
                 onClick={() => onPointsChange([])}
                 className="text-sm text-red-600 hover:text-red-800"
                 data-testid="clear-points-btn"
               >
-                Obriši sve tačke ({points.length})
+                Obriši sve tačke ({totalPoints})
               </button>
             )}
           </div>
-          
-          <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white" style={{ maxWidth: '400px', margin: '0 auto' }}>
-            {gender === 'male' ? <MaleBodySVG /> : <FemaleBodySVG />}
+
+          {/* Side Toggle Buttons */}
+          <div className="flex gap-2 mb-4 justify-center">
+            <button
+              type="button"
+              onClick={() => setSide('front')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                side === 'front'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+              data-testid="front-side-btn"
+            >
+              Prednja strana {frontPoints.length > 0 && `(${frontPoints.length})`}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSide('back')}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                side === 'back'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+              data-testid="back-side-btn"
+            >
+              Zadnja strana {backPoints.length > 0 && `(${backPoints.length})`}
+            </button>
           </div>
           
-          <p className="text-xs text-gray-500 mt-2 text-center">
+          {/* Body View */}
+          <BodyView viewSide={side} imageStyle={getImageStyle()} />
+          
+          <p className="text-xs text-gray-500 mt-3 text-center">
             💡 Kliknite na telo za dodavanje tačke • Kliknite na tačku za brisanje
           </p>
+          
+          {totalPoints > 0 && (
+            <div className="mt-3 text-center">
+              <p className="text-sm text-gray-600">
+                <strong>Ukupno označenih tačaka:</strong> {totalPoints}
+                {frontPoints.length > 0 && ` (Prednja: ${frontPoints.length})`}
+                {backPoints.length > 0 && ` (Zadnja: ${backPoints.length})`}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
