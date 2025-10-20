@@ -21,7 +21,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center gap-2 sm:gap-3">
               <img 
-                src="https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/oeoyckdv_Bua%20luang%20logo.png" 
+                src={process.env.REACT_APP_LOGO_URL} 
                 alt="Bua Luang Thai Spa Logo" 
                 className="h-12 sm:h-14 md:h-16 w-auto"
               />
