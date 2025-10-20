@@ -5,20 +5,28 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
   const handleBodyClick = (e, viewSide) => {
+    // Prevent default behavior
+    e.preventDefault();
+    e.stopPropagation();
+    
     const container = e.currentTarget;
     const rect = container.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
+    console.log('Body clicked:', { x, y, side: viewSide });
+
     const newPoint = {
-      id: Date.now(),
+      id: Date.now() + Math.random(), // Ensure unique ID
       x: x.toFixed(2),
       y: y.toFixed(2),
       side: viewSide,
       timestamp: new Date().toISOString(),
     };
 
-    onPointsChange([...points, newPoint]);
+    const updatedPoints = [...points, newPoint];
+    console.log('New points:', updatedPoints);
+    onPointsChange(updatedPoints);
   };
 
   const removePoint = (pointId) => {
