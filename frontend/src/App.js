@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import MobileHint from './components/MobileHint';
 import Dashboard from './pages/Dashboard';
 import Appointments from './pages/Appointments';
 import Therapists from './pages/Therapists';
@@ -20,6 +21,7 @@ function App() {
           <Route path="/services" element={<Services />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
+        <MobileHint />
       </BrowserRouter>
     </div>
   );
