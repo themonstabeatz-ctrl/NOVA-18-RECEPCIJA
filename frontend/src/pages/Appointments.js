@@ -159,6 +159,7 @@ const Appointments = () => {
     const therapistName = getTherapistName(appointment.therapist_id);
     const appointmentDate = new Date(appointment.start_time).toLocaleDateString('sr-RS');
     const appointmentTime = formatTime(appointment.start_time);
+    const appointmentEndTime = formatTime(appointment.end_time);
 
     // Generate SVG based on gender
     const generateBodySVG = () => {
