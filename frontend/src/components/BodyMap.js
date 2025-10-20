@@ -29,29 +29,40 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
     return points.filter(p => p.side === viewSide);
   };
 
-  // Image URLs from uploaded file - 4 body contours
-  const bodyImageUrl = 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/npczje4d_konture%20tela.jpg';
+  // Individual image URLs for each body type and side
+  const bodyImages = {
+    male: {
+      front: 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/8sxf3yck_muskarac%20prednja%20strana.png',
+      back: 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/ft1hsvql_muskarac%20zadnja%20strana.png'
+    },
+    female: {
+      front: 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/0nihksi1_zensko%20prednja%20strana.png',
+      back: 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/k1muysu4_zensko%20zadnja%20strana.png'
+    }
+  };
 
-  const BodyView = ({ viewSide, imageStyle }) => {
+  const BodyView = ({ viewSide }) => {
     const sidePoints = getPointsForSide(viewSide);
+    const imageUrl = gender ? bodyImages[gender][viewSide] : null;
+    
+    if (!imageUrl) return null;
     
     return (
-      <div className="relative" style={{ width: '100%', maxWidth: '300px', margin: '0 auto' }}>
+      <div className="relative" style={{ width: '100%', maxWidth: '350px', margin: '0 auto' }}>
         <div 
-          className="relative cursor-crosshair border-2 border-gray-300 rounded-lg overflow-hidden bg-white"
+          className="relative cursor-crosshair border-2 border-gray-300 rounded-lg overflow-hidden bg-white shadow-lg"
           onClick={(e) => handleBodyClick(e, viewSide)}
           data-testid={`body-map-${viewSide}`}
           style={{ aspectRatio: '1/2' }}
         >
           <img 
-            src={bodyImageUrl}
+            src={imageUrl}
             alt={`Body ${viewSide}`}
             style={{
               position: 'absolute',
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
-              ...imageStyle
+              objectFit: 'contain',
             }}
             draggable={false}
           />
@@ -67,6 +78,7 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
                   top: `${point.y}%`,
                   transform: 'translate(-50%, -50%)',
                   cursor: 'pointer',
+                  zIndex: 10,
                 }}
                 onMouseEnter={() => setHoveredPoint(point.id)}
                 onMouseLeave={() => setHoveredPoint(null)}
@@ -77,12 +89,12 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
               >
                 <div
                   style={{
-                    width: '16px',
-                    height: '16px',
+                    width: '18px',
+                    height: '18px',
                     borderRadius: '50%',
                     backgroundColor: '#ef4444',
-                    border: '2px solid #991b1b',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                    border: '3px solid #991b1b',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
                   }}
                 />
                 {hoveredPoint === point.id && (
@@ -93,13 +105,14 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
                       left: '50%',
                       transform: 'translateX(-50%)',
                       marginBottom: '8px',
-                      padding: '4px 8px',
+                      padding: '6px 10px',
                       backgroundColor: '#991b1b',
                       color: 'white',
-                      fontSize: '10px',
+                      fontSize: '11px',
                       borderRadius: '4px',
                       whiteSpace: 'nowrap',
                       fontWeight: 'bold',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
                     }}
                   >
                     Klik za brisanje
@@ -109,48 +122,11 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
             ))}
           </div>
         </div>
-        <p className="text-xs text-center text-gray-600 mt-2 font-medium">
+        <p className="text-sm text-center text-gray-700 mt-3 font-semibold">
           {viewSide === 'front' ? 'Prednja strana' : 'Zadnja strana'}
         </p>
       </div>
     );
-  };
-
-  // Calculate image crop positions for 4 body types
-  const getImageStyle = () => {
-    if (gender === 'male') {
-      if (side === 'front') {
-        // Top-left quadrant (male front)
-        return {
-          objectPosition: '0% 0%',
-          transform: 'scale(2)',
-          transformOrigin: 'top left'
-        };
-      } else {
-        // Top-right quadrant (male back)
-        return {
-          objectPosition: '100% 0%',
-          transform: 'scale(2)',
-          transformOrigin: 'top right'
-        };
-      }
-    } else {
-      if (side === 'front') {
-        // Bottom-left quadrant (female front)
-        return {
-          objectPosition: '0% 100%',
-          transform: 'scale(2)',
-          transformOrigin: 'bottom left'
-        };
-      } else {
-        // Bottom-right quadrant (female back)
-        return {
-          objectPosition: '100% 100%',
-          transform: 'scale(2)',
-          transformOrigin: 'bottom right'
-        };
-      }
-    }
   };
 
   const frontPoints = getPointsForSide('front');
@@ -167,10 +143,14 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
         <div className="flex gap-4">
           <button
             type="button"
-            onClick={() => onGenderChange('male')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            onClick={() => {
+              onGenderChange('male');
+              // Clear points when changing gender
+              onPointsChange([]);
+            }}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
               gender === 'male'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-blue-600 text-white shadow-lg scale-105'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
             data-testid="gender-male-btn"
@@ -179,10 +159,14 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
           </button>
           <button
             type="button"
-            onClick={() => onGenderChange('female')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            onClick={() => {
+              onGenderChange('female');
+              // Clear points when changing gender
+              onPointsChange([]);
+            }}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
               gender === 'female'
-                ? 'bg-pink-600 text-white'
+                ? 'bg-pink-600 text-white shadow-lg scale-105'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
             data-testid="gender-female-btn"
@@ -195,7 +179,7 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
       {/* Body Map */}
       {gender && (
         <div>
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex justify-between items-center mb-3">
             <label className="block text-sm font-medium text-gray-700">
               Kliknite na telo da označite mesta za masažu:
             </label>
@@ -203,7 +187,7 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
               <button
                 type="button"
                 onClick={() => onPointsChange([])}
-                className="text-sm text-red-600 hover:text-red-800"
+                className="text-sm text-red-600 hover:text-red-800 font-semibold"
                 data-testid="clear-points-btn"
               >
                 Obriši sve tačke ({totalPoints})
@@ -212,13 +196,13 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
           </div>
 
           {/* Side Toggle Buttons */}
-          <div className="flex gap-2 mb-4 justify-center">
+          <div className="flex gap-3 mb-6 justify-center">
             <button
               type="button"
               onClick={() => setSide('front')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-8 py-3 rounded-lg font-semibold transition-all ${
                 side === 'front'
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-indigo-600 text-white shadow-lg scale-105'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
               data-testid="front-side-btn"
@@ -228,9 +212,9 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
             <button
               type="button"
               onClick={() => setSide('back')}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-8 py-3 rounded-lg font-semibold transition-all ${
                 side === 'back'
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-indigo-600 text-white shadow-lg scale-105'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
               data-testid="back-side-btn"
@@ -240,16 +224,18 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
           </div>
           
           {/* Body View */}
-          <BodyView viewSide={side} imageStyle={getImageStyle()} />
+          <BodyView viewSide={side} />
           
-          <p className="text-xs text-gray-500 mt-3 text-center">
-            💡 Kliknite na telo za dodavanje tačke • Kliknite na tačku za brisanje
-          </p>
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800 text-center">
+              💡 <strong>Uputstvo:</strong> Kliknite na telo za dodavanje crvene tačke • Kliknite na tačku za brisanje
+            </p>
+          </div>
           
           {totalPoints > 0 && (
-            <div className="mt-3 text-center">
-              <p className="text-sm text-gray-600">
-                <strong>Ukupno označenih tačaka:</strong> {totalPoints}
+            <div className="mt-4 text-center bg-green-50 p-3 rounded-lg border border-green-200">
+              <p className="text-sm text-green-800 font-semibold">
+                ✓ <strong>Ukupno označenih tačaka:</strong> {totalPoints}
                 {frontPoints.length > 0 && ` (Prednja: ${frontPoints.length})`}
                 {backPoints.length > 0 && ` (Zadnja: ${backPoints.length})`}
               </p>
