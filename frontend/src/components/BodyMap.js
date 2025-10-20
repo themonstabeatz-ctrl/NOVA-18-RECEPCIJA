@@ -234,9 +234,12 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
           {/* Body View */}
           <BodyView viewSide={side} />
           
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800 text-center">
-              💡 <strong>Uputstvo:</strong> Kliknite na telo za dodavanje crvene tačke • Kliknite na tačku za brisanje
+          <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg shadow-sm">
+            <p className="text-sm text-blue-900 text-center font-medium">
+              💡 <strong>Uputstvo:</strong> Kliknite bilo gde na telo za dodavanje crvene tačke • Kliknite na tačku za brisanje
+            </p>
+            <p className="text-xs text-blue-700 text-center mt-2">
+              {gender ? `Aktivna slika: ${gender === 'male' ? 'Muški' : 'Ženski'} - ${side === 'front' ? 'Prednja' : 'Zadnja'} strana` : 'Prvo izaberite pol'}
             </p>
           </div>
           
