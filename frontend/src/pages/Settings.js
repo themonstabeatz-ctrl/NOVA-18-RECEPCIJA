@@ -46,7 +46,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8" data-testid="settings-page">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-8 overflow-x-hidden" data-testid="settings-page">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900" data-testid="settings-title">
