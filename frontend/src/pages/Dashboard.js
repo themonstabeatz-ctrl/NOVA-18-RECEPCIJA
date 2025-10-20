@@ -354,30 +354,30 @@ const Dashboard = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {therapistStats.length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
+                        <td colSpan="4" className="px-3 md:px-6 py-4 text-center text-gray-500 text-sm">
                           Nema podataka za izabrani period
                         </td>
                       </tr>
                     ) : (
                       therapistStats.map((therapist) => (
                         <tr key={therapist.therapist_id} data-testid={`therapist-row-${therapist.therapist_id}`}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
+                          <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">
+                            <div className="text-xs md:text-sm font-medium text-gray-900">
                               {therapist.therapist_name}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
+                          <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">
+                            <div className="text-xs md:text-sm text-gray-900">
                               {therapist.total_hours.toFixed(1)}h
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
+                          <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">
+                            <div className="text-xs md:text-sm text-gray-900">
                               {therapist.total_revenue.toLocaleString()} RSD
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{therapist.client_count}</div>
+                          <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">
+                            <div className="text-xs md:text-sm text-gray-900">{therapist.client_count}</div>
                           </td>
                         </tr>
                       ))
