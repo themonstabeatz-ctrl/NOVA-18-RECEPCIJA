@@ -241,49 +241,55 @@ const Appointments = () => {
           }
           .header {
             text-align: center;
-            border-bottom: 3px solid #4f46e5;
+            border-bottom: 3px solid #d97706;
             padding-bottom: 20px;
             margin-bottom: 30px;
           }
+          .header img {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 15px;
+          }
           .header h1 {
-            color: #4f46e5;
-            margin: 0 0 10px 0;
+            color: #92400e;
+            margin: 10px 0;
+            font-size: 28px;
           }
           .info-section {
-            background: #f9fafb;
+            background: #fef3c7;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 30px;
-            border-left: 4px solid #4f46e5;
+            border-left: 4px solid #d97706;
           }
           .info-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
             padding: 8px 0;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #fde68a;
           }
           .info-label {
             font-weight: bold;
-            color: #374151;
+            color: #78350f;
           }
           .info-value {
-            color: #6b7280;
+            color: #92400e;
           }
           .body-map-section {
             margin-top: 30px;
             text-align: center;
           }
           .body-map-section h2 {
-            color: #1f2937;
+            color: #78350f;
             margin-bottom: 20px;
           }
           .footer {
             margin-top: 50px;
             padding-top: 20px;
-            border-top: 2px solid #e5e7eb;
+            border-top: 2px solid #fde68a;
             text-align: center;
-            color: #9ca3af;
+            color: #d97706;
             font-size: 12px;
           }
           @media print {
@@ -298,8 +304,9 @@ const Appointments = () => {
       </head>
       <body>
         <div class="header">
-          <h1>🌿 LIST ZA MASAŽU 🌿</h1>
-          <p style="color: #6b7280; margin: 0;">Spa & Massage Center</p>
+          <img src="https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/oeoyckdv_Bua%20luang%20logo.png" alt="Bua Luang Thai Spa Logo" />
+          <h1>Bua Luang Thai Spa</h1>
+          <p style="color: #92400e; margin: 0; font-size: 16px;">LIST ZA MASAŽU</p>
         </div>
 
         <div class="info-section">
@@ -307,16 +314,6 @@ const Appointments = () => {
             <span class="info-label">Klijent:</span>
             <span class="info-value">${appointment.client_first_name} ${appointment.client_last_name}</span>
           </div>
-          <div class="info-row">
-            <span class="info-label">Telefon:</span>
-            <span class="info-value">${appointment.client_phone}</span>
-          </div>
-          ${appointment.client_email ? `
-          <div class="info-row">
-            <span class="info-label">Email:</span>
-            <span class="info-value">${appointment.client_email}</span>
-          </div>
-          ` : ''}
           <div class="info-row">
             <span class="info-label">Datum termina:</span>
             <span class="info-value">${appointmentDate} u ${appointmentTime}</span>
