@@ -59,7 +59,7 @@ class Therapist(TherapistBase):
 # ============================================
 class ServiceBase(BaseModel):
     name: str
-    duration: int = Field(..., description="Duration in minutes: 30, 45, 60, or 120")
+    duration: int = Field(..., description="Duration in minutes: 30, 45, 60, 90, or 120")
     price: float = Field(..., description="Price in RSD")
     description: Optional[str] = None
 
