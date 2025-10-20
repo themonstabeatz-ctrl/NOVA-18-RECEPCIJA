@@ -84,6 +84,8 @@ class AppointmentBase(BaseModel):
     service_id: str
     start_time: datetime
     status: AppointmentStatus = AppointmentStatus.SCHEDULED
+    body_map_gender: Optional[str] = None  # "male" or "female"
+    body_map_points: Optional[List[Dict[str, Any]]] = []  # List of marked points
 
 class AppointmentCreate(AppointmentBase):
     pass
