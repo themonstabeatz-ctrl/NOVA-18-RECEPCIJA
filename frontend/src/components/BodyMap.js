@@ -4,6 +4,8 @@ const BodyMap = ({ gender, onGenderChange, points, onPointsChange }) => {
   const [side, setSide] = useState('front'); // 'front' or 'back'
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
+  console.log('BodyMap render:', { gender, pointsCount: points?.length || 0, side });
+
   const handleBodyClick = (e, viewSide) => {
     // Prevent default behavior
     e.preventDefault();
