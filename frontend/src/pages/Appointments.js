@@ -640,7 +640,7 @@ const Appointments = () => {
         ) : (
           /* Calendar View */
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto scroll-container">
               <table className="min-w-full">
                 <thead className="bg-gray-50 border-b">
                   <tr>
