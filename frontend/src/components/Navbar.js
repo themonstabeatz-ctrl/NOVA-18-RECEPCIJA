@@ -23,11 +23,11 @@ const Navbar = () => {
               <img 
                 src="https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/oeoyckdv_Bua%20luang%20logo.png" 
                 alt="Bua Luang Thai Spa Logo" 
-                className="h-8 sm:h-10 w-auto"
+                className="h-12 sm:h-14 md:h-16 w-auto"
               />
-              <div className="flex flex-col">
-                <span className="text-xs sm:text-lg md:text-xl font-bold text-amber-700 leading-tight">Bua Luang</span>
-                <span className="text-xs sm:text-lg md:text-xl font-bold text-amber-700 leading-tight">Thai Spa</span>
+              <div className="flex flex-col justify-center">
+                <span className="text-sm sm:text-lg md:text-xl font-bold text-amber-700 leading-tight">Bua Luang</span>
+                <span className="text-sm sm:text-lg md:text-xl font-bold text-amber-700 leading-tight">Thai Spa</span>
               </div>
             </div>
           </div>
