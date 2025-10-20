@@ -165,12 +165,12 @@ const Appointments = () => {
     const generateBodyMaps = () => {
       const bodyImages = {
         male: {
-          front: 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/8sxf3yck_muskarac%20prednja%20strana.png',
-          back: 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/ft1hsvql_muskarac%20zadnja%20strana.png'
+          front: process.env.REACT_APP_BODY_MALE_FRONT,
+          back: process.env.REACT_APP_BODY_MALE_BACK
         },
         female: {
-          front: 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/0nihksi1_zensko%20prednja%20strana.png',
-          back: 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/k1muysu4_zensko%20zadnja%20strana.png'
+          front: process.env.REACT_APP_BODY_FEMALE_FRONT,
+          back: process.env.REACT_APP_BODY_FEMALE_BACK
         }
       };
       
