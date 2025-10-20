@@ -295,8 +295,11 @@ async def create_appointment(appointment: AppointmentCreate):
     if not service:
         raise HTTPException(status_code=404, detail="Service not found")
     
+    # Remove timezone info if present to use naive datetime (local time)
+    start_time = appointment.start_time.replace(tzinfo=None) if appointment.start_time.tzinfo else appointment.start_time
+    
     # Calculate end time based on service duration
-    end_time = appointment.start_time + timedelta(minutes=service['duration'])
+    end_time = start_time + timedelta(minutes=service['duration'])
     
     # Check for overlapping appointments
     overlapping = await db.appointments.find({
