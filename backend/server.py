@@ -397,8 +397,11 @@ async def update_appointment(appointment_id: str, appointment: AppointmentCreate
     if not service:
         raise HTTPException(status_code=404, detail="Service not found")
     
+    # Remove timezone info if present to use naive datetime (local time)
+    start_time = appointment.start_time.replace(tzinfo=None) if appointment.start_time.tzinfo else appointment.start_time
+    
     # Calculate end time based on service duration
-    end_time = appointment.start_time + timedelta(minutes=service['duration'])
+    end_time = start_time + timedelta(minutes=service['duration'])
     
     # Check for overlapping appointments (excluding current appointment)
     overlapping = await db.appointments.find({
@@ -408,7 +411,7 @@ async def update_appointment(appointment_id: str, appointment: AppointmentCreate
         "$or": [
             {
                 "start_time": {"$lt": end_time.isoformat()},
-                "end_time": {"$gt": appointment.start_time.isoformat()}
+                "end_time": {"$gt": start_time.isoformat()}
             }
         ]
     }).to_list(1)
@@ -418,7 +421,7 @@ async def update_appointment(appointment_id: str, appointment: AppointmentCreate
     
     update_data = appointment.model_dump()
     update_data['end_time'] = end_time.isoformat()
-    update_data['start_time'] = update_data['start_time'].isoformat()
+    update_data['start_time'] = start_time.isoformat()
     
     await db.appointments.update_one({"id": appointment_id}, {"$set": update_data})
     
