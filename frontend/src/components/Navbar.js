@@ -25,8 +25,10 @@ const Navbar = () => {
                 alt="Bua Luang Thai Spa Logo" 
                 className="h-8 sm:h-10 w-auto"
               />
-              <span className="text-sm sm:text-xl font-bold text-amber-700 hidden xs:block">Bua Luang Thai Spa</span>
-              <span className="text-sm font-bold text-amber-700 xs:hidden">Bua Luang</span>
+              <div className="flex flex-col">
+                <span className="text-xs sm:text-lg md:text-xl font-bold text-amber-700 leading-tight">Bua Luang</span>
+                <span className="text-xs sm:text-lg md:text-xl font-bold text-amber-700 leading-tight">Thai Spa</span>
+              </div>
             </div>
           </div>
 
