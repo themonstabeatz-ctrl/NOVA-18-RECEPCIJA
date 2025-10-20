@@ -22,6 +22,8 @@ const Appointments = () => {
     service_id: '',
     start_time: '',
     status: 'scheduled',
+    body_map_gender: '',
+    body_map_points: [],
   });
 
   useEffect(() => {
