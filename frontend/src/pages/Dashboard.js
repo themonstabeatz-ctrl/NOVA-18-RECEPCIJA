@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { analyticsService } from '../services/api';
-import { TrendingUp, Users, DollarSign, Clock } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Clock, Printer } from 'lucide-react';
 
 const Dashboard = () => {
   const [period, setPeriod] = useState('week');
