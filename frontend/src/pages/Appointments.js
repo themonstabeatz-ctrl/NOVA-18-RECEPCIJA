@@ -163,7 +163,7 @@ const Appointments = () => {
 
   const changeDate = (days) => {
     const currentDate = new Date(selectedDate);
-    currentDate.setDate(currentDate.setDate(currentDate.getDate() + days));
+    currentDate.setDate(currentDate.getDate() + days);
     setSelectedDate(currentDate.toISOString().split('T')[0]);
   };
 
