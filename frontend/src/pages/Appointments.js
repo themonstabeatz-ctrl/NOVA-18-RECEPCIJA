@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { appointmentService, therapistService, serviceService, businessHoursService } from '../services/api';
-import { Plus, Edit2, Trash2, X, Calendar as CalendarIcon, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Calendar as CalendarIcon, Check, ChevronLeft, ChevronRight, Printer } from 'lucide-react';
+import BodyMap from '../components/BodyMap';
 
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
