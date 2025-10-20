@@ -17,7 +17,8 @@ const Services = () => {
   const durationOptions = [
     { value: 30, label: '30 minuta' },
     { value: 45, label: '45 minuta' },
-    { value: 60, label: '60 minuta' },
+    { value: 60, label: '60 minuta (1h)' },
+    { value: 90, label: '90 minuta (1.5h)' },
     { value: 120, label: '120 minuta (2h)' },
   ];
 
