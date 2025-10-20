@@ -192,8 +192,8 @@ const Appointments = () => {
         <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 30px;">
           <div style="text-align: center;">
             <h3 style="color: #78350f; margin-bottom: 15px; font-size: 18px;">Prednja strana</h3>
-            <div style="position: relative; width: 250px; height: 500px; border: 2px solid #d97706; border-radius: 8px; overflow: hidden;">
-              <img src="${bodyImageUrl}" alt="Front" style="position: absolute; width: 100%; height: 100%; object-fit: cover; ${getImageStyle('front')}" />
+            <div style="position: relative; width: 250px; height: 500px; border: 2px solid #d97706; border-radius: 8px; overflow: hidden; background: white;">
+              <img src="${frontImageUrl}" alt="Front" style="position: absolute; width: 100%; height: 100%; object-fit: contain;" />
               <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
                 ${renderPoints(frontPoints)}
               </div>
@@ -203,8 +203,8 @@ const Appointments = () => {
           
           <div style="text-align: center;">
             <h3 style="color: #78350f; margin-bottom: 15px; font-size: 18px;">Zadnja strana</h3>
-            <div style="position: relative; width: 250px; height: 500px; border: 2px solid #d97706; border-radius: 8px; overflow: hidden;">
-              <img src="${bodyImageUrl}" alt="Back" style="position: absolute; width: 100%; height: 100%; object-fit: cover; ${getImageStyle('back')}" />
+            <div style="position: relative; width: 250px; height: 500px; border: 2px solid #d97706; border-radius: 8px; overflow: hidden; background: white;">
+              <img src="${backImageUrl}" alt="Back" style="position: absolute; width: 100%; height: 100%; object-fit: contain;" />
               <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
                 ${renderPoints(backPoints)}
               </div>
