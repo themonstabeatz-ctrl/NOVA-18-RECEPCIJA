@@ -163,25 +163,22 @@ const Appointments = () => {
 
     // Generate body maps with real images
     const generateBodyMaps = () => {
-      const bodyImageUrl = 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/npczje4d_konture%20tela.jpg';
+      const bodyImages = {
+        male: {
+          front: 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/8sxf3yck_muskarac%20prednja%20strana.png',
+          back: 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/ft1hsvql_muskarac%20zadnja%20strana.png'
+        },
+        female: {
+          front: 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/0nihksi1_zensko%20prednja%20strana.png',
+          back: 'https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/k1muysu4_zensko%20zadnja%20strana.png'
+        }
+      };
+      
       const frontPoints = (appointment.body_map_points || []).filter(p => p.side === 'front');
       const backPoints = (appointment.body_map_points || []).filter(p => p.side === 'back');
       
-      const getImageStyle = (side) => {
-        if (appointment.body_map_gender === 'male') {
-          if (side === 'front') {
-            return 'object-position: 0% 0%; transform: scale(2); transform-origin: top left;';
-          } else {
-            return 'object-position: 100% 0%; transform: scale(2); transform-origin: top right;';
-          }
-        } else {
-          if (side === 'front') {
-            return 'object-position: 0% 100%; transform: scale(2); transform-origin: bottom left;';
-          } else {
-            return 'object-position: 100% 100%; transform: scale(2); transform-origin: bottom right;';
-          }
-        }
-      };
+      const frontImageUrl = bodyImages[appointment.body_map_gender]?.front;
+      const backImageUrl = bodyImages[appointment.body_map_gender]?.back;
 
       const renderPoints = (points) => {
         return points.map(point => `
