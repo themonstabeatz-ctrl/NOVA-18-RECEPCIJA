@@ -54,14 +54,15 @@ const Appointments = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Convert datetime-local to ISO string properly
-      const localDate = new Date(formData.start_time);
-      // Remove timezone offset to get the correct local time
-      const isoString = localDate.toISOString().slice(0, -1); // Remove 'Z'
+      // datetime-local gives us "2025-10-19T14:00" format
+      // We need to send it as-is with just :00 for seconds
+      const dateTimeString = formData.start_time.includes('T') 
+        ? `${formData.start_time}:00` 
+        : formData.start_time;
       
       const data = {
         ...formData,
-        start_time: isoString,
+        start_time: dateTimeString,
       };
 
       if (editingAppointment) {
