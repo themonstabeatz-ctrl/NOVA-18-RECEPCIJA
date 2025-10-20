@@ -246,12 +246,12 @@ const Dashboard = () => {
         </div>
 
         {/* Period Selector */}
-        <div className="mb-6 flex gap-2" data-testid="period-selector">
+        <div className="mb-4 md:mb-6 flex flex-wrap gap-2" data-testid="period-selector">
           {Object.entries(periodLabels).map(([key, label]) => (
             <button
               key={key}
               onClick={() => setPeriod(key)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`flex-1 sm:flex-none px-3 md:px-4 py-2 rounded-lg font-medium transition-colors text-sm md:text-base ${
                 period === key
                   ? 'bg-indigo-600 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
