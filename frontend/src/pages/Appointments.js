@@ -880,6 +880,19 @@ const Appointments = () => {
                     </select>
                   </div>
                 )}
+
+                {/* Body Map Section */}
+                <div className="col-span-2 mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Mapa tela za masažu (opciono)
+                  </h3>
+                  <BodyMap
+                    gender={formData.body_map_gender}
+                    onGenderChange={(gender) => setFormData({ ...formData, body_map_gender: gender })}
+                    points={formData.body_map_points}
+                    onPointsChange={(points) => setFormData({ ...formData, body_map_points: points })}
+                  />
+                </div>
               </div>
 
               <div className="mt-6 flex gap-3">
