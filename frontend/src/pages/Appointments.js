@@ -301,7 +301,7 @@ const Appointments = () => {
       </head>
       <body>
         <div class="header">
-          <img src="https://customer-assets.emergentagent.com/job_pozdrav-kako-si/artifacts/oeoyckdv_Bua%20luang%20logo.png" alt="Bua Luang Thai Spa Logo" />
+          <img src="${process.env.REACT_APP_LOGO_URL}" alt="Bua Luang Thai Spa Logo" />
           <h1>Bua Luang Thai Spa</h1>
           <p style="color: #92400e; margin: 0; font-size: 16px;">LIST ZA MASAŽU</p>
         </div>
