@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { analyticsService } from '../services/api';
-import { TrendingUp, Users, DollarSign, Clock, Printer } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Clock, Printer, LogOut } from 'lucide-react';
 
-const Dashboard = () => {
+const Dashboard = ({ onLogout }) => {
   const [period, setPeriod] = useState('week');
   const [therapistStats, setTherapistStats] = useState([]);
   const [revenueData, setRevenueData] = useState(null);
