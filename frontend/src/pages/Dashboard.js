@@ -235,14 +235,26 @@ const Dashboard = ({ onLogout }) => {
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900" data-testid="dashboard-title">CEO Dashboard</h1>
             <p className="mt-2 text-sm md:text-base text-gray-600">Pregled performansi i statistike</p>
           </div>
-          <button
-            onClick={handlePrintReport}
-            className="inline-flex items-center justify-center px-4 py-2 bg-amber-700 text-white rounded-lg hover:bg-amber-800 transition-colors shadow-md"
-            data-testid="print-report-btn"
-          >
-            <Printer className="w-5 h-5 mr-2" />
-            Štampaj izveštaj
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handlePrintReport}
+              className="inline-flex items-center justify-center px-4 py-2 bg-amber-700 text-white rounded-lg hover:bg-amber-800 transition-colors shadow-md"
+              data-testid="print-report-btn"
+            >
+              <Printer className="w-5 h-5 mr-2" />
+              Štampaj izveštaj
+            </button>
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-md"
+                data-testid="logout-btn"
+              >
+                <LogOut className="w-5 h-5 mr-2" />
+                Odjavi se
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Period Selector */}
