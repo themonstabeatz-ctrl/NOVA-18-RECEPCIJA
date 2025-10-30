@@ -9,7 +9,7 @@ const Login = ({ onLogin }) => {
     e.preventDefault();
     
     // Password provera - maksimalno 10 karaktera
-    const correctPassword = process.env.REACT_APP_ADMIN_PASSWORD || 'admin123';
+    const correctPassword = process.env.REACT_APP_DASHBOARD_PASSWORD || 'studio149';
     
     if (password === correctPassword) {
       localStorage.setItem('isAuthenticated', 'true');
