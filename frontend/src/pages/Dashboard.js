@@ -282,16 +282,14 @@ const Dashboard = () => {
               <Printer className="w-5 h-5 mr-2" />
               Štampaj izveštaj
             </button>
-            {onLogout && (
-              <button
-                onClick={onLogout}
-                className="inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-md"
-                data-testid="logout-btn"
-              >
-                <LogOut className="w-5 h-5 mr-2" />
-                Odjavi se
-              </button>
-            )}
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-md"
+              data-testid="logout-btn"
+            >
+              <LogOut className="w-5 h-5 mr-2" />
+              Odjavi se
+            </button>
           </div>
         </div>
 
