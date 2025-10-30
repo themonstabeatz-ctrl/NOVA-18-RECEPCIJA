@@ -260,7 +260,14 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 md:py-8" data-testid="dashboard-page">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Login Modal */}
+      {showLoginModal && (
+        <Login onLogin={handleLogin} onClose={handleCloseModal} />
+      )}
+
+      {/* Dashboard Content */}
+      {!showLoginModal && isAuthenticated && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900" data-testid="dashboard-title">CEO Dashboard</h1>
