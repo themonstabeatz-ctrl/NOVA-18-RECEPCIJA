@@ -47,6 +47,22 @@ const Dashboard = () => {
     }
   };
 
+  const handleLogin = (status) => {
+    setIsAuthenticated(status);
+    setShowLoginModal(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    setIsAuthenticated(false);
+    setShowLoginModal(true);
+  };
+
+  const handleCloseModal = () => {
+    // Redirect to appointments page if user closes modal without logging in
+    window.location.href = '/appointments';
+  };
+
   const periodLabels = {
     day: 'Danas',
     week: 'Ova nedelja',
