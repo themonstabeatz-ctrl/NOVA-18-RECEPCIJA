@@ -1,17 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { analyticsService } from '../services/api';
 import { TrendingUp, Users, DollarSign, Clock, Printer, LogOut } from 'lucide-react';
+import Login from '../components/Login';
 
-const Dashboard = ({ onLogout }) => {
+const Dashboard = () => {
   const [period, setPeriod] = useState('week');
   const [therapistStats, setTherapistStats] = useState([]);
   const [revenueData, setRevenueData] = useState(null);
   const [clientData, setClientData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  // Check authentication on mount
+  useEffect(() => {
+    const authStatus = localStorage.getItem('isAuthenticated');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    } else {
+      setShowLoginModal(true);
+    }
+  }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [period]);
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [period, isAuthenticated]);
 
   const fetchData = async () => {
     setLoading(true);
