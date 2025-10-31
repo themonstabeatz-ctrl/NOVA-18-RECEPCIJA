@@ -75,9 +75,17 @@ const Dashboard = () => {
   const totalAppointments = revenueData?.appointments_count || 0;
   const totalHours = therapistStats.reduce((sum, t) => sum + t.total_hours, 0);
 
+  const formatDateToDDMMYYYY = () => {
+    const date = new Date();
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   const handlePrintReport = () => {
     const printWindow = window.open('', '_blank');
-    const currentDate = new Date().toLocaleDateString('sr-RS');
+    const currentDate = formatDateToDDMMYYYY();
     
     const html = `
       <!DOCTYPE html>
