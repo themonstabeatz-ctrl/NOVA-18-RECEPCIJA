@@ -491,20 +491,38 @@ const Appointments = () => {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+            <div className="flex items-center gap-2">
               <CalendarIcon className="w-5 h-5 text-gray-500" />
-              <div className="flex flex-col gap-1">
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  data-testid="date-picker"
-                />
-                <span className="text-sm text-gray-600 px-1">
-                  {formatDateToDDMMYYYY(selectedDate)}
-                </span>
-              </div>
+              <input
+                type="text"
+                value={formatDateToDDMMYYYY(selectedDate)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Only allow numbers and slashes
+                  if (/^[\d/]*$/.test(value)) {
+                    // Try to convert dd/mm/yyyy to yyyy-mm-dd
+                    if (value.length === 10 && value.includes('/')) {
+                      const converted = formatDateToYYYYMMDD(value);
+                      if (converted && converted !== value) {
+                        setSelectedDate(converted);
+                      }
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  const value = e.target.value;
+                  if (value.length === 10 && value.includes('/')) {
+                    const converted = formatDateToYYYYMMDD(value);
+                    if (converted && converted !== value) {
+                      setSelectedDate(converted);
+                    }
+                  }
+                }}
+                placeholder="DD/MM/YYYY"
+                maxLength={10}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-40 text-center font-medium"
+                data-testid="date-picker"
+              />
             </div>
             <button
               onClick={() => changeDate(1)}
