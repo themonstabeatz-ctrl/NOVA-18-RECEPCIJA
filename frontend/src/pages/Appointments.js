@@ -482,8 +482,8 @@ const Appointments = () => {
         </div>
 
         {/* Date Navigation & View Toggle */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => changeDate(-1)}
               className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
@@ -491,15 +491,20 @@ const Appointments = () => {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
               <CalendarIcon className="w-5 h-5 text-gray-500" />
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                data-testid="date-picker"
-              />
+              <div className="flex flex-col gap-1">
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  data-testid="date-picker"
+                />
+                <span className="text-sm text-gray-600 px-1">
+                  {formatDateToDDMMYYYY(selectedDate)}
+                </span>
+              </div>
             </div>
             <button
               onClick={() => changeDate(1)}
