@@ -176,7 +176,7 @@ const Appointments = () => {
     const printWindow = window.open('', '_blank');
     const serviceName = getServiceName(appointment.service_id);
     const therapistName = getTherapistName(appointment.therapist_id);
-    const appointmentDate = new Date(appointment.start_time).toLocaleDateString('sr-RS');
+    const appointmentDate = formatDateToDDMMYYYY(appointment.start_time.split('T')[0]);
     const appointmentTime = formatTime(appointment.start_time);
     const appointmentEndTime = formatTime(appointment.end_time);
 
