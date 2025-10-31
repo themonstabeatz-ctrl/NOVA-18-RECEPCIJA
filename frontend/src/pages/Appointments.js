@@ -26,6 +26,25 @@ const Appointments = () => {
     body_map_points: [],
   });
 
+  // Helper functions for date format conversion
+  const formatDateToDDMMYYYY = (dateString) => {
+    // Convert YYYY-MM-DD to DD/MM/YYYY
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatDateToYYYYMMDD = (ddmmyyyyString) => {
+    // Convert DD/MM/YYYY to YYYY-MM-DD
+    const parts = ddmmyyyyString.split('/');
+    if (parts.length === 3) {
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return ddmmyyyyString;
+  };
+
   useEffect(() => {
     fetchData();
   }, [selectedDate]);
