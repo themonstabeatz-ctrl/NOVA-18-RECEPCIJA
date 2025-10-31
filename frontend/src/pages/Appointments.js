@@ -496,24 +496,26 @@ const Appointments = () => {
               <input
                 type="text"
                 value={formatDateToDDMMYYYY(selectedDate)}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Only allow numbers and slashes
-                  if (/^[\d/]*$/.test(value)) {
-                    // Try to convert dd/mm/yyyy to yyyy-mm-dd
-                    if (value.length === 10 && value.includes('/')) {
-                      const converted = formatDateToYYYYMMDD(value);
-                      if (converted && converted !== value) {
-                        setSelectedDate(converted);
-                      }
-                    }
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.target.blur();
                   }
                 }}
                 onBlur={(e) => {
-                  const value = e.target.value;
-                  if (value.length === 10 && value.includes('/')) {
-                    const converted = formatDateToYYYYMMDD(value);
-                    if (converted && converted !== value) {
+                  const value = e.target.value.trim();
+                  // Check if format is dd/mm/yyyy
+                  const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+                  const match = value.match(dateRegex);
+                  
+                  if (match) {
+                    const day = match[1];
+                    const month = match[2];
+                    const year = match[3];
+                    const converted = `${year}-${month}-${day}`;
+                    
+                    // Validate date
+                    const testDate = new Date(converted);
+                    if (testDate instanceof Date && !isNaN(testDate)) {
                       setSelectedDate(converted);
                     }
                   }
