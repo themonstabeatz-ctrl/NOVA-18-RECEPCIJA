@@ -202,13 +202,14 @@ const Appointments = () => {
     });
   };
 
-  const handlePrintMassageSheet = (appointment) => {
+  const handlePrintMassageSheet = (appointment, language = 'sr') => {
     const printWindow = window.open('', '_blank');
     const serviceName = getServiceName(appointment.service_id);
     const therapistName = getTherapistName(appointment.therapist_id);
     const appointmentDate = formatDateToDDMMYYYY(appointment.start_time.split('T')[0]);
     const appointmentTime = formatTime(appointment.start_time);
     const appointmentEndTime = formatTime(appointment.end_time);
+    const t = translations[language];
 
     // Generate body maps with real images
     const generateBodyMaps = () => {
@@ -240,7 +241,7 @@ const Appointments = () => {
       return `
         <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 30px;">
           <div style="text-align: center;">
-            <h3 style="color: #78350f; margin-bottom: 15px; font-size: 18px;">Prednja strana</h3>
+            <h3 style="color: #78350f; margin-bottom: 15px; font-size: 18px;">${t.frontSide}</h3>
             <div style="position: relative; width: 250px; height: 500px; border: 2px solid #d97706; border-radius: 8px; overflow: hidden; background: white; display: flex; align-items: center; justify-content: center;">
               <div style="position: relative; width: 100%; height: 100%;">
                 <img src="${frontImageUrl}" alt="Front" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 100%; max-height: 100%; object-fit: contain;" />
@@ -249,11 +250,11 @@ const Appointments = () => {
                 </div>
               </div>
             </div>
-            <p style="margin-top: 10px; color: #92400e; font-weight: bold;">${frontPoints.length} označenih tačaka</p>
+            <p style="margin-top: 10px; color: #92400e; font-weight: bold;">${frontPoints.length} ${t.markedPoints}</p>
           </div>
           
           <div style="text-align: center;">
-            <h3 style="color: #78350f; margin-bottom: 15px; font-size: 18px;">Zadnja strana</h3>
+            <h3 style="color: #78350f; margin-bottom: 15px; font-size: 18px;">${t.backSide}</h3>
             <div style="position: relative; width: 250px; height: 500px; border: 2px solid #d97706; border-radius: 8px; overflow: hidden; background: white; display: flex; align-items: center; justify-content: center;">
               <div style="position: relative; width: 100%; height: 100%;">
                 <img src="${backImageUrl}" alt="Back" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 100%; max-height: 100%; object-fit: contain;" />
