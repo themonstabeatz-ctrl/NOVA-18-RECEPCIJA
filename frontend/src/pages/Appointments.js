@@ -13,6 +13,8 @@ const Appointments = () => {
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [appointmentToPrint, setAppointmentToPrint] = useState(null);
   const [formData, setFormData] = useState({
     client_first_name: '',
     client_last_name: '',
@@ -25,6 +27,34 @@ const Appointments = () => {
     body_map_gender: '',
     body_map_points: [],
   });
+
+  // Translations for print
+  const translations = {
+    sr: {
+      title: 'LIST ZA MASAŽU',
+      client: 'Klijent:',
+      appointmentDate: 'Datum termina:',
+      time: 'Vreme:',
+      service: 'Usluga:',
+      therapist: 'Terapeut:',
+      bodyMap: 'Mapa tela - Označene oblasti za masažu',
+      frontSide: 'Prednja strana',
+      backSide: 'Zadnja strana',
+      markedPoints: 'označenih tačaka'
+    },
+    th: {
+      title: 'รายการนวด',
+      client: 'ลูกค้า:',
+      appointmentDate: 'วันที่นัดหมาย:',
+      time: 'เวลา:',
+      service: 'บริการ:',
+      therapist: 'นักบำบัด:',
+      bodyMap: 'แผนที่ร่างกาย - พื้นที่ที่ทำการนวด',
+      frontSide: 'ด้านหน้า',
+      backSide: 'ด้านหลัง',
+      markedPoints: 'จุดที่ทำเครื่องหมาย'
+    }
+  };
 
   // Helper functions for date format conversion
   const formatDateToDDMMYYYY = (dateString) => {
