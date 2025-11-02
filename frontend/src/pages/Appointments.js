@@ -666,7 +666,7 @@ const Appointments = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         {appointment.body_map_gender && (
                           <button
-                            onClick={() => handlePrintMassageSheet(appointment)}
+                            onClick={() => handlePrintClick(appointment)}
                             className="text-purple-600 hover:text-purple-900 mr-4"
                             data-testid={`print-appointment-${appointment.id}`}
                             title="Štampaj list za masažu"
