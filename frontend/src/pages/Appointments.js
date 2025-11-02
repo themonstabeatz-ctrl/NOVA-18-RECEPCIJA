@@ -202,6 +202,19 @@ const Appointments = () => {
     });
   };
 
+  const handlePrintClick = (appointment) => {
+    setAppointmentToPrint(appointment);
+    setShowLanguageModal(true);
+  };
+
+  const handleLanguageSelect = (language) => {
+    if (appointmentToPrint) {
+      handlePrintMassageSheet(appointmentToPrint, language);
+    }
+    setShowLanguageModal(false);
+    setAppointmentToPrint(null);
+  };
+
   const handlePrintMassageSheet = (appointment, language = 'sr') => {
     const printWindow = window.open('', '_blank');
     const serviceName = getServiceName(appointment.service_id);
