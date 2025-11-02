@@ -303,20 +303,8 @@ async def create_appointment(appointment: AppointmentCreate):
     # Calculate end time based on service duration
     end_time = start_time + timedelta(minutes=service['duration'])
     
-    # Check for overlapping appointments
-    overlapping = await db.appointments.find({
-        "therapist_id": appointment.therapist_id,
-        "status": AppointmentStatus.SCHEDULED,
-        "$or": [
-            {
-                "start_time": {"$lt": end_time.isoformat()},
-                "end_time": {"$gt": start_time.isoformat()}
-            }
-        ]
-    }).to_list(1)
-    
-    if overlapping:
-        raise HTTPException(status_code=400, detail="Therapist is not available at this time")
+    # Note: Overlap validation removed - multiple appointments can be scheduled at the same time
+    # This allows multiple therapists and rooms to be utilized simultaneously
     
     # Create appointment object with corrected start_time
     appointment_dict = appointment.model_dump()
