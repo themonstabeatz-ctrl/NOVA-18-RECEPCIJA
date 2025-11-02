@@ -353,34 +353,34 @@ const Appointments = () => {
         <div class="header">
           <img src="${process.env.REACT_APP_LOGO_URL}" alt="Bua Luang Thai Spa Logo" />
           <h1>Bua Luang Thai Spa</h1>
-          <p style="color: #92400e; margin: 0; font-size: 16px;">LIST ZA MASAŽU</p>
+          <p style="color: #92400e; margin: 0; font-size: 16px;">${t.title}</p>
         </div>
 
         <div class="info-section">
           <div class="info-row">
-            <span class="info-label">Klijent:</span>
+            <span class="info-label">${t.client}</span>
             <span class="info-value">${appointment.client_first_name} ${appointment.client_last_name}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Datum termina:</span>
+            <span class="info-label">${t.appointmentDate}</span>
             <span class="info-value">${appointmentDate}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Vreme:</span>
+            <span class="info-label">${t.time}</span>
             <span class="info-value">${appointmentTime} - ${appointmentEndTime}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Usluga:</span>
+            <span class="info-label">${t.service}</span>
             <span class="info-value">${serviceName}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Terapeut:</span>
+            <span class="info-label">${t.therapist}</span>
             <span class="info-value">${therapistName}</span>
           </div>
         </div>
 
         <div class="body-map-section">
-          <h2 style="color: #78350f; margin-bottom: 20px; text-align: center;">Mapa tela - Označene oblasti za masažu</h2>
+          <h2 style="color: #78350f; margin-bottom: 20px; text-align: center;">${t.bodyMap}</h2>
           ${appointment.body_map_gender ? generateBodyMaps() : '<p style="text-align: center; color: #999;">Nema mape tela</p>'}
           ${(appointment.body_map_points && appointment.body_map_points.length > 0) ? `
             <p style="margin-top: 30px; text-align: center; color: #92400e; font-weight: bold; font-size: 16px;">
