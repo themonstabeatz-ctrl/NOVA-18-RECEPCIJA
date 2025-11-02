@@ -263,7 +263,7 @@ const Appointments = () => {
                 </div>
               </div>
             </div>
-            <p style="margin-top: 10px; color: #92400e; font-weight: bold;">${backPoints.length} označenih tačaka</p>
+            <p style="margin-top: 10px; color: #92400e; font-weight: bold;">${backPoints.length} ${t.markedPoints}</p>
           </div>
         </div>
       `;
