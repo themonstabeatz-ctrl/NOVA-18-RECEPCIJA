@@ -982,6 +982,45 @@ const Appointments = () => {
           </div>
         </div>
       )}
+
+      {/* Language Selection Modal for Print */}
+      {showLanguageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">
+              Izaberite jezik za štampu / เลือกภาษาสำหรับการพิมพ์
+            </h3>
+            <p className="text-sm text-gray-600 mb-6 text-center">
+              Kliknite na željeni jezik ispod
+            </p>
+            
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => handleLanguageSelect('sr')}
+                className="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-lg transition-colors flex items-center justify-center gap-3"
+              >
+                <span className="text-2xl">🇷🇸</span>
+                <span>Srpski</span>
+              </button>
+              
+              <button
+                onClick={() => handleLanguageSelect('th')}
+                className="w-full py-4 px-6 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-lg transition-colors flex items-center justify-center gap-3"
+              >
+                <span className="text-2xl">🇹🇭</span>
+                <span>ภาษาไทย (Thai)</span>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowLanguageModal(false)}
+              className="mt-4 w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors"
+            >
+              Otkaži / ยกเลิก
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
