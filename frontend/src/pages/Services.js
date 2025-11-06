@@ -177,9 +177,9 @@ const Services = () => {
                             className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                           >
                             <option value="0">Bez popusta (0%)</option>
+                            <option value="5">5% popust</option>
                             <option value="10">10% popust</option>
                             <option value="15">15% popust</option>
-                            <option value="20">20% popust</option>
                           </select>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
