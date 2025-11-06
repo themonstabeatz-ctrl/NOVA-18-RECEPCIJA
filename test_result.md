@@ -288,7 +288,8 @@ metadata:
   testing_status: "COMPLETE"
 
 test_plan:
-  current_focus: []
+  current_focus: 
+    - "Services API Discount Information Verification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
