@@ -339,6 +339,9 @@ async def create_appointment(appointment: AppointmentCreate):
 @api_router.post("/appointments/couple", response_model=Appointment)
 async def create_couple_appointment(couple: CoupleAppointmentCreate):
     """Create a couple appointment with 15% discount"""
+    # Log incoming request for debugging
+    logger.info(f"Couple appointment request - duration_type: {couple.duration_type}, person1_services: {couple.person1_services}, person2_services: {couple.person2_services}")
+    
     # Verify therapist exists
     therapist = await db.therapists.find_one({"id": couple.therapist_id})
     if not therapist:
