@@ -98,6 +98,22 @@ class Appointment(AppointmentBase):
 
 
 # ============================================
+# Models - Couple Appointments
+# ============================================
+class CoupleAppointmentCreate(BaseModel):
+    client_first_name: str
+    client_last_name: str
+    client_phone: str
+    client_email: Optional[EmailStr] = None
+    therapist_id: str
+    start_time: datetime
+    duration_type: int  # 60, 90, or 120 (base duration per person)
+    person1_services: List[str]  # List of service IDs for person 1
+    person2_services: List[str]  # List of service IDs for person 2
+    status: AppointmentStatus = AppointmentStatus.SCHEDULED
+
+
+# ============================================
 # Models - Business Hours
 # ============================================
 class BusinessHours(BaseModel):
