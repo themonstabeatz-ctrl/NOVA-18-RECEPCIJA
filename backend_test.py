@@ -794,6 +794,11 @@ if __name__ == "__main__":
     else:
         print("❌ Analytics Revenue Tests: FAILED")
     
+    if specific_scenario_success:
+        print("✅ Specific Discount Scenario Tests: PASSED")
+    else:
+        print("❌ Specific Discount Scenario Tests: FAILED")
+    
     if analytics_discount_success:
         print("✅ Analytics Discount Calculation Tests: PASSED")
     else:
