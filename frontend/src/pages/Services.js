@@ -74,6 +74,16 @@ const Services = () => {
     }
   };
 
+  const handleDiscountChange = async (serviceId, discount) => {
+    try {
+      await serviceService.updateDiscount(serviceId, discount);
+      fetchServices(); // Refresh list
+    } catch (error) {
+      console.error('Error updating discount:', error);
+      alert('Greška pri ažuriranju popusta');
+    }
+  };
+
   const handleEdit = (service) => {
     setEditingService(service);
     setFormData({
