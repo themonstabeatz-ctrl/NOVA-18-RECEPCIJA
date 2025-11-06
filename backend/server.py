@@ -937,6 +937,53 @@ async def get_client_statistics(
         "total_appointments": len(appointments)
     }
 
+@api_router.get("/analytics/couple-appointments")
+async def get_couple_appointments_analytics(
+    period: str = Query("week", regex="^(day|week|month|year)$")
+):
+    """Get analytics specifically for couple appointments"""
+    date_start, date_end = calculate_date_range(period)
+    
+    # Get all couple appointments
+    query = {
+        "start_time": {
+            "$gte": date_start.isoformat(),
+            "$lte": date_end.isoformat()
+        },
+        "status": {"$in": [AppointmentStatus.SCHEDULED, AppointmentStatus.COMPLETED]}
+    }
+    
+    appointments = await db.appointments.find(query).to_list(10000)
+    
+    # Filter couple appointments
+    couple_appointments = []
+    couple_revenue = 0
+    couple_count = 0
+    
+    for apt in appointments:
+        service = await db.services.find_one({"id": apt['service_id']})
+        if service and service.get('category') == 'couple':
+            couple_appointments.append({
+                "id": apt['id'],
+                "client_name": f"{apt['client_first_name']} {apt['client_last_name']}",
+                "start_time": apt['start_time'],
+                "service_name": service['name'],
+                "price": service['price'],
+                "duration": service['duration'],
+                "metadata": service.get('metadata', {})
+            })
+            couple_revenue += service['price']
+            couple_count += 1
+    
+    return {
+        "period": period,
+        "start_date": date_start.isoformat(),
+        "end_date": date_end.isoformat(),
+        "couple_appointments_count": couple_count,
+        "couple_revenue": couple_revenue,
+        "appointments": couple_appointments
+    }
+
 
 # ============================================
 # Root route
