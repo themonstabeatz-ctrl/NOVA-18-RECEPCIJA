@@ -262,11 +262,11 @@ def test_analytics_revenue_with_discounts():
         all_tests_passed = False
     
     # Test 2: Get therapist analytics for current month
-    print("\n2. Testing GET /api/analytics/therapists?period=month")
+    print("\n2. Testing GET /api/analytics/therapist-stats?period=month")
     print("-" * 60)
     
     try:
-        response = requests.get(f"{BACKEND_URL}/analytics/therapists?period=month")
+        response = requests.get(f"{BACKEND_URL}/analytics/therapist-stats?period=month")
         print(f"   Response Status: {response.status_code}")
         
         if response.status_code != 200:
