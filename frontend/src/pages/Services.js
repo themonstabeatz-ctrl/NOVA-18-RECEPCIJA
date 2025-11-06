@@ -224,10 +224,10 @@ const Services = () => {
                     );
                   })
                 )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
+              </tbody>
+            </table>
+          </div>
+        )}
                           onClick={() => handleEdit(service)}
                           className="text-indigo-600 hover:text-indigo-900 mr-4"
                           data-testid={`edit-service-${service.id}`}
