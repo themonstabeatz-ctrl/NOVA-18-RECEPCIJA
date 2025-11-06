@@ -943,7 +943,25 @@ async def get_couple_appointments_analytics(
     period: str = Query("week", regex="^(day|week|month|year)$")
 ):
     """Get analytics specifically for couple appointments"""
-    date_start, date_end = calculate_date_range(period)
+    # Calculate date range
+    now = datetime.now(timezone.utc)
+    
+    if period == "day":
+        date_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        date_end = date_start + timedelta(days=1)
+    elif period == "week":
+        date_start = now - timedelta(days=now.weekday())
+        date_start = date_start.replace(hour=0, minute=0, second=0, microsecond=0)
+        date_end = date_start + timedelta(days=7)
+    elif period == "month":
+        date_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        if now.month == 12:
+            date_end = date_start.replace(year=now.year + 1, month=1)
+        else:
+            date_end = date_start.replace(month=now.month + 1)
+    else:  # year
+        date_start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        date_end = date_start.replace(year=now.year + 1)
     
     # Get all couple appointments
     query = {
