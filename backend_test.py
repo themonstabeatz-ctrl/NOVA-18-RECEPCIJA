@@ -812,5 +812,5 @@ if __name__ == "__main__":
     print("=" * 100)
     
     # Exit with appropriate code
-    all_success = analytics_revenue_success and analytics_discount_success and services_success
+    all_success = analytics_revenue_success and specific_scenario_success and analytics_discount_success and services_success
     sys.exit(0 if all_success else 1)
