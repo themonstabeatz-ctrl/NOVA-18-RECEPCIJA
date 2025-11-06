@@ -228,21 +228,8 @@ const Services = () => {
             </table>
           </div>
         )}
-                          onClick={() => handleEdit(service)}
-                          className="text-indigo-600 hover:text-indigo-900 mr-4"
-                          data-testid={`edit-service-${service.id}`}
-                        >
-                          <Edit2 className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(service.id)}
-                          className="text-red-600 hover:text-red-900"
-                          data-testid={`delete-service-${service.id}`}
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </td>
-                    </tr>
+
+        {/* Modal za dodavanje/izmenu usluge */}
                   ))
                 )}
               </tbody>
