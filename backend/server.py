@@ -826,12 +826,15 @@ async def get_therapist_statistics(
         end = datetime.fromisoformat(apt['end_time']) if isinstance(apt['end_time'], str) else apt['end_time']
         duration_hours = (end - start).total_seconds() / 3600
         
-        # Get service price
+        # Get service price with discount applied
         service = service_map.get(apt['service_id'], {})
-        price = service.get('price', 0)
+        original_price = service.get('price', 0)
+        discount_percentage = service.get('discount_percentage', 0)
+        # Calculate discounted price
+        discounted_price = original_price * (1 - discount_percentage / 100)
         
         stats_by_therapist[tid]["total_hours"] += duration_hours
-        stats_by_therapist[tid]["total_revenue"] += price
+        stats_by_therapist[tid]["total_revenue"] += discounted_price
         stats_by_therapist[tid]["client_count"] += 1
         stats_by_therapist[tid]["appointments"].append(apt['id'])
     
