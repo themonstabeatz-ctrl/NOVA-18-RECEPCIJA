@@ -177,6 +177,18 @@ backend:
         agent: "testing"
         comment: "✅ PASSED: 15% discount is properly applied to couple appointments. Service names include '- 15% popust' suffix and pricing reflects discounted amount (8500.0 RSD observed in tests)."
 
+  - task: "Services API Discount Information Verification"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: GET /api/services endpoint returns discount information correctly. All 29 services have discount_percentage field with valid values (0, 5, 10, 15). Found 3 services with 5% discount (Tradicionalna tajlandska masaža variants) and 26 services with 0% discount. Discount calculations are mathematically correct: price * (1 - discount_percentage/100). Response format includes all required fields: id, name, price, discount_percentage, duration. API returns HTTP 200 with valid JSON array."
+
 frontend:
   - task: "Dashboard Modal Password Protection"
     implemented: true
