@@ -230,12 +230,6 @@ const Services = () => {
         )}
 
         {/* Modal za dodavanje/izmenu usluge */}
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
 
       {/* Modal */}
