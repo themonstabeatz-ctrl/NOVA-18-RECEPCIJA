@@ -111,7 +111,29 @@ class Appointment(AppointmentBase):
 # ============================================
 # Models - Couple Appointments
 # ============================================
+class PersonMassage(BaseModel):
+    massage_name: str
+    massage_id: str
+    duration: int
+    price: float
+
 class CoupleAppointmentCreate(BaseModel):
+    client_first_name: str
+    client_last_name: str
+    client_phone: str
+    client_email: Optional[EmailStr] = None
+    therapist_id: str
+    start_time: datetime
+    person1_massage: PersonMassage
+    person2_massage: PersonMassage
+    total_price_before_discount: float
+    discount_couples_massage: float  # percentage
+    total_price_after_discount: float
+    status: AppointmentStatus = AppointmentStatus.SCHEDULED
+
+
+# Old model for backward compatibility
+class CoupleAppointmentCreateOld(BaseModel):
     client_first_name: str
     client_last_name: str
     client_phone: str
