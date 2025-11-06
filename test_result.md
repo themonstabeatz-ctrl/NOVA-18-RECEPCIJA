@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the couple massage booking endpoint to verify it works correctly for all duration types"
+user_problem_statement: "Test the services API endpoint to verify it returns discount information correctly"
 
 backend:
   - task: "Couple Massage Booking Endpoint - 60 minute duration"
