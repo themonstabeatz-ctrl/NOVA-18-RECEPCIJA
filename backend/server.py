@@ -369,9 +369,109 @@ async def create_appointment(appointment: AppointmentCreate):
     await db.appointments.insert_one(doc)
     return appointment_obj
 
+# ============================================
+# Couple Settings Endpoints
+# ============================================
+@api_router.get("/settings/couple-discount")
+async def get_couple_discount():
+    """Get current couple massage discount percentage"""
+    settings = await db.couple_settings.find_one({"_id": "default"})
+    if not settings:
+        # Return default 15%
+        return {"discount_percentage": 15.0}
+    return {"discount_percentage": settings.get("discount_percentage", 15.0)}
+
+@api_router.put("/settings/couple-discount")
+async def update_couple_discount(settings: CoupleSettingsUpdate):
+    """Update couple massage discount percentage"""
+    await db.couple_settings.update_one(
+        {"_id": "default"},
+        {"$set": {"discount_percentage": settings.discount_percentage}},
+        upsert=True
+    )
+    return {"discount_percentage": settings.discount_percentage, "message": "Discount updated successfully"}
+
+# ============================================
+# Couple Appointments Endpoints
+# ============================================
+@api_router.post("/appointments/couple/v2", response_model=Appointment)
+async def create_couple_appointment_v2(couple: CoupleAppointmentCreate):
+    """Create a couple appointment with detailed person data and custom discount"""
+    # Verify therapist exists
+    therapist = await db.therapists.find_one({"id": couple.therapist_id})
+    if not therapist:
+        raise HTTPException(status_code=404, detail="Therapist not found")
+    
+    # Remove timezone info if present
+    start_time = couple.start_time.replace(tzinfo=None) if couple.start_time.tzinfo else couple.start_time
+    
+    # Calculate total duration
+    total_duration = couple.person1_massage.duration + couple.person2_massage.duration
+    end_time = start_time + timedelta(minutes=total_duration)
+    
+    # Create service name description
+    service_name = f"Masaža za parove - {total_duration} min"
+    service_description = f"Osoba 1: {couple.person1_massage.massage_name} ({couple.person1_massage.duration} min) | Osoba 2: {couple.person2_massage.massage_name} ({couple.person2_massage.duration} min)"
+    
+    if couple.discount_couples_massage > 0:
+        service_name += f" - {couple.discount_couples_massage}% popust"
+    
+    # Create couple service
+    couple_service_id = str(uuid.uuid4())
+    couple_service = {
+        "id": couple_service_id,
+        "name": service_name,
+        "duration": total_duration,
+        "price": couple.total_price_after_discount,
+        "description": service_description,
+        "category": "couple",
+        "created_at": datetime.now().isoformat(),
+        "metadata": {
+            "person1_massage_id": couple.person1_massage.massage_id,
+            "person1_massage_name": couple.person1_massage.massage_name,
+            "person1_duration": couple.person1_massage.duration,
+            "person1_price": couple.person1_massage.price,
+            "person2_massage_id": couple.person2_massage.massage_id,
+            "person2_massage_name": couple.person2_massage.massage_name,
+            "person2_duration": couple.person2_massage.duration,
+            "person2_price": couple.person2_massage.price,
+            "total_before_discount": couple.total_price_before_discount,
+            "discount_percentage": couple.discount_couples_massage,
+            "total_after_discount": couple.total_price_after_discount
+        }
+    }
+    
+    # Store couple service
+    await db.services.insert_one(couple_service)
+    
+    # Create appointment
+    appointment_dict = {
+        "client_first_name": couple.client_first_name,
+        "client_last_name": couple.client_last_name,
+        "client_phone": couple.client_phone,
+        "client_email": couple.client_email,
+        "therapist_id": couple.therapist_id,
+        "service_id": couple_service_id,
+        "start_time": start_time,
+        "end_time": end_time,
+        "status": couple.status,
+        "body_map_gender": None,
+        "body_map_points": []
+    }
+    
+    appointment_obj = Appointment(**appointment_dict)
+    
+    doc = appointment_obj.model_dump()
+    doc['start_time'] = doc['start_time'].isoformat()
+    doc['end_time'] = doc['end_time'].isoformat()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.appointments.insert_one(doc)
+    return appointment_obj
+
 @api_router.post("/appointments/couple", response_model=Appointment)
-async def create_couple_appointment(couple: CoupleAppointmentCreate):
-    """Create a couple appointment with 15% discount"""
+async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
+    """Create a couple appointment with 15% discount (OLD VERSION - backward compatibility)"""
     # Log incoming request for debugging
     logger.info(f"Couple appointment request - duration_type: {couple.duration_type}, person1_services: {couple.person1_services}, person2_services: {couple.person2_services}")
     
