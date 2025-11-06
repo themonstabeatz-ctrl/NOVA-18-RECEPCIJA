@@ -256,8 +256,8 @@ async def get_service(service_id: str):
 @api_router.put("/services/{service_id}", response_model=Service)
 async def update_service(service_id: str, service: ServiceCreate):
     """Update a service"""
-    if service.duration not in [30, 45, 60, 90, 120]:
-        raise HTTPException(status_code=400, detail="Duration must be 30, 45, 60, 90, or 120 minutes")
+    if service.duration not in [30, 45, 60, 90, 120, 180, 240]:
+        raise HTTPException(status_code=400, detail="Duration must be 30, 45, 60, 90, 120, 180, or 240 minutes")
     
     existing = await db.services.find_one({"id": service_id})
     if not existing:
