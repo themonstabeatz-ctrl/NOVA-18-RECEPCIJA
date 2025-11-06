@@ -896,7 +896,11 @@ async def get_revenue_statistics(
     total_revenue = 0
     for apt in appointments:
         service = service_map.get(apt['service_id'], {})
-        total_revenue += service.get('price', 0)
+        original_price = service.get('price', 0)
+        discount_percentage = service.get('discount_percentage', 0)
+        # Calculate discounted price
+        discounted_price = original_price * (1 - discount_percentage / 100)
+        total_revenue += discounted_price
     
     return {
         "period": period,
