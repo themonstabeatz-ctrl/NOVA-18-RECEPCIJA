@@ -62,6 +62,7 @@ class ServiceBase(BaseModel):
     duration: int = Field(..., description="Duration in minutes: 30, 45, 60, 90, 120, 180, or 240")
     price: float = Field(..., description="Price in RSD")
     description: Optional[str] = None
+    category: Optional[str] = Field(default="regular", description="Service category: regular, couple")
 
 class ServiceCreate(ServiceBase):
     pass
@@ -70,6 +71,16 @@ class Service(ServiceBase):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: datetime = Field(default_factory=lambda: datetime.now())
+
+
+# ============================================
+# Models - Couple Settings
+# ============================================
+class CoupleSettings(BaseModel):
+    discount_percentage: float = Field(default=15.0, ge=0, le=100, description="Discount for couple massages (0-100%)")
+
+class CoupleSettingsUpdate(BaseModel):
+    discount_percentage: float = Field(..., ge=0, le=100)
 
 
 # ============================================
