@@ -670,12 +670,28 @@ if __name__ == "__main__":
     print("Running Backend API Tests...")
     print()
     
-    # Run services discount tests (new requirement)
+    # Run analytics tests (new requirement - test discount calculations in analytics)
+    analytics_revenue_success = test_analytics_revenue_with_discounts()
+    print()
+    analytics_discount_success = test_analytics_discount_calculations()
+    print()
+    
+    # Run services discount tests (existing)
     services_success = test_services_discount_endpoint()
     
     print("\n" + "=" * 100)
     print("OVERALL TEST RESULTS")
     print("=" * 100)
+    
+    if analytics_revenue_success:
+        print("✅ Analytics Revenue Tests: PASSED")
+    else:
+        print("❌ Analytics Revenue Tests: FAILED")
+    
+    if analytics_discount_success:
+        print("✅ Analytics Discount Calculation Tests: PASSED")
+    else:
+        print("❌ Analytics Discount Calculation Tests: FAILED")
     
     if services_success:
         print("✅ Services Discount Tests: PASSED")
@@ -685,4 +701,5 @@ if __name__ == "__main__":
     print("=" * 100)
     
     # Exit with appropriate code
-    sys.exit(0 if services_success else 1)
+    all_success = analytics_revenue_success and analytics_discount_success and services_success
+    sys.exit(0 if all_success else 1)
