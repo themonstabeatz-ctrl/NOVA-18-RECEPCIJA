@@ -189,6 +189,42 @@ backend:
         agent: "testing"
         comment: "✅ PASSED: GET /api/services endpoint returns discount information correctly. All 29 services have discount_percentage field with valid values (0, 5, 10, 15). Found 3 services with 5% discount (Tradicionalna tajlandska masaža variants) and 26 services with 0% discount. Discount calculations are mathematically correct: price * (1 - discount_percentage/100). Response format includes all required fields: id, name, price, discount_percentage, duration. API returns HTTP 200 with valid JSON array."
 
+  - task: "Analytics Revenue Endpoint Discount Calculations"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: GET /api/analytics/revenue?period=month endpoint correctly calculates revenue using discounted prices. Backend code implements proper discount formula: discounted_price = original_price * (1 - discount_percentage/100). Found 3 services with 15% discounts (Aroma terapija variants). Analytics endpoint returns HTTP 200 with all required fields (period, start_date, end_date, total_revenue, currency, appointments_count). Total revenue: 46475.0 RSD from 25 appointments."
+
+  - task: "Analytics Therapist Statistics Discount Calculations"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: GET /api/analytics/therapist-stats?period=month endpoint correctly calculates therapist revenue using discounted prices. Same discount formula applied as revenue endpoint. Found 2 therapist statistics: Marko Markovic (25500.0 RSD, 29.5 hours) and Ana Petrovic (20975.0 RSD, 13.0 hours). Total therapist revenue matches total analytics revenue (46475.0 RSD), confirming consistent discount calculations across endpoints."
+
+  - task: "Specific Discount Scenario Verification (4400 RSD → 4180 RSD)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Verified specific discount calculation scenario from requirements. Found 'Tradicionalna tajlandska masaža - 60 min' service with 4400.0 RSD price. Confirmed discount calculation: 4400 * (1 - 5/100) = 4400 * 0.95 = 4180 RSD. Backend implementation correctly applies this formula in both analytics endpoints (lines 830-840 and 896-903). Analytics endpoints are functional and ready to process discounted services when discount_percentage > 0."
+
 frontend:
   - task: "Dashboard Modal Password Protection"
     implemented: true
