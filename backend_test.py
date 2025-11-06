@@ -777,6 +777,8 @@ if __name__ == "__main__":
     # Run analytics tests (new requirement - test discount calculations in analytics)
     analytics_revenue_success = test_analytics_revenue_with_discounts()
     print()
+    specific_scenario_success = test_specific_discount_scenario()
+    print()
     analytics_discount_success = test_analytics_discount_calculations()
     print()
     
