@@ -323,6 +323,27 @@ async def update_service(service_id: str, service: ServiceCreate):
     
     return updated
 
+@api_router.patch("/services/{service_id}/discount")
+async def update_service_discount(service_id: str, discount: float):
+    """Update only the discount percentage for a service"""
+    if discount < 0 or discount > 100:
+        raise HTTPException(status_code=400, detail="Discount must be between 0 and 100")
+    
+    existing = await db.services.find_one({"id": service_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    await db.services.update_one(
+        {"id": service_id}, 
+        {"$set": {"discount_percentage": discount}}
+    )
+    
+    updated = await db.services.find_one({"id": service_id}, {"_id": 0})
+    if isinstance(updated['created_at'], str):
+        updated['created_at'] = datetime.fromisoformat(updated['created_at'])
+    
+    return updated
+
 @api_router.delete("/services/{service_id}")
 async def delete_service(service_id: str):
     """Delete a service"""
