@@ -204,10 +204,26 @@ const Services = () => {
                             <div className="text-sm text-gray-400">-</div>
                           )}
                         </td>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">
-                          {service.description || '-'}
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleEdit(service)}
+                            className="text-indigo-600 hover:text-indigo-900 mr-4"
+                            data-testid={`edit-service-${service.id}`}
+                          >
+                            <Edit2 className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(service.id)}
+                            className="text-red-600 hover:text-red-900"
+                            data-testid={`delete-service-${service.id}`}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
