@@ -336,6 +336,98 @@ async def create_appointment(appointment: AppointmentCreate):
     await db.appointments.insert_one(doc)
     return appointment_obj
 
+@api_router.post("/appointments/couple", response_model=Appointment)
+async def create_couple_appointment(couple: CoupleAppointmentCreate):
+    """Create a couple appointment with 15% discount"""
+    # Verify therapist exists
+    therapist = await db.therapists.find_one({"id": couple.therapist_id})
+    if not therapist:
+        raise HTTPException(status_code=404, detail="Therapist not found")
+    
+    # Fetch all services for both persons
+    all_service_ids = couple.person1_services + couple.person2_services
+    services = await db.services.find({"id": {"$in": all_service_ids}}).to_list(100)
+    service_map = {s['id']: s for s in services}
+    
+    # Verify all services exist
+    for service_id in all_service_ids:
+        if service_id not in service_map:
+            raise HTTPException(status_code=404, detail=f"Service {service_id} not found")
+    
+    # Calculate total price with 15% discount
+    total_price = 0
+    person1_service_names = []
+    person2_service_names = []
+    
+    for service_id in couple.person1_services:
+        service = service_map[service_id]
+        total_price += service['price']
+        person1_service_names.append(service['name'])
+    
+    for service_id in couple.person2_services:
+        service = service_map[service_id]
+        total_price += service['price']
+        person2_service_names.append(service['name'])
+    
+    # Apply 15% discount
+    discounted_price = total_price * 0.85
+    
+    # Calculate total duration (both persons are serviced simultaneously)
+    total_duration = couple.duration_type * 2  # 60x2=120, 90x2=180, 120x2=240
+    
+    # Remove timezone info if present
+    start_time = couple.start_time.replace(tzinfo=None) if couple.start_time.tzinfo else couple.start_time
+    end_time = start_time + timedelta(minutes=total_duration)
+    
+    # Create service name description
+    if couple.duration_type == 60:
+        service_name = f"Masaža za parove - 120 min (2x60 min)"
+    elif couple.duration_type == 90:
+        service_name = f"Masaža za parove - 180 min (2x90 min)"
+    else:  # 120
+        service_name = f"Masaža za parove - 240 min (2x60 ili 120 min)"
+    
+    service_name += f" - 15% popust"
+    
+    # Create a dummy service entry for couple package
+    couple_service_id = str(uuid.uuid4())
+    couple_service = {
+        "id": couple_service_id,
+        "name": service_name,
+        "duration": total_duration,
+        "price": discounted_price,
+        "description": f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}",
+        "created_at": datetime.now().isoformat()
+    }
+    
+    # Store couple service details
+    await db.services.insert_one(couple_service)
+    
+    # Create appointment with couple service
+    appointment_dict = {
+        "client_first_name": couple.client_first_name,
+        "client_last_name": couple.client_last_name,
+        "client_phone": couple.client_phone,
+        "client_email": couple.client_email,
+        "therapist_id": couple.therapist_id,
+        "service_id": couple_service_id,
+        "start_time": start_time,
+        "end_time": end_time,
+        "status": couple.status,
+        "body_map_gender": None,
+        "body_map_points": []
+    }
+    
+    appointment_obj = Appointment(**appointment_dict)
+    
+    doc = appointment_obj.model_dump()
+    doc['start_time'] = doc['start_time'].isoformat()
+    doc['end_time'] = doc['end_time'].isoformat()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.appointments.insert_one(doc)
+    return appointment_obj
+
 @api_router.get("/appointments", response_model=List[Appointment])
 async def get_appointments(
     start_date: Optional[str] = Query(None),
