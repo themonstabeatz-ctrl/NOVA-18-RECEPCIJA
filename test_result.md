@@ -102,7 +102,80 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the new dashboard modal password protection feature for the Spa & Massage Booking Management System"
+user_problem_statement: "Test the couple massage booking endpoint to verify it works correctly for all duration types"
+
+backend:
+  - task: "Couple Massage Booking Endpoint - 60 minute duration"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: 60-minute couple massage booking works correctly. POST /api/appointments/couple with duration_type=60 creates appointment with service name 'Masaža za parove - 120 min (2x60 min) - 15% popust', total duration 120 minutes, and 15% discount applied. Appointment ID: 137ee722-d289-4753-ba15-b5f440a452f8"
+
+  - task: "Couple Massage Booking Endpoint - 90 minute duration"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: 90-minute couple massage booking works correctly. POST /api/appointments/couple with duration_type=90 creates appointment with service name 'Masaža za parove - 180 min (2x90 min) - 15% popust', total duration 180 minutes, and 15% discount applied. Appointment ID: 06530e7c-e8a4-42e0-bcfc-4f0dc4da0fe4"
+
+  - task: "Couple Massage Booking Endpoint - 120 minute duration (CRITICAL)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: 120-minute couple massage booking works correctly. POST /api/appointments/couple with duration_type=120 creates appointment with service name 'Masaža za parove - 240 min (2x60 ili 120 min) - 15% popust', total duration 240 minutes, and 15% discount applied. This was the critical test case that user reported as broken - now working correctly. Appointment ID: 73db08e3-c814-4598-a2f8-ad5595b4818c"
+
+  - task: "Couple Appointment Duration Calculation Logic"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Duration calculation logic works correctly. Formula total_duration = duration_type * 2 is properly implemented. Verified: 60*2=120min, 90*2=180min, 120*2=240min. All appointment end times calculated correctly based on total duration."
+
+  - task: "Couple Appointment Service Name Generation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Service name generation works correctly for all duration types. Names match expected format with proper Serbian text and 15% discount indication. Special case for 120min uses '2x60 ili 120 min' format as expected."
+
+  - task: "Couple Appointment 15% Discount Application"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: 15% discount is properly applied to couple appointments. Service names include '- 15% popust' suffix and pricing reflects discounted amount (8500.0 RSD observed in tests)."
 
 frontend:
   - task: "Dashboard Modal Password Protection"
