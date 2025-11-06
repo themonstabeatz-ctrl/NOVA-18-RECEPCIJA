@@ -325,7 +325,9 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Services API Discount Information Verification"
+    - "Analytics Revenue Endpoint Discount Calculations"
+    - "Analytics Therapist Statistics Discount Calculations"
+    - "Specific Discount Scenario Verification (4400 RSD → 4180 RSD)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
