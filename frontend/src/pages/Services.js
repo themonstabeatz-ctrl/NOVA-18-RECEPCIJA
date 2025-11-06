@@ -20,6 +20,8 @@ const Services = () => {
     { value: 60, label: '60 minuta (1h)' },
     { value: 90, label: '90 minuta (1.5h)' },
     { value: 120, label: '120 minuta (2h)' },
+    { value: 180, label: '180 minuta (3h)' },
+    { value: 240, label: '240 minuta (4h)' },
   ];
 
   useEffect(() => {
