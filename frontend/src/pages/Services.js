@@ -151,33 +151,59 @@ const Services = () => {
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Opcije
                   </th>
-                    Opis
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Akcije
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {services.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
                       Nema usluga. Dodajte prvu uslugu.
                     </td>
                   </tr>
                 ) : (
-                  services.map((service) => (
-                    <tr key={service.id} data-testid={`service-row-${service.id}`}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{service.name}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{service.duration} min</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {service.price.toLocaleString()} RSD
-                        </div>
+                  services.map((service) => {
+                    const discount = service.discount_percentage || 0;
+                    const discountedPrice = service.price * (1 - discount / 100);
+                    
+                    return (
+                      <tr key={service.id} data-testid={`service-row-${service.id}`}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{service.name}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <select
+                            value={discount}
+                            onChange={(e) => handleDiscountChange(service.id, parseFloat(e.target.value))}
+                            className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          >
+                            <option value="0">Bez popusta (0%)</option>
+                            <option value="10">10% popust</option>
+                            <option value="15">15% popust</option>
+                            <option value="20">20% popust</option>
+                          </select>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{service.duration} min</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {service.price.toLocaleString()} RSD
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {discount > 0 ? (
+                            <div>
+                              <div className="text-sm font-bold text-green-600">
+                                {discountedPrice.toLocaleString()} RSD
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Ušteda: {(service.price - discountedPrice).toLocaleString()} RSD
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-400">-</div>
+                          )}
+                        </td>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
