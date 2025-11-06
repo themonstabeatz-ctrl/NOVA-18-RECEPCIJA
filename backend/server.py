@@ -64,6 +64,7 @@ class ServiceBase(BaseModel):
     description: Optional[str] = None
     category: Optional[str] = Field(default="regular", description="Service category: regular, couple")
     metadata: Optional[dict] = Field(default=None, description="Additional metadata for couple appointments")
+    discount_percentage: float = Field(default=0.0, ge=0, le=100, description="Active discount percentage (0-100%)")
 
 class ServiceCreate(ServiceBase):
     pass
