@@ -63,6 +63,7 @@ class ServiceBase(BaseModel):
     price: float = Field(..., description="Price in RSD")
     description: Optional[str] = None
     category: Optional[str] = Field(default="regular", description="Service category: regular, couple")
+    metadata: Optional[dict] = Field(default=None, description="Additional metadata for couple appointments")
 
 class ServiceCreate(ServiceBase):
     pass
