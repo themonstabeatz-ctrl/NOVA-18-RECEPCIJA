@@ -7,12 +7,20 @@ const Services = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingService, setEditingService] = useState(null);
+  const [activeCategory, setActiveCategory] = useState('Obicne masaze');
   const [formData, setFormData] = useState({
     name: '',
     duration: 60,
     price: '',
     description: '',
   });
+
+  const categories = [
+    { id: 'Obicne masaze', label: 'Obicne masaze' },
+    { id: 'Kartica Masaza za parove', label: 'Kartica Masaza za parove' },
+    { id: 'SPA', label: 'SPA' },
+    { id: 'SPA Special kartica', label: 'SPA Special kartica' }
+  ];
 
   const durationOptions = [
     { value: 30, label: '30 minuta' },
