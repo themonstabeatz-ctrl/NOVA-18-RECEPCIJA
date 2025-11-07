@@ -600,6 +600,119 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     await db.appointments.insert_one(doc)
     return appointment_obj
 
+
+@api_router.post("/book-couple-appointment", response_model=Appointment)
+async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
+    """
+    Website-compatible couple appointment endpoint
+    Automatically assigns first available therapist if not provided
+    """
+    logger.info(f"Website couple booking - duration_type: {couple.duration_type}, person1: {couple.person1_services}, person2: {couple.person2_services}")
+    
+    # Get first available therapist
+    therapists = await db.therapists.find({"is_active": True}, {"_id": 0}).to_list(10)
+    if not therapists:
+        raise HTTPException(status_code=500, detail="No therapists available")
+    
+    therapist_id = therapists[0]['id']
+    logger.info(f"Auto-assigned therapist: {therapist_id}")
+    
+    # Fetch all services for both persons
+    all_service_ids = couple.person1_services + couple.person2_services
+    services = await db.services.find({"id": {"$in": all_service_ids}}).to_list(100)
+    service_map = {s['id']: s for s in services}
+    
+    # Verify all services exist
+    for service_id in all_service_ids:
+        if service_id not in service_map:
+            raise HTTPException(status_code=404, detail=f"Service {service_id} not found")
+    
+    # Calculate total price with discount
+    total_price = 0
+    person1_service_names = []
+    person2_service_names = []
+    
+    for service_id in couple.person1_services:
+        service = service_map[service_id]
+        original_price = service['price']
+        discount_pct = service.get('discount_percentage', 0)
+        discounted_price = original_price * (1 - discount_pct / 100)
+        total_price += discounted_price
+        person1_service_names.append(service['name'])
+    
+    for service_id in couple.person2_services:
+        service = service_map[service_id]
+        original_price = service['price']
+        discount_pct = service.get('discount_percentage', 0)
+        discounted_price = original_price * (1 - discount_pct / 100)
+        total_price += discounted_price
+        person2_service_names.append(service['name'])
+    
+    # Apply couple discount
+    discount_amount = total_price * (couple.discount_couples_massage / 100)
+    discounted_price = total_price - discount_amount
+    
+    # Calculate total duration (both persons are serviced simultaneously)
+    total_duration = couple.duration_type * 2  # 60x2=120, 90x2=180, 120x2=240
+    
+    # Remove timezone info if present
+    start_time = couple.start_time.replace(tzinfo=None) if couple.start_time.tzinfo else couple.start_time
+    end_time = start_time + timedelta(minutes=total_duration)
+    
+    # Create service name description
+    if couple.duration_type == 60:
+        service_name = f"Masaža za parove - 120 min (2x60 min)"
+    elif couple.duration_type == 90:
+        service_name = f"Masaža za parove - 180 min (2x90 min)"
+    else:  # 120
+        service_name = f"Masaža za parove - 240 min (2x120 min)"
+    
+    service_name += f" - {couple.discount_couples_massage}% popust"
+    
+    # Create a dummy service entry for couple package
+    couple_service_id = str(uuid.uuid4())
+    couple_service = {
+        "id": couple_service_id,
+        "name": service_name,
+        "duration": total_duration,
+        "price": discounted_price,
+        "description": f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}",
+        "created_at": datetime.now().isoformat(),
+        "category": "couple",
+        "discount_percentage": couple.discount_couples_massage
+    }
+    
+    # Store couple service details
+    await db.services.insert_one(couple_service)
+    
+    # Create appointment with couple service
+    appointment_dict = {
+        "client_first_name": couple.client_first_name,
+        "client_last_name": couple.client_last_name,
+        "client_phone": couple.client_phone,
+        "client_email": couple.client_email,
+        "therapist_id": therapist_id,
+        "service_id": couple_service_id,
+        "start_time": start_time,
+        "end_time": end_time,
+        "status": AppointmentStatus.SCHEDULED,
+        "body_map_gender": None,
+        "body_map_points": []
+    }
+    
+    appointment_obj = Appointment(**appointment_dict)
+    
+    doc = appointment_obj.model_dump()
+    doc['start_time'] = doc['start_time'].isoformat()
+    doc['end_time'] = doc['end_time'].isoformat()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.appointments.insert_one(doc)
+    
+    logger.info(f"✅ Couple appointment created successfully: {appointment_obj.id}")
+    return appointment_obj
+
+
 @api_router.get("/appointments", response_model=List[Appointment])
 async def get_appointments(
     start_date: Optional[str] = Query(None),
