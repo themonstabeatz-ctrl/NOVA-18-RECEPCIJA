@@ -12,6 +12,23 @@ html {
 body {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Fix for iFrame rendering */
+html, body {
+  min-width: 100%;
+  overflow-x: auto;
+}
+
+/* Ensure content doesn't shift in iFrame */
+#root {
+  width: 100%;
+  min-width: 100%;
+  overflow-x: auto;
 }
 
 .App {
