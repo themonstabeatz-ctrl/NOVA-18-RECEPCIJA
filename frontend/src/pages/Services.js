@@ -175,33 +175,55 @@ const Services = () => {
         {/* Bulk Discount Button - Only for "Kartica Masaza za parove" */}
         {activeCategory === 'Kartica Masaza za parove' && (
           <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               <span className="text-gray-700 font-semibold">🎯 Postavi popust za SVE masaže odjednom:</span>
-              <div className="flex gap-2">
+              <div className="flex gap-3 flex-wrap items-center">
+                {/* 0% Button stays as button */}
                 <button
                   onClick={() => handleBulkDiscountChange(0)}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all hover:scale-105 font-medium shadow-md"
                 >
                   Bez popusta (0%)
                 </button>
-                <button
+
+                {/* 5% Discount Badge */}
+                <div 
                   onClick={() => handleBulkDiscountChange(5)}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                  className="cursor-pointer transition-all hover:scale-110 hover:shadow-xl"
+                  title="Primeni 5% popust na sve"
                 >
-                  5% popust
-                </button>
-                <button
+                  <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="48" fill="#10B981" stroke="#059669" strokeWidth="2"/>
+                    <text x="50" y="42" fontSize="28" fontWeight="bold" fill="white" textAnchor="middle">-5%</text>
+                    <text x="50" y="65" fontSize="12" fontWeight="600" fill="white" textAnchor="middle">POPUST</text>
+                  </svg>
+                </div>
+
+                {/* 10% Discount Badge */}
+                <div 
                   onClick={() => handleBulkDiscountChange(10)}
-                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
+                  className="cursor-pointer transition-all hover:scale-110 hover:shadow-xl"
+                  title="Primeni 10% popust na sve"
                 >
-                  10% popust
-                </button>
-                <button
+                  <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="48" fill="#F59E0B" stroke="#D97706" strokeWidth="2"/>
+                    <text x="50" y="42" fontSize="26" fontWeight="bold" fill="white" textAnchor="middle">-10%</text>
+                    <text x="50" y="65" fontSize="12" fontWeight="600" fill="white" textAnchor="middle">POPUST</text>
+                  </svg>
+                </div>
+
+                {/* 15% Discount Badge */}
+                <div 
                   onClick={() => handleBulkDiscountChange(15)}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                  className="cursor-pointer transition-all hover:scale-110 hover:shadow-xl"
+                  title="Primeni 15% popust na sve"
                 >
-                  15% popust
-                </button>
+                  <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="48" fill="#EF4444" stroke="#DC2626" strokeWidth="2"/>
+                    <text x="50" y="42" fontSize="26" fontWeight="bold" fill="white" textAnchor="middle">-15%</text>
+                    <text x="50" y="65" fontSize="12" fontWeight="600" fill="white" textAnchor="middle">POPUST</text>
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
