@@ -191,7 +191,13 @@ const Services = () => {
                   src="/discount-5.png"
                   alt="5% popust"
                   onClick={() => handleBulkDiscountChange(5)}
-                  className="cursor-pointer transition-all hover:scale-110 hover:shadow-2xl w-24 h-24 object-contain"
+                  className="cursor-pointer transition-all hover:scale-110 w-12 h-12 object-contain"
+                  style={{
+                    filter: 'drop-shadow(0 0 8px rgba(16, 185, 129, 0))',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 12px rgba(16, 185, 129, 0.6))'}
+                  onMouseLeave={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 8px rgba(16, 185, 129, 0))'}
                   title="Primeni 5% popust na sve"
                 />
 
@@ -200,7 +206,13 @@ const Services = () => {
                   src="/discount-10.png"
                   alt="10% popust"
                   onClick={() => handleBulkDiscountChange(10)}
-                  className="cursor-pointer transition-all hover:scale-110 hover:shadow-2xl w-24 h-24 object-contain"
+                  className="cursor-pointer transition-all hover:scale-110 w-12 h-12 object-contain"
+                  style={{
+                    filter: 'drop-shadow(0 0 8px rgba(245, 158, 11, 0))',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 12px rgba(245, 158, 11, 0.6))'}
+                  onMouseLeave={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 8px rgba(245, 158, 11, 0))'}
                   title="Primeni 10% popust na sve"
                 />
 
@@ -209,7 +221,13 @@ const Services = () => {
                   src="/discount-15.png"
                   alt="15% popust"
                   onClick={() => handleBulkDiscountChange(15)}
-                  className="cursor-pointer transition-all hover:scale-110 hover:shadow-2xl w-24 h-24 object-contain"
+                  className="cursor-pointer transition-all hover:scale-110 w-12 h-12 object-contain"
+                  style={{
+                    filter: 'drop-shadow(0 0 8px rgba(239, 68, 68, 0))',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 12px rgba(239, 68, 68, 0.6))'}
+                  onMouseLeave={(e) => e.currentTarget.style.filter = 'drop-shadow(0 0 8px rgba(239, 68, 68, 0))'}
                   title="Primeni 15% popust na sve"
                 />
               </div>
