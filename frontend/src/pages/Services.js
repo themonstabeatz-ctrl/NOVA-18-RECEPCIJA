@@ -132,6 +132,23 @@ const Services = () => {
           </button>
         </div>
 
+        {/* Category Filter Buttons */}
+        <div className="mb-6 flex flex-wrap gap-3">
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => setActiveCategory(category.id)}
+              className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                activeCategory === category.id
+                  ? 'bg-indigo-600 text-white shadow-lg'
+                  : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-indigo-400'
+              }`}
+            >
+              {category.label}
+            </button>
+          ))}
+        </div>
+
         {loading ? (
           <div className="text-center py-12" data-testid="services-loading">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
