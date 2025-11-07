@@ -172,6 +172,41 @@ const Services = () => {
           ))}
         </div>
 
+        {/* Bulk Discount Button - Only for "Kartica Masaza za parove" */}
+        {activeCategory === 'Kartica Masaza za parove' && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
+            <div className="flex items-center gap-4">
+              <span className="text-gray-700 font-semibold">🎯 Postavi popust za SVE masaže odjednom:</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleBulkDiscountChange(0)}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                >
+                  Bez popusta (0%)
+                </button>
+                <button
+                  onClick={() => handleBulkDiscountChange(5)}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                >
+                  5% popust
+                </button>
+                <button
+                  onClick={() => handleBulkDiscountChange(10)}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
+                >
+                  10% popust
+                </button>
+                <button
+                  onClick={() => handleBulkDiscountChange(15)}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                >
+                  15% popust
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="text-center py-12" data-testid="services-loading">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
