@@ -209,17 +209,20 @@ const Services = () => {
                 </button>
 
                 {/* 5% Discount Badge */}
-                <div 
-                  onClick={() => handleBulkDiscountChange(5)}
-                  className="cursor-pointer transition-all hover:scale-110 hover:drop-shadow-2xl"
+                <button
+                  onClick={() => {
+                    console.log('🔥 5% button clicked!');
+                    handleBulkDiscountChange(5);
+                  }}
+                  className="cursor-pointer transition-all hover:scale-110 hover:drop-shadow-2xl bg-transparent border-0 p-0"
                   title="Primeni 5% popust na sve"
                 >
                   <img 
                     src="/discount-5.png"
                     alt="5% popust"
-                    className="w-12 h-12 object-contain pointer-events-none"
+                    className="w-12 h-12 object-contain"
                   />
-                </div>
+                </button>
 
                 {/* 10% Discount Badge */}
                 <div 
