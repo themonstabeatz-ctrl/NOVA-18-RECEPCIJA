@@ -93,25 +93,47 @@ const Services = () => {
   };
 
   const handleBulkDiscountChange = async (discount) => {
-    if (!window.confirm(`Da li ste sigurni da želite da primenite ${discount}% popust na SVE masaže u kategoriji "${activeCategory}"?`)) {
+    console.log('🎯 Bulk discount clicked:', discount, 'Category:', activeCategory);
+    
+    const servicesToUpdate = services.filter(s => s.category === activeCategory);
+    console.log('Services to update:', servicesToUpdate.length);
+    
+    if (servicesToUpdate.length === 0) {
+      alert('Nema usluga u ovoj kategoriji za ažuriranje!');
+      return;
+    }
+    
+    if (!window.confirm(`Da li ste sigurni da želite da primenite ${discount}% popust na SVE masaže (${servicesToUpdate.length}) u kategoriji "${activeCategory}"?`)) {
       return;
     }
 
     try {
-      const servicesToUpdate = services.filter(s => s.category === activeCategory);
+      console.log('Updating services...');
       
-      // Update all services in parallel
-      await Promise.all(
-        servicesToUpdate.map(service => 
-          serviceService.updateDiscount(service.id, discount)
-        )
-      );
+      // Update all services one by one with better error handling
+      let successCount = 0;
+      let errorCount = 0;
       
-      alert(`✅ Popust od ${discount}% primenjen na ${servicesToUpdate.length} masaža!`);
-      fetchServices(); // Refresh list
+      for (const service of servicesToUpdate) {
+        try {
+          await serviceService.updateDiscount(service.id, discount);
+          successCount++;
+          console.log(`✓ Updated: ${service.name}`);
+        } catch (err) {
+          errorCount++;
+          console.error(`✗ Failed: ${service.name}`, err);
+        }
+      }
+      
+      if (successCount > 0) {
+        alert(`✅ Popust od ${discount}% primenjen na ${successCount} masaža!${errorCount > 0 ? ` (${errorCount} grešaka)` : ''}`);
+        fetchServices(); // Refresh list
+      } else {
+        alert('❌ Greška: Nijedna usluga nije ažurirana!');
+      }
     } catch (error) {
       console.error('Error updating bulk discount:', error);
-      alert('Greška pri grupnom ažuriranju popusta');
+      alert('Greška pri grupnom ažuriranju popusta: ' + error.message);
     }
   };
 
