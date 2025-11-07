@@ -1,0 +1,179 @@
+ZADATAK: Integracija Websajta sa Booking Sistemom - Prikaz Popusta
+
+CILJ:
+Povezati websajt https://buluang-spa-fix.preview.emergentagent.com/ sa booking sistemom da automatski prikazuje cene i popuste.
+
+==========================================
+KORAK 1: PREUZMI SLIKE ZA POPUSTE
+==========================================
+
+Kopiraj ove 3 slike u /public folder websajta:
+
+curl -o /public/discount-5.png "https://customer-assets.emergentagent.com/job_spabooking/artifacts/c07iqk55_-5%25.png"
+curl -o /public/discount-10.png "https://customer-assets.emergentagent.com/job_spabooking/artifacts/c7s0zotj_-10%25.png"
+curl -o /public/discount-15.png "https://customer-assets.emergentagent.com/job_spabooking/artifacts/e2nucl6a_-15%25.png"
+
+==========================================
+KORAK 2: KREIRAJ API SERVICE
+==========================================
+
+Kreiraj fajl: /src/services/bookingApi.js
+
+Sadržaj:
+
+const BOOKING_API = 'https://spabooking.preview.emergentagent.com/api';
+
+export async function fetchServices() {
+  const response = await fetch(`${BOOKING_API}/services`);
+  return response.json();
+}
+
+export function filterByCategory(services, category) {
+  return services.filter(s => s.category === category);
+}
+
+export function calculatePrice(service) {
+  const originalPrice = service.price;
+  const discount = service.discount_percentage || 0;
+  const discountedPrice = originalPrice * (1 - discount / 100);
+  return {
+    original: originalPrice,
+    discounted: discountedPrice,
+    discount: discount,
+    hasDiscount: discount > 0,
+    savings: originalPrice - discountedPrice
+  };
+}
+
+export function getDiscountBadgeUrl(discount) {
+  if (discount === 5) return '/discount-5.png';
+  if (discount === 10) return '/discount-10.png';
+  if (discount === 15) return '/discount-15.png';
+  return null;
+}
+
+==========================================
+KORAK 3: AŽURIRAJ SEKCIJU "MASAŽE"
+==========================================
+
+U komponenti koja prikazuje masaže (trenutno prikazuje "Tradicionalna tajlandska masaža", "Aroma terapija", itd):
+
+1. Umesto hardkodiranih cena, učitaj ih dinamički:
+
+import { fetchServices, filterByCategory, calculatePrice, getDiscountBadgeUrl } from '../services/bookingApi';
+
+useEffect(() => {
+  fetchServices()
+    .then(data => {
+      const obicneMasaze = filterByCategory(data, "Obicne masaze");
+      setServices(obicneMasaze);
+    });
+}, []);
+
+2. Za svaku masažu prikaži:
+   - Ako ima popust (discount_percentage > 0):
+     * Prikažu značku sa slikom (getDiscountBadgeUrl)
+     * Staru cenu prekriženu
+     * Novu cenu sa popustom (bold, crvena boja)
+   - Ako nema popust:
+     * Samo normalnu cenu
+
+==========================================
+KORAK 4: AŽURIRAJ "MASAŽA ZA PAROVE"
+==========================================
+
+U sekciji gdje prikazuješ "Masaža za parove" sa dva dropdowna:
+
+1. Učitaj masaže za parove:
+
+useEffect(() => {
+  fetchServices()
+    .then(data => {
+      const coupleServices = filterByCategory(data, "Kartica Masaza za parove");
+      setServices(coupleServices);
+    });
+}, []);
+
+2. U dropdown opcijama prikaži:
+   - Naziv masaže
+   - Cenu sa popustom (ako ima popust)
+   - Pored dropdowna prikaži značku popusta ako izabrana masaža ima popust
+
+3. Pri kalkulaciji ukupne cene:
+   - Saberi cene SA primenjenim popustima
+   - Ako ima uštede, prikaži staru ukupnu cenu prekriženu i novu cenu
+
+==========================================
+KORAK 5: DODAJ CSS ZA POPUSTE
+==========================================
+
+.discount-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 50px;
+  height: 50px;
+  z-index: 10;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.old-price {
+  text-decoration: line-through;
+  color: #999;
+}
+
+.new-price {
+  color: #e63946;
+  font-weight: bold;
+  font-size: 1.5em;
+}
+
+==========================================
+PRIMER KAKO TREBA DA IZGLEDA
+==========================================
+
+PRIJE (hardkodirano):
+Tradicionalna tajlandska masaža - 60 min
+4,400 RSD
+[Zakažite]
+
+POSLE (dinamički sa popustom):
+Tradicionalna tajlandska masaža - 60 min     [🏷️ -15%]
+4,400 RSD (prekriženo)
+3,740 RSD (bold, crveno)
+Ušteda: 660 RSD
+[Zakažite]
+
+==========================================
+TESTIRANJE
+==========================================
+
+Kada završiš implementaciju:
+
+1. Idi na booking sistem: https://spabooking.preview.emergentagent.com/services
+2. Klikni na kategoriju "Kartica Masaza za parove"
+3. Klikni na sliku za -15% popust
+4. Potvrdi
+5. Idi na websajt i refresh
+6. Trebao bi da vidiš značke popusta i nove cene!
+
+==========================================
+KATEGORIJE KOJE TREBA POKRITI
+==========================================
+
+1. "Obicne masaze" - za sekciju MASAŽE
+2. "Kartica Masaza za parove" - za sekciju MASAŽA ZA PAROVE  
+3. "SPA" - za sekciju SPA (ako postoji)
+
+API ENDPOINT: https://spabooking.preview.emergentagent.com/api/services
+
+Koristi filterByCategory() funkciju da izdvojiš odgovarajuću kategoriju.
+
+==========================================
+
+Pitanja? Javi se!
