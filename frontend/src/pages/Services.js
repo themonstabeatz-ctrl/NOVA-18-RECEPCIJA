@@ -92,6 +92,29 @@ const Services = () => {
     }
   };
 
+  const handleBulkDiscountChange = async (discount) => {
+    if (!window.confirm(`Da li ste sigurni da želite da primenite ${discount}% popust na SVE masaže u kategoriji "${activeCategory}"?`)) {
+      return;
+    }
+
+    try {
+      const servicesToUpdate = services.filter(s => s.category === activeCategory);
+      
+      // Update all services in parallel
+      await Promise.all(
+        servicesToUpdate.map(service => 
+          serviceService.updateDiscount(service.id, discount)
+        )
+      );
+      
+      alert(`✅ Popust od ${discount}% primenjen na ${servicesToUpdate.length} masaža!`);
+      fetchServices(); // Refresh list
+    } catch (error) {
+      console.error('Error updating bulk discount:', error);
+      alert('Greška pri grupnom ažuriranju popusta');
+    }
+  };
+
   const handleEdit = (service) => {
     setEditingService(service);
     setFormData({
