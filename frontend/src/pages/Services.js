@@ -179,14 +179,14 @@ const Services = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {services.length === 0 ? (
+                {services.filter(s => s.category === activeCategory).length === 0 ? (
                   <tr>
                     <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
-                      Nema usluga. Dodajte prvu uslugu.
+                      Nema usluga u ovoj kategoriji. Dodajte prvu uslugu.
                     </td>
                   </tr>
                 ) : (
-                  services.map((service) => {
+                  services.filter(s => s.category === activeCategory).map((service) => {
                     const discount = service.discount_percentage || 0;
                     const discountedPrice = service.price * (1 - discount / 100);
                     
