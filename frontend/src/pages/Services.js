@@ -187,43 +187,31 @@ const Services = () => {
                 </button>
 
                 {/* 5% Discount Badge */}
-                <div 
+                <img 
+                  src="/discount-5.png"
+                  alt="5% popust"
                   onClick={() => handleBulkDiscountChange(5)}
-                  className="cursor-pointer transition-all hover:scale-110 hover:shadow-xl"
+                  className="cursor-pointer transition-all hover:scale-110 hover:shadow-2xl w-24 h-24 object-contain"
                   title="Primeni 5% popust na sve"
-                >
-                  <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="50" cy="50" r="48" fill="#10B981" stroke="#059669" strokeWidth="2"/>
-                    <text x="50" y="42" fontSize="28" fontWeight="bold" fill="white" textAnchor="middle">-5%</text>
-                    <text x="50" y="65" fontSize="12" fontWeight="600" fill="white" textAnchor="middle">POPUST</text>
-                  </svg>
-                </div>
+                />
 
                 {/* 10% Discount Badge */}
-                <div 
+                <img 
+                  src="/discount-10.png"
+                  alt="10% popust"
                   onClick={() => handleBulkDiscountChange(10)}
-                  className="cursor-pointer transition-all hover:scale-110 hover:shadow-xl"
+                  className="cursor-pointer transition-all hover:scale-110 hover:shadow-2xl w-24 h-24 object-contain"
                   title="Primeni 10% popust na sve"
-                >
-                  <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="50" cy="50" r="48" fill="#F59E0B" stroke="#D97706" strokeWidth="2"/>
-                    <text x="50" y="42" fontSize="26" fontWeight="bold" fill="white" textAnchor="middle">-10%</text>
-                    <text x="50" y="65" fontSize="12" fontWeight="600" fill="white" textAnchor="middle">POPUST</text>
-                  </svg>
-                </div>
+                />
 
                 {/* 15% Discount Badge */}
-                <div 
+                <img 
+                  src="/discount-15.png"
+                  alt="15% popust"
                   onClick={() => handleBulkDiscountChange(15)}
-                  className="cursor-pointer transition-all hover:scale-110 hover:shadow-xl"
+                  className="cursor-pointer transition-all hover:scale-110 hover:shadow-2xl w-24 h-24 object-contain"
                   title="Primeni 15% popust na sve"
-                >
-                  <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="50" cy="50" r="48" fill="#EF4444" stroke="#DC2626" strokeWidth="2"/>
-                    <text x="50" y="42" fontSize="26" fontWeight="bold" fill="white" textAnchor="middle">-15%</text>
-                    <text x="50" y="65" fontSize="12" fontWeight="600" fill="white" textAnchor="middle">POPUST</text>
-                  </svg>
-                </div>
+                />
               </div>
             </div>
           </div>
