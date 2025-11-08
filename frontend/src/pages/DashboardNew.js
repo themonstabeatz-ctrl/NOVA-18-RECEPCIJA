@@ -470,7 +470,19 @@ const DashboardNew = () => {
           body { background: white; }
           .print\:hidden { display: none !important; }
           .print\:shadow-none { box-shadow: none !important; }
-          @page { size: A4 landscape; margin: 1cm; }
+          .print\:block { display: block !important; }
+          @page { 
+            size: A4 landscape; 
+            margin: 1cm; 
+          }
+          /* Add page break after charts */
+          .bg-white.rounded-lg.shadow.p-6:has(.recharts-wrapper) {
+            page-break-after: avoid;
+          }
+          /* Keep tables together */
+          table {
+            page-break-inside: avoid;
+          }
         }
       `}</style>
     </div>
