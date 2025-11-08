@@ -203,8 +203,8 @@ const DashboardNew = () => {
                   {formatCurrency(summary.total_revenue)}
                 </p>
               </div>
-              <div className="p-3 bg-green-100 rounded-full">
-                <DollarSign className="w-6 h-6 text-green-600" />
+              <div className="p-3 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-lg font-bold text-green-600">RSD</span>
               </div>
             </div>
             {summary.total_discount_given > 0 && (
