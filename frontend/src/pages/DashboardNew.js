@@ -90,7 +90,7 @@ const DashboardNew = () => {
       <Login 
         isOpen={showLoginModal} 
         onClose={() => setShowLoginModal(false)}
-        onLoginSuccess={handleLogin}
+        onLogin={handleLogin}
       />
     );
   }
