@@ -1159,6 +1159,185 @@ async def get_couple_appointments_analytics(
     }
 
 
+@api_router.get("/analytics/detailed")
+async def get_detailed_analytics(
+    period: str = Query("week", regex="^(day|week|month|year)$"),
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None)
+):
+    """
+    Get detailed analytics with:
+    - Revenue by category
+    - Original vs discounted prices
+    - Discount statistics
+    - Individual appointments with discounts
+    """
+    
+    # Calculate date range
+    now = datetime.now(timezone.utc)
+    
+    if start_date and end_date:
+        date_start = datetime.fromisoformat(start_date)
+        date_end = datetime.fromisoformat(end_date)
+    else:
+        if period == "day":
+            date_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            date_end = date_start + timedelta(days=1)
+        elif period == "week":
+            date_start = now - timedelta(days=now.weekday())
+            date_start = date_start.replace(hour=0, minute=0, second=0, microsecond=0)
+            date_end = date_start + timedelta(days=7)
+        elif period == "month":
+            date_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            if now.month == 12:
+                date_end = date_start.replace(year=now.year + 1, month=1)
+            else:
+                date_end = date_start.replace(month=now.month + 1)
+        else:  # year
+            date_start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+            date_end = date_start.replace(year=now.year + 1)
+    
+    # Get appointments
+    query = {
+        "start_time": {
+            "$gte": date_start.isoformat(),
+            "$lt": date_end.isoformat()
+        },
+        "status": {"$in": [AppointmentStatus.SCHEDULED, AppointmentStatus.COMPLETED]}
+    }
+    
+    appointments = await db.appointments.find(query, {"_id": 0}).to_list(10000)
+    
+    # Get all services
+    services = await db.services.find({}, {"_id": 0}).to_list(1000)
+    service_map = {s['id']: s for s in services}
+    
+    # Initialize category stats
+    categories = {
+        "Obicne masaze": {
+            "appointments_count": 0,
+            "revenue": 0,
+            "original_revenue": 0,
+            "discount_given": 0,
+            "with_discount": 0,
+            "without_discount": 0
+        },
+        "Kartica Masaza za parove": {
+            "appointments_count": 0,
+            "revenue": 0,
+            "original_revenue": 0,
+            "discount_given": 0,
+            "with_discount": 0,
+            "without_discount": 0
+        },
+        "SPA": {
+            "appointments_count": 0,
+            "revenue": 0,
+            "original_revenue": 0,
+            "discount_given": 0,
+            "with_discount": 0,
+            "without_discount": 0
+        },
+        "SPA Special kartica": {
+            "appointments_count": 0,
+            "revenue": 0,
+            "original_revenue": 0,
+            "discount_given": 0,
+            "with_discount": 0,
+            "without_discount": 0
+        }
+    }
+    
+    # Discount statistics
+    discount_stats = {
+        "0": {"count": 0, "revenue": 0},
+        "5": {"count": 0, "revenue": 0},
+        "10": {"count": 0, "revenue": 0},
+        "15": {"count": 0, "revenue": 0}
+    }
+    
+    # Individual appointments with discounts
+    appointments_with_discount = []
+    
+    # Process each appointment
+    for apt in appointments:
+        service = service_map.get(apt['service_id'])
+        if not service:
+            continue
+        
+        category = service.get('category', 'Obicne masaze')
+        original_price = service.get('price', 0)
+        discount_percentage = service.get('discount_percentage', 0)
+        discounted_price = original_price * (1 - discount_percentage / 100)
+        discount_amount = original_price - discounted_price
+        
+        # Get or create category (if not in predefined list)
+        if category not in categories:
+            categories[category] = {
+                "appointments_count": 0,
+                "revenue": 0,
+                "original_revenue": 0,
+                "discount_given": 0,
+                "with_discount": 0,
+                "without_discount": 0
+            }
+        
+        # Update category stats
+        categories[category]["appointments_count"] += 1
+        categories[category]["revenue"] += discounted_price
+        categories[category]["original_revenue"] += original_price
+        categories[category]["discount_given"] += discount_amount
+        
+        if discount_percentage > 0:
+            categories[category]["with_discount"] += 1
+            
+            # Add to appointments with discount list
+            appointments_with_discount.append({
+                "id": apt['id'],
+                "client_name": f"{apt['client_first_name']} {apt['client_last_name']}",
+                "client_phone": apt['client_phone'],
+                "start_time": apt['start_time'],
+                "service_name": service['name'],
+                "category": category,
+                "original_price": original_price,
+                "discounted_price": discounted_price,
+                "discount_percentage": discount_percentage,
+                "discount_amount": discount_amount
+            })
+        else:
+            categories[category]["without_discount"] += 1
+        
+        # Update discount stats
+        discount_key = str(int(discount_percentage))
+        if discount_key not in discount_stats:
+            discount_stats[discount_key] = {"count": 0, "revenue": 0}
+        discount_stats[discount_key]["count"] += 1
+        discount_stats[discount_key]["revenue"] += discounted_price
+    
+    # Calculate totals
+    total_revenue = sum(cat["revenue"] for cat in categories.values())
+    total_original_revenue = sum(cat["original_revenue"] for cat in categories.values())
+    total_discount_given = sum(cat["discount_given"] for cat in categories.values())
+    total_appointments = sum(cat["appointments_count"] for cat in categories.values())
+    
+    return {
+        "period": period,
+        "start_date": date_start.isoformat(),
+        "end_date": date_end.isoformat(),
+        "summary": {
+            "total_revenue": total_revenue,
+            "total_original_revenue": total_original_revenue,
+            "total_discount_given": total_discount_given,
+            "total_appointments": total_appointments,
+            "discount_percentage": (total_discount_given / total_original_revenue * 100) if total_original_revenue > 0 else 0
+        },
+        "by_category": categories,
+        "by_discount": discount_stats,
+        "appointments_with_discount": appointments_with_discount
+    }
+
+
+
 # ============================================
 # Root route
 # ============================================
