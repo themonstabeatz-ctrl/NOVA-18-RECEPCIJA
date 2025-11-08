@@ -1,0 +1,106 @@
+🔧 HITNA ISPRAVKA - Popusti samo za "Masaža za parove"
+
+Problem: Popusti se prikazuju na SVIM masažama, a treba SAMO u "Masaža za parove".
+
+========================================
+ISPRAVKA 1: Promeni API URL
+========================================
+
+U fajlu: /src/services/bookingApi.js
+
+STARO:
+const BOOKING_API = 'https://spabooking.emergent.host/api';
+
+NOVO:
+const BOOKING_API = 'https://spabooking.preview.emergentagent.com/api';
+
+========================================
+ISPRAVKA 2: Dodaj Funkciju za Proveru
+========================================
+
+U fajl: /src/services/bookingApi.js
+
+Dodaj novu funkciju:
+
+export function shouldShowDiscount(service) {
+  // Popust se prikazuje SAMO za "Kartica Masaza za parove"
+  const hasDiscount = (service.discount_percentage || 0) > 0;
+  const isCoupleCategory = service.category === "Kartica Masaza za parove";
+  return hasDiscount && isCoupleCategory;
+}
+
+========================================
+ISPRAVKA 3: Obične Masaže - BEZ Popusta
+========================================
+
+U SVIM karticama za obične masaže (Tradicionalna, Aroma, Masaža toplim uljem, Glava-vrat-ramena, Masaža stopala):
+
+OBRIŠI ili ZAKOMENTIRAJ:
+- Prikaz značke popusta (-10%)
+- Prekriženu staru cenu
+- Novu cenu sa popustom
+
+PRIKAZUJ SAMO:
+- Normalnu cenu (bez popusta)
+
+Primer koda:
+
+// STARO - OBRIŠI OVO:
+{badgeUrl && <img src={badgeUrl} alt="popust" />}
+{showDiscount && <p className="old-price">{oldPrice} RSD</p>}
+{showDiscount && <p className="new-price">{newPrice} RSD</p>}
+
+// NOVO - SAMO OVO:
+<p className="price">{service.price.toLocaleString()} RSD</p>
+
+========================================
+ISPRAVKA 4: Masaža za Parove - SA Popustom
+========================================
+
+U komponenti za "Masaža za parove" (dropdown za Osoba 1 i Osoba 2):
+
+KORISTI shouldShowDiscount() funkciju:
+
+import { shouldShowDiscount } from '../services/bookingApi';
+
+// U dropdown opcijama:
+{services.map(service => {
+  const priceInfo = calculatePrice(service);
+  const showDiscount = shouldShowDiscount(service);  // ← KLJUČNO
+  
+  return (
+    <option key={service.id} value={service.id}>
+      {service.name} - 
+      {showDiscount ? (
+        `${priceInfo.discounted.toLocaleString()} RSD (-${priceInfo.discount}%)`
+      ) : (
+        `${priceInfo.original.toLocaleString()} RSD`
+      )}
+    </option>
+  );
+})}
+
+// Prikaz značke - SAMO ako shouldShowDiscount = true:
+{selectedService && (() => {
+  const showDiscount = shouldShowDiscount(selectedService);
+  const badgeUrl = showDiscount ? getDiscountBadgeUrl(selectedService.discount_percentage) : null;
+  return badgeUrl && <img src={badgeUrl} alt="popust" />;
+})()}
+
+========================================
+TESTIRANJE
+========================================
+
+1. U booking sistemu (https://spabooking.preview.emergentagent.com/services):
+   - Idi na "Kartica Masaza za parove"
+   - Postavi -15% popust
+   - Potvrdi
+
+2. Na websajtu:
+   - Refresh
+   - Proveri: Obične masaže NE treba da prikazuju popuste ✅
+   - Proveri: "Masaža za parove" dropdown TREBA da prikazuje popuste ✅
+
+========================================
+
+Za detaljnije objašnjenje, vidi: /app/ISPRAVKA_WEBSAJT_POPUSTI.md
