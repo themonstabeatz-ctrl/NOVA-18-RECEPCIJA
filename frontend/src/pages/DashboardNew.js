@@ -133,6 +133,18 @@ const DashboardNew = () => {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">CEO Dashboard</h1>
               <p className="text-gray-600 mt-1">Bua Luang Thai Spa - Analitika</p>
+              {/* Show period in print */}
+              <div className="hidden print:block mt-2">
+                <p className="text-lg font-semibold text-[#C8A165]">
+                  Izveštaj za: {getPeriodLabel()}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Period: {new Date(detailedData.start_date).toLocaleDateString('sr-RS')} - {new Date(detailedData.end_date).toLocaleDateString('sr-RS')}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Štampano: {new Date().toLocaleString('sr-RS')}
+                </p>
+              </div>
             </div>
             <div className="flex gap-3 print:hidden">
               <button
@@ -140,7 +152,7 @@ const DashboardNew = () => {
                 className="flex items-center gap-2 px-4 py-2 bg-[#C8A165] text-white rounded-lg hover:bg-[#B89155] transition-colors"
               >
                 <Printer className="w-4 h-4" />
-                Štampaj
+                Štampaj {getPeriodLabel()}
               </button>
               <button
                 onClick={handleLogout}
