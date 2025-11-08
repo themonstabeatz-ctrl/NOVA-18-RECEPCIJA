@@ -1,0 +1,229 @@
+🎯 FINALNA INTEGRACIJA - Websajt sa Booking Sistemom
+
+WEBSAJT (RADNA VERZIJA): https://buluang-spa-fix.preview.emergentagent.com/
+BOOKING API (RADNA VERZIJA): https://spabooking.preview.emergentagent.com/api
+
+========================================
+ZADATAK 1: POPRAVKA PRIKAZA POPUSTA
+========================================
+
+PROBLEM: Popusti se prikazuju na SVIM masažama umesto samo u "Masaža za parove"
+
+API URL:
+https://spabooking.preview.emergentagent.com/api/services
+
+REŠENJE:
+
+1. Promeni API URL u /src/services/bookingApi.js:
+
+const BOOKING_API = 'https://spabooking.preview.emergentagent.com/api';
+
+2. Dodaj funkciju za proveru:
+
+export function shouldShowDiscount(service) {
+  const hasDiscount = (service.discount_percentage || 0) > 0;
+  const isCoupleCategory = service.category === "Kartica Masaza za parove";
+  return hasDiscount && isCoupleCategory;
+}
+
+3. U karticama za obične masaže (Tradicionalna, Aroma, itd.):
+   - UVEK prikazuj normalnu cenu
+   - NIKAD ne prikazuj popuste
+
+4. U "Masaža za parove" dropdownu:
+   - Koristi shouldShowDiscount() da odlučiš da li pokazati popust
+   - Prikaži značku popusta (-5%, -10%, -15%) SAMO ako shouldShowDiscount() = true
+
+========================================
+ZADATAK 2: BOOKING FUNKCIONALNOST
+========================================
+
+PROBLEM: Greška pri zakazivanju - "Greška! Molimo pokušajte ponovo."
+
+API ENDPOINT:
+POST https://spabooking.preview.emergentagent.com/api/book-couple-appointment
+
+FORMAT PODATAKA (Request Body):
+{
+  "client_first_name": "Milos",
+  "client_last_name": "Stanić",
+  "client_phone": "9843768",
+  "client_email": "themonstabenzq@gmail.com",
+  "start_time": "2025-11-09T14:00:00",
+  "duration_type": 120,
+  "person1_services": ["service-id-1"],
+  "person2_services": ["service-id-2"],
+  "discount_couples_massage": 15.0
+}
+
+KLJUČNE IZMENE:
+- client_first_name i client_last_name (RAZDVOJENO, ne client_name!)
+- start_time u ISO formatu: "2025-11-09T14:00:00"
+- duration_type: 60, 90, ili 120 (ne 240!)
+- person1_services i person2_services MORA biti array []
+
+KOD:
+
+// Helper: Format datum u ISO
+function formatToISO(date, time) {
+  // date = "09/11/2025" (DD/MM/YYYY)
+  // time = "14:00"
+  const [day, month, year] = date.split('/');
+  const [hours, minutes] = time.split(':');
+  return `${year}-${month}-${day}T${hours}:${minutes}:00`;
+}
+
+// Helper: Duration type
+function getDurationType(serviceText) {
+  if (serviceText.includes('240 min')) return 120; // 120x2=240
+  if (serviceText.includes('180 min')) return 90;  // 90x2=180
+  if (serviceText.includes('120 min')) return 60;  // 60x2=120
+  return 60; // default
+}
+
+// Booking funkcija
+async function bookCoupleAppointment(formData) {
+  const bookingData = {
+    client_first_name: formData.firstName,
+    client_last_name: formData.lastName,
+    client_phone: formData.phone,
+    client_email: formData.email,
+    start_time: formatToISO(formData.date, formData.time),
+    duration_type: getDurationType(formData.selectedService),
+    person1_services: [formData.person1ServiceId],
+    person2_services: [formData.person2ServiceId],
+    discount_couples_massage: 15.0
+  };
+  
+  const response = await fetch(
+    'https://spabooking.preview.emergentagent.com/api/book-couple-appointment',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bookingData)
+    }
+  );
+  
+  if (!response.ok) {
+    const error = await response.json();
+    console.error('❌ Booking failed:', error);
+    throw new Error('Booking failed');
+  }
+  
+  const appointment = await response.json();
+  console.log('✅ Booking successful:', appointment);
+  return appointment;
+}
+
+// Integracija u formu
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  try {
+    setLoading(true);
+    setError(null);
+    
+    const appointment = await bookCoupleAppointment(formData);
+    
+    // Uspešno - prikaži korisniku potvrdu
+    showBookingConfirmation(appointment);
+    
+  } catch (error) {
+    setError('Došlo je do greške pri zakazivanju. Molimo pokušajte ponovo ili nas kontaktirajte.');
+  } finally {
+    setLoading(false);
+  }
+};
+
+========================================
+ZADATAK 3: PRIKAZ POTVRDE KORISNIKU
+========================================
+
+function showBookingConfirmation(appointment) {
+  // Prikaži modal ili sekciju sa potvrdom
+  const confirmationHTML = `
+    <div class="booking-confirmation">
+      <h2>✅ Termin Uspešno Zakazan!</h2>
+      <p><strong>📅 Datum i vreme:</strong> ${formatDateTime(appointment.start_time)}</p>
+      <p><strong>💆 Usluga:</strong> ${appointment.service_name}</p>
+      <p><strong>💰 Cena:</strong> ${appointment.price.toLocaleString()} RSD</p>
+      <p><strong>⏱️ Trajanje:</strong> ${Math.round((new Date(appointment.end_time) - new Date(appointment.start_time)) / 60000)} min</p>
+      <hr>
+      <p>Očekujemo Vas!</p>
+      <p>Za pitanja pozovite: +381 XX XXX XXXX</p>
+    </div>
+  `;
+  
+  // Prikaži u modalu ili na stranici
+  document.getElementById('confirmation-modal').innerHTML = confirmationHTML;
+  document.getElementById('confirmation-modal').style.display = 'block';
+}
+
+========================================
+VAŽNO: SERVICE ID-JEVI
+========================================
+
+Da bi booking radio, moraš imati PRAVE service ID-jeve!
+
+1. Učitaj usluge:
+const response = await fetch('https://spabooking.preview.emergentagent.com/api/services');
+const services = await response.json();
+
+2. Filtriraj "Kartica Masaza za parove":
+const coupleServices = services.filter(s => s.category === "Kartica Masaza za parove");
+
+3. Kada korisnik bira masažu u dropdown-u, ČUVAJ service.id:
+<select onChange={(e) => setPerson1ServiceId(e.target.value)}>
+  {coupleServices.map(service => (
+    <option key={service.id} value={service.id}>
+      {service.name} - {service.price} RSD
+    </option>
+  ))}
+</select>
+
+========================================
+TESTIRANJE
+========================================
+
+1. Test API poziva (cURL):
+
+curl -X POST https://spabooking.preview.emergentagent.com/api/book-couple-appointment \
+  -H "Content-Type: application/json" \
+  -d '{
+    "client_first_name": "Test",
+    "client_last_name": "Korisnik",
+    "client_phone": "123456789",
+    "client_email": "test@test.com",
+    "start_time": "2025-11-10T14:00:00",
+    "duration_type": 60,
+    "person1_services": ["98249336-b9d9-4685-b70c-81971d3cf216"],
+    "person2_services": ["98249336-b9d9-4685-b70c-81971d3cf216"],
+    "discount_couples_massage": 15.0
+  }'
+
+2. Proveri da li se termin pojavio u booking sistemu:
+https://spabooking.preview.emergentagent.com/appointments
+
+========================================
+OČEKIVANI REZULTAT
+========================================
+
+✅ Popusti se prikazuju SAMO u "Masaža za parove" kartici
+✅ Obične masaže NE prikazuju popuste (Tradicionalna, Aroma, itd.)
+✅ Korisnik može da zakаže termin sa websajta
+✅ Korisnik dobija potvrdu nakon uspešnog bukiranja
+✅ Admin vidi termin u booking sistemu
+
+========================================
+DODATNE NAPOMENE
+========================================
+
+- Slike za popuste su već na websajtu: /discount-5.png, /discount-10.png, /discount-15.png
+- Booking sistem preview već ima 5% popust na "Kartica Masaza za parove"
+- Nakon implementacije, testiraj kompletnu formu od izbora masaže do potvrde
+
+========================================
+
+Za detaljnu dokumentaciju:
+- Popusti: /app/ISPRAVKA_WEBSAJT_POPUSTI.md
+- Booking: /app/WEBSAJT_BOOKING_INTEGRACIJA.md
