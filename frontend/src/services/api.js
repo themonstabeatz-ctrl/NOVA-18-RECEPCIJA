@@ -51,6 +51,7 @@ export const analyticsService = {
   getTherapistStats: (params) => api.get('/analytics/therapist-stats', { params }),
   getRevenue: (params) => api.get('/analytics/revenue', { params }),
   getClients: (params) => api.get('/analytics/clients', { params }),
+  getDetailed: (params) => api.get('/analytics/detailed', { params }),
 };
 
 export default api;
