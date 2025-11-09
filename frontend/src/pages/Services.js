@@ -30,6 +30,9 @@ const Services = () => {
     { value: 120, label: '120 minuta (2h)' },
     { value: 180, label: '180 minuta (3h)' },
     { value: 240, label: '240 minuta (4h)' },
+    { value: 300, label: '300 minuta (5h)' },
+    { value: 360, label: '360 minuta (6h)' },
+    { value: 420, label: '420 minuta (7h)' },
   ];
 
   useEffect(() => {
