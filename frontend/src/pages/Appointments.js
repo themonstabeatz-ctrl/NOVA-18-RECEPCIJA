@@ -672,7 +672,7 @@ const Appointments = () => {
                           {getTherapistName(appointment.therapist_id)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                             statusColors[appointment.status]
@@ -681,7 +681,7 @@ const Appointments = () => {
                           {statusLabels[appointment.status]}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
                         {appointment.body_map_gender && (
                           <button
                             onClick={() => handlePrintClick(appointment)}
