@@ -537,18 +537,24 @@ const Appointments = () => {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="relative cursor-pointer" onClick={(e) => {
-                const input = e.currentTarget.querySelector('input[type="date"]');
-                if (input) input.click();
-              }}>
+              <div 
+                className="relative cursor-pointer" 
+                onClick={() => {
+                  if (dateInputRef.current) {
+                    dateInputRef.current.focus();
+                    dateInputRef.current.click();
+                  }
+                }}
+              >
                 <input
+                  ref={dateInputRef}
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                   data-testid="date-picker"
                 />
-                <div className="px-4 py-2 border border-gray-300 rounded-lg w-48 text-center font-medium bg-white flex items-center justify-center gap-2">
+                <div className="px-4 py-2 border border-gray-300 rounded-lg w-48 text-center font-medium bg-white flex items-center justify-center gap-2 pointer-events-none">
                   <span>{formatDateToDDMMYYYY(selectedDate)}</span>
                   <CalendarIcon className="w-5 h-5 text-[#C8A165]" />
                 </div>
