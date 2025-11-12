@@ -172,6 +172,69 @@ const Navbar = () => {
           </div>
         </div>
       )}
+
+      {/* Notification Modal */}
+      {showNotifications && (
+        <div className="absolute right-4 top-16 w-96 bg-white rounded-lg shadow-xl border z-50" data-testid="notification-modal">
+          <div className="p-4 border-b flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Notifikacije {unviewedCount > 0 && `(${unviewedCount})`}
+            </h3>
+            <div className="flex gap-2">
+              {unviewedCount > 0 && (
+                <button
+                  onClick={markAllViewed}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  Označi sve kao pregledano
+                </button>
+              )}
+              <button
+                onClick={() => setShowNotifications(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+          <div className="max-h-96 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>Nema novih notifikacija</p>
+              </div>
+            ) : (
+              <div className="divide-y">
+                {notifications.map((notification) => (
+                  <div key={notification.id} className="p-4 hover:bg-gray-50">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 mt-1">
+                        <Calendar className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">
+                          Nova rezervacija
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {notification.client_first_name} {notification.client_last_name}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          📅 {formatDateTime(notification.start_time)}
+                        </p>
+                        {notification.client_phone && (
+                          <p className="text-xs text-gray-500">
+                            📞 {notification.client_phone}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
