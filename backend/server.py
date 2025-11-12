@@ -544,8 +544,8 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     # Apply 15% discount
     discounted_price = total_price * 0.85
     
-    # Calculate total duration (both persons are serviced simultaneously)
-    total_duration = couple.duration_type * 2  # 60x2=120, 90x2=180, 120x2=240
+    # Calculate total duration (both persons are serviced simultaneously - together at the same time)
+    total_duration = couple.duration_type  # 60, 90, or 120 minutes (they go together, not one after another)
     
     # Remove timezone info if present
     start_time = couple.start_time.replace(tzinfo=None) if couple.start_time.tzinfo else couple.start_time
@@ -652,8 +652,8 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     discount_amount = total_price * (couple.discount_couples_massage / 100)
     discounted_price = total_price - discount_amount
     
-    # Calculate total duration (both persons are serviced simultaneously)
-    total_duration = couple.duration_type * 2  # 60x2=120, 90x2=180, 120x2=240
+    # Calculate total duration (both persons are serviced simultaneously - together at the same time)
+    total_duration = couple.duration_type  # 60, 90, or 120 minutes (they go together, not one after another)
     
     # Remove timezone info if present
     start_time = couple.start_time.replace(tzinfo=None) if couple.start_time.tzinfo else couple.start_time
