@@ -28,7 +28,7 @@ Couple massage se **automatski kreira** kada korisnik zakaže preko posebnog end
 
 ### **POST** `/api/appointments/couple`
 
-**URL:** `https://spabooking.preview.emergentagent.com/api/appointments/couple`
+**URL:** `https://relax-booking-3.preview.emergentagent.com/api/appointments/couple`
 
 ### Request Body:
 ```json
@@ -117,7 +117,7 @@ Backend kreira:
 
 ```javascript
 // GET all services from booking system
-const response = await fetch('https://spabooking.preview.emergentagent.com/api/services');
+const response = await fetch('https://relax-booking-3.preview.emergentagent.com/api/services');
 const services = await response.json();
 
 // Filter out couple services (shouldn't be any now, but just in case)
@@ -204,7 +204,7 @@ async function submitCoupleBooking(event) {
   
   try {
     const response = await fetch(
-      'https://spabooking.preview.emergentagent.com/api/appointments/couple',
+      'https://relax-booking-3.preview.emergentagent.com/api/appointments/couple',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -235,7 +235,7 @@ document.getElementById('coupleBookingForm').addEventListener('submit', submitCo
 
 ### Test Scenario 1: 2x60 minuta
 ```bash
-curl -X POST https://spabooking.preview.emergentagent.com/api/appointments/couple \
+curl -X POST https://relax-booking-3.preview.emergentagent.com/api/appointments/couple \
   -H "Content-Type: application/json" \
   -d '{
     "client_first_name": "Test",
@@ -348,7 +348,7 @@ REŠENJE:
 4. Svaki dropdown prikazuje SVE regularne usluge (Tradicionalna, Aroma, Toplo ulje, itd.)
 5. Dodaj dropdown za trajanje: 60, 90, ili 120 minuta
 6. Kada korisnik submituje, pošalji na:
-   POST https://spabooking.preview.emergentagent.com/api/appointments/couple
+   POST https://relax-booking-3.preview.emergentagent.com/api/appointments/couple
 
 Request body:
 {

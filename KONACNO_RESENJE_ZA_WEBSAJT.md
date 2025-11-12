@@ -30,7 +30,7 @@ from typing import List
 router = APIRouter()
 
 # Booking sistem URL
-BOOKING_SYSTEM_URL = "https://spabooking.preview.emergentagent.com"
+BOOKING_SYSTEM_URL = "https://relax-booking-3.preview.emergentagent.com"
 
 class CoupleBookingRequest(BaseModel):
     client_first_name: str
@@ -145,7 +145,7 @@ const response = await fetch('/api/book-couple-appointment', {
 ```javascript
 // Prvo dobavi listu terapeuta
 const therapistsResponse = await fetch(
-  'https://spabooking.preview.emergentagent.com/api/therapists'
+  'https://relax-booking-3.preview.emergentagent.com/api/therapists'
 );
 const therapists = await therapistsResponse.json();
 
@@ -174,7 +174,7 @@ const bookingPayload = {
 
 // Pošalji na booking sistem
 const response = await fetch(
-  'https://spabooking.preview.emergentagent.com/api/appointments/couple',
+  'https://relax-booking-3.preview.emergentagent.com/api/appointments/couple',
   {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -201,7 +201,7 @@ Nakon implementacije bilo koje opcije, testiranje:
 
 ### 1. Test Couple Booking Form
 
-1. Idi na: https://spabooking.preview.emergentagent.com/
+1. Idi na: https://relax-booking-3.preview.emergentagent.com/
 2. Klikni BOOKING
 3. Izaberi "Masaža za parove"
 4. Popuni formu
@@ -215,7 +215,7 @@ Nakon implementacije bilo koje opcije, testiranje:
 
 ### 3. Provera u Booking Sistemu
 
-Idi na: https://spabooking.preview.emergentagent.com/appointments  
+Idi na: https://relax-booking-3.preview.emergentagent.com/appointments  
 (Password: studio149)
 
 Trebalo bi da vidiš novi couple appointment sa:
@@ -276,13 +276,13 @@ REŠENJE - Izaberi jedno:
 
 OPCIJA A (Backend Fix):
 Kreiraj endpoint /api/book-couple-appointment u backend-u koji:
-1. Dobavi therapist_id iz GET https://spabooking.preview.emergentagent.com/api/therapists
+1. Dobavi therapist_id iz GET https://relax-booking-3.preview.emergentagent.com/api/therapists
 2. Dodaj therapist_id i status: "scheduled" u payload
-3. Proxy-uj na: POST https://spabooking.preview.emergentagent.com/api/appointments/couple
+3. Proxy-uj na: POST https://relax-booking-3.preview.emergentagent.com/api/appointments/couple
 
 OPCIJA B (Frontend Fix - BRŽE):
 U frontend kodu, izmeni fetch poziv da DIREKTNO poziva:
-- URL: https://spabooking.preview.emergentagent.com/api/appointments/couple
+- URL: https://relax-booking-3.preview.emergentagent.com/api/appointments/couple
 - Dodaj therapist_id (dobavi iz /api/therapists)
 - Dodaj status: "scheduled"
 
