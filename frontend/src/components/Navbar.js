@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Calendar, Users, Briefcase, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, Briefcase, Settings, Menu, X, Bell } from 'lucide-react';
+import { appointmentService } from '../services/api';
 
 const Navbar = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [unviewedCount, setUnviewedCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
