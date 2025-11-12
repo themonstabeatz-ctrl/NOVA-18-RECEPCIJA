@@ -691,7 +691,7 @@ const Appointments = () => {
                           {statusLabels[appointment.status]}
                         </span>
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium" style={{minWidth: '200px'}}>
+                      <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium sticky right-0 bg-white shadow-sm" style={{minWidth: '200px'}}>
                         <div className="flex justify-end items-center gap-2">
                           {appointment.body_map_gender && (
                             <button
