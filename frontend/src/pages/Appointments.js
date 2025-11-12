@@ -536,17 +536,17 @@ const Appointments = () => {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-gray-500" />
               <div className="relative">
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 opacity-0 absolute w-40"
+                  className="px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 opacity-0 absolute w-48 cursor-pointer"
                   data-testid="date-picker"
                 />
-                <div className="px-4 py-2 border border-gray-300 rounded-lg w-40 text-center font-medium bg-white pointer-events-none">
-                  {formatDateToDDMMYYYY(selectedDate)}
+                <div className="px-4 py-2 pr-10 border border-gray-300 rounded-lg w-48 text-center font-medium bg-white pointer-events-none flex items-center justify-center gap-2">
+                  <span>{formatDateToDDMMYYYY(selectedDate)}</span>
+                  <CalendarIcon className="w-5 h-5 text-[#C8A165]" />
                 </div>
               </div>
             </div>
