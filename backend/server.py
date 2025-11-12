@@ -560,8 +560,6 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     else:  # 120
         service_name = f"Masaža za parove - 240 min (2x60 ili 120 min)"
     
-    service_name += f" - 15% popust"
-    
     # Create a dummy service entry for couple package
     couple_service_id = str(uuid.uuid4())
     couple_service = {
