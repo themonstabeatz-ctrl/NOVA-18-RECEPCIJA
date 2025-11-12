@@ -38,6 +38,10 @@ export const appointmentService = {
   update: (id, data) => api.put(`/appointments/${id}`, data),
   delete: (id) => api.delete(`/appointments/${id}`),
   updateStatus: (id, status) => api.patch(`/appointments/${id}/status?status=${status}`),
+  getUnviewedCount: () => api.get('/appointments/unviewed/count'),
+  getUnviewedList: () => api.get('/appointments/unviewed/list'),
+  markViewed: (id) => api.patch(`/appointments/${id}/mark-viewed`),
+  markAllViewed: () => api.patch('/appointments/mark-all-viewed'),
 };
 
 // Business Hours
