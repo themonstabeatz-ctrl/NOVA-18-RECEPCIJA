@@ -536,12 +536,15 @@ const Appointments = () => {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="relative cursor-pointer" onClick={() => document.querySelector('[data-testid="date-picker"]').showPicker()}>
+              <div className="relative cursor-pointer" onClick={(e) => {
+                const input = e.currentTarget.querySelector('input[type="date"]');
+                if (input) input.click();
+              }}>
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                   data-testid="date-picker"
                 />
                 <div className="px-4 py-2 border border-gray-300 rounded-lg w-48 text-center font-medium bg-white flex items-center justify-center gap-2">
