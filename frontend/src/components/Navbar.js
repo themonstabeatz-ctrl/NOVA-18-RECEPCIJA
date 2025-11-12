@@ -18,6 +18,60 @@ const Navbar = () => {
     { path: '/settings', label: 'Podešavanja', icon: Settings },
   ];
 
+  // Load unviewed count on mount and every 30 seconds
+  useEffect(() => {
+    loadUnviewedCount();
+    const interval = setInterval(loadUnviewedCount, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadUnviewedCount = async () => {
+    try {
+      const response = await appointmentService.getUnviewedCount();
+      setUnviewedCount(response.data.count);
+    } catch (error) {
+      console.error('Error loading unviewed count:', error);
+    }
+  };
+
+  const loadNotifications = async () => {
+    try {
+      const response = await appointmentService.getUnviewedList();
+      setNotifications(response.data);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    }
+  };
+
+  const handleBellClick = async () => {
+    if (!showNotifications) {
+      await loadNotifications();
+    }
+    setShowNotifications(!showNotifications);
+  };
+
+  const markAllViewed = async () => {
+    try {
+      await appointmentService.markAllViewed();
+      setUnviewedCount(0);
+      setNotifications([]);
+      setShowNotifications(false);
+    } catch (error) {
+      console.error('Error marking all viewed:', error);
+    }
+  };
+
+  const formatDateTime = (dateTimeStr) => {
+    const date = new Date(dateTimeStr);
+    return date.toLocaleString('sr-RS', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
