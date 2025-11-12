@@ -667,8 +667,6 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     else:  # 120
         service_name = f"Masaža za parove - 240 min (2x120 min)"
     
-    service_name += f" - {couple.discount_couples_massage}% popust"
-    
     # Create a dummy service entry for couple package
     couple_service_id = str(uuid.uuid4())
     couple_service = {
