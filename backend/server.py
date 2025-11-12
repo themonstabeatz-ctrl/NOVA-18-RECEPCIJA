@@ -835,6 +835,52 @@ async def update_appointment_status(appointment_id: str, status: AppointmentStat
     return {"message": "Status updated successfully"}
 
 
+@api_router.get("/appointments/unviewed/count")
+async def get_unviewed_appointments_count():
+    """Get count of unviewed appointments"""
+    count = await db.appointments.count_documents({"is_viewed": False})
+    return {"count": count}
+
+@api_router.get("/appointments/unviewed/list")
+async def get_unviewed_appointments():
+    """Get list of unviewed appointments"""
+    appointments = await db.appointments.find(
+        {"is_viewed": False}
+    ).sort("created_at", -1).to_list(100)
+    
+    # Parse datetime strings
+    for apt in appointments:
+        if isinstance(apt.get('start_time'), str):
+            apt['start_time'] = datetime.fromisoformat(apt['start_time'])
+        if isinstance(apt.get('end_time'), str):
+            apt['end_time'] = datetime.fromisoformat(apt['end_time'])
+        if isinstance(apt.get('created_at'), str):
+            apt['created_at'] = datetime.fromisoformat(apt['created_at'])
+    
+    return appointments
+
+@api_router.patch("/appointments/{appointment_id}/mark-viewed")
+async def mark_appointment_viewed(appointment_id: str):
+    """Mark appointment as viewed"""
+    result = await db.appointments.update_one(
+        {"id": appointment_id},
+        {"$set": {"is_viewed": True}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    return {"message": "Appointment marked as viewed"}
+
+@api_router.patch("/appointments/mark-all-viewed")
+async def mark_all_appointments_viewed():
+    """Mark all appointments as viewed"""
+    result = await db.appointments.update_many(
+        {"is_viewed": False},
+        {"$set": {"is_viewed": True}}
+    )
+    return {"message": f"Marked {result.modified_count} appointments as viewed"}
+
+
+
 # ============================================
 # Routes - Business Hours
 # ============================================
