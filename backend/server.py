@@ -108,6 +108,7 @@ class Appointment(AppointmentBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     end_time: datetime
     created_at: datetime = Field(default_factory=lambda: datetime.now())
+    is_viewed: bool = False  # Flag for notifications
 
 
 # ============================================
