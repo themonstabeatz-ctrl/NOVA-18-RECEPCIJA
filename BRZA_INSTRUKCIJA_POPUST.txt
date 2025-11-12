@@ -1,0 +1,51 @@
+🚨 HITNA ISPRAVKA - Websajt Hardkoduje 15% Popust
+
+PROBLEM:
+Websajt UVEK šalje discount_couples_massage: 15.0
+Rezultat: Čak i bez aktivnog popusta, dashboard pokazuje sniženu cenu
+
+REŠENJE:
+Umesto hardkodovanog 15.0, dinamički izračunaj popust iz odabranih usluga
+
+========================================
+KOD - Dodaj Funkciju:
+========================================
+
+function calculateCoupleDiscount(person1ServiceId, person2ServiceId, services) {
+  const service1 = services.find(s => s.id === person1ServiceId);
+  const service2 = services.find(s => s.id === person2ServiceId);
+  
+  if (!service1 || !service2) return 0;
+  
+  const discount1 = service1.discount_percentage || 0;
+  const discount2 = service2.discount_percentage || 0;
+  const averageDiscount = (discount1 + discount2) / 2;
+  
+  console.log('Discount:', averageDiscount + '%');
+  return averageDiscount;
+}
+
+========================================
+KOD - Promeni Booking Funkciju:
+========================================
+
+// STARO:
+discount_couples_massage: 15.0  // ❌
+
+// NOVO:
+discount_couples_massage: calculateCoupleDiscount(
+  formData.person1ServiceId,
+  formData.person2ServiceId,
+  services
+)  // ✅
+
+========================================
+REZULTAT:
+========================================
+
+✅ Bez aktivnog popusta → 8,800 RSD (puna cena)
+✅ Sa 15% popustom → 7,480 RSD (sa popustom)
+
+========================================
+
+Za detalje: /app/WEBSAJT_DINAMICKI_POPUST.md
