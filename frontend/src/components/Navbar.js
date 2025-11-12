@@ -91,7 +91,7 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:space-x-4 lg:space-x-8">
+          <div className="hidden md:flex md:space-x-4 lg:space-x-8 items-center">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -111,6 +111,20 @@ const Navbar = () => {
                 </Link>
               );
             })}
+            
+            {/* Notification Bell */}
+            <button
+              onClick={handleBellClick}
+              className="relative p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+              data-testid="notification-bell"
+            >
+              <Bell className="w-5 h-5" />
+              {unviewedCount > 0 && (
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                  {unviewedCount}
+                </span>
+              )}
+            </button>
           </div>
 
           {/* Mobile menu button */}
