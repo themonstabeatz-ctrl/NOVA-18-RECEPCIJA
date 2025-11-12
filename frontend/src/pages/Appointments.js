@@ -681,41 +681,45 @@ const Appointments = () => {
                           {statusLabels[appointment.status]}
                         </span>
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {appointment.body_map_gender && (
+                      <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium" style={{minWidth: '200px'}}>
+                        <div className="flex justify-end items-center gap-2">
+                          {appointment.body_map_gender && (
+                            <button
+                              onClick={() => handlePrintClick(appointment)}
+                              className="text-purple-600 hover:text-purple-900"
+                              data-testid={`print-appointment-${appointment.id}`}
+                              title="Štampaj list za masažu"
+                            >
+                              <Printer className="w-5 h-5" />
+                            </button>
+                          )}
+                          {appointment.status === 'scheduled' && (
+                            <button
+                              onClick={() => handleCompleteAppointment(appointment.id)}
+                              className="text-green-600 hover:text-green-900"
+                              data-testid={`complete-appointment-${appointment.id}`}
+                              title="Označi kao završeno"
+                            >
+                              <Check className="w-5 h-5" />
+                            </button>
+                          )}
                           <button
-                            onClick={() => handlePrintClick(appointment)}
-                            className="text-purple-600 hover:text-purple-900 mr-4"
-                            data-testid={`print-appointment-${appointment.id}`}
-                            title="Štampaj list za masažu"
+                            onClick={() => handleEdit(appointment)}
+                            className="text-indigo-600 hover:text-indigo-900"
+                            data-testid={`edit-appointment-${appointment.id}`}
+                            title="Uredi termin"
                           >
-                            <Printer className="w-5 h-5" />
+                            <Edit2 className="w-5 h-5" />
                           </button>
-                        )}
-                        {appointment.status === 'scheduled' && (
                           <button
-                            onClick={() => handleCompleteAppointment(appointment.id)}
-                            className="text-green-600 hover:text-green-900 mr-4"
-                            data-testid={`complete-appointment-${appointment.id}`}
-                            title="Označi kao završeno"
+                            onClick={() => handleDelete(appointment.id)}
+                            className="text-red-600 hover:text-red-900"
+                            data-testid={`delete-appointment-${appointment.id}`}
+                            title="Obriši termin"
                           >
-                            <Check className="w-5 h-5" />
+                            <Trash2 className="w-5 h-5" />
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleEdit(appointment)}
-                          className="text-indigo-600 hover:text-indigo-900 mr-4"
-                          data-testid={`edit-appointment-${appointment.id}`}
-                        >
-                          <Edit2 className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(appointment.id)}
-                          className="text-red-600 hover:text-red-900"
-                          data-testid={`delete-appointment-${appointment.id}`}
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        </div>
                       </td>
                     </tr>
                   ))
