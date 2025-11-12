@@ -206,26 +206,41 @@ const Navbar = () => {
             ) : (
               <div className="divide-y">
                 {notifications.map((notification) => (
-                  <div key={notification.id} className="p-4 hover:bg-gray-50">
+                  <div key={notification.id} className="p-4 hover:bg-gray-50 border-l-4 border-blue-500">
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 mt-1">
                         <Calendar className="w-5 h-5 text-blue-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">
-                          Nova rezervacija
+                        <p className="text-sm font-bold text-blue-600">
+                          🔔 Nova rezervacija
                         </p>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-base font-semibold text-gray-900 mt-1">
                           {notification.client_first_name} {notification.client_last_name}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          📅 {formatDateTime(notification.start_time)}
-                        </p>
-                        {notification.client_phone && (
-                          <p className="text-xs text-gray-500">
-                            📞 {notification.client_phone}
+                        <div className="mt-2 space-y-1">
+                          <p className="text-sm text-gray-700">
+                            💆 <span className="font-medium">{notification.service_name || 'N/A'}</span>
                           </p>
-                        )}
+                          <p className="text-xs text-gray-600">
+                            📅 {formatDateTime(notification.start_time)}
+                          </p>
+                          {notification.price && (
+                            <p className="text-sm font-semibold text-green-600">
+                              💰 {notification.price.toLocaleString()} RSD
+                            </p>
+                          )}
+                          {notification.client_phone && (
+                            <p className="text-xs text-gray-500">
+                              📞 {notification.client_phone}
+                            </p>
+                          )}
+                          {notification.client_email && (
+                            <p className="text-xs text-gray-500">
+                              📧 {notification.client_email}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
