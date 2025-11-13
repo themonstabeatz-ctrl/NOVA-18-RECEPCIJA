@@ -512,6 +512,133 @@ const DashboardNew = () => {
           }
         }
       `}</style>
+
+      {/* Appointments List Modal */}
+      {showAppointmentsList && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-amber-600 text-white px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <List className="w-6 h-6" />
+                <h2 className="text-2xl font-bold">
+                  Listing Rezervacija - {getPeriodLabel()}
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowAppointmentsList(false)}
+                className="text-white hover:bg-amber-700 rounded-full p-2 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+              {detailedData?.appointments_by_service && detailedData.appointments_by_service.length > 0 ? (
+                <div className="space-y-4">
+                  {/* Summary Info */}
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <p className="text-sm text-gray-600">Ukupno Rezervacija</p>
+                        <p className="text-2xl font-bold text-amber-700">{detailedData.total_appointments}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Ukupna Zarada</p>
+                        <p className="text-2xl font-bold text-green-700">{formatCurrency(detailedData.total_revenue)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Period</p>
+                        <p className="text-lg font-semibold text-gray-700">
+                          {new Date(detailedData.start_date).toLocaleDateString('sr-RS')} - {new Date(detailedData.end_date).toLocaleDateString('sr-RS')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Appointments Table */}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">
+                            #
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">
+                            Klijent
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">
+                            Usluga
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">
+                            Datum i Vreme
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">
+                            Cena
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {detailedData.appointments_by_service.flatMap((serviceData, serviceIdx) => 
+                          serviceData.appointments?.map((apt, aptIdx) => (
+                            <tr key={`${serviceIdx}-${aptIdx}`} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-4 py-3 text-sm text-gray-600 font-medium">
+                                {serviceIdx * 100 + aptIdx + 1}
+                              </td>
+                              <td className="px-4 py-3">
+                                <p className="text-sm font-semibold text-gray-900">
+                                  {apt.client_first_name} {apt.client_last_name}
+                                </p>
+                                {apt.client_phone && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    📞 {apt.client_phone}
+                                  </p>
+                                )}
+                              </td>
+                              <td className="px-4 py-3">
+                                <p className="text-sm font-medium text-gray-900">
+                                  {serviceData.service_name}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  ⏱️ {serviceData.service_duration || 'N/A'} min
+                                </p>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-700">
+                                {formatDateTime(apt.start_time)}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <span className="text-sm font-bold text-green-700">
+                                  {formatCurrency(apt.total_price)}
+                                </span>
+                              </td>
+                            </tr>
+                          )) || []
+                        )}
+                      </tbody>
+                      <tfoot className="bg-gray-50">
+                        <tr>
+                          <td colSpan="4" className="px-4 py-3 text-right text-sm font-bold text-gray-900">
+                            UKUPNO:
+                          </td>
+                          <td className="px-4 py-3 text-right text-lg font-bold text-green-700">
+                            {formatCurrency(detailedData.total_revenue)}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <List className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg">Nema rezervacija za izabrani period</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
