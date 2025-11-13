@@ -856,29 +856,54 @@ async def get_unviewed_appointments():
     therapist_map = {t['id']: t for t in therapists}
     
     # Enrich appointments with service and therapist details
+    result = []
     for apt in appointments:
-        # Parse datetime strings
-        if isinstance(apt.get('start_time'), str):
-            apt['start_time'] = datetime.fromisoformat(apt['start_time'])
-        if isinstance(apt.get('end_time'), str):
-            apt['end_time'] = datetime.fromisoformat(apt['end_time'])
-        if isinstance(apt.get('created_at'), str):
-            apt['created_at'] = datetime.fromisoformat(apt['created_at'])
+        # Parse datetime strings to datetime objects first
+        start_time = apt.get('start_time')
+        if isinstance(start_time, str):
+            start_time = datetime.fromisoformat(start_time)
+        
+        end_time = apt.get('end_time')
+        if isinstance(end_time, str):
+            end_time = datetime.fromisoformat(end_time)
+        
+        created_at = apt.get('created_at')
+        if isinstance(created_at, str):
+            created_at = datetime.fromisoformat(created_at)
         
         # Add service details
         service = service_map.get(apt.get('service_id'))
-        if service:
-            apt['service_name'] = service.get('name')
-            apt['service_price'] = service.get('price')
-            apt['service_duration'] = service.get('duration')
-            apt['service_category'] = service.get('category', 'regular')
+        service_name = service.get('name') if service else None
+        service_price = service.get('price') if service else None
+        service_duration = service.get('duration') if service else None
+        service_category = service.get('category', 'regular') if service else None
         
         # Add therapist name
         therapist = therapist_map.get(apt.get('therapist_id'))
-        if therapist:
-            apt['therapist_name'] = therapist.get('name')
+        therapist_name = therapist.get('name') if therapist else None
+        
+        # Build clean response object
+        result.append({
+            'id': apt.get('id'),
+            'client_first_name': apt.get('client_first_name'),
+            'client_last_name': apt.get('client_last_name'),
+            'client_phone': apt.get('client_phone'),
+            'client_email': apt.get('client_email'),
+            'therapist_id': apt.get('therapist_id'),
+            'therapist_name': therapist_name,
+            'service_id': apt.get('service_id'),
+            'service_name': service_name,
+            'service_price': service_price,
+            'service_duration': service_duration,
+            'service_category': service_category,
+            'start_time': start_time.isoformat() if start_time else None,
+            'end_time': end_time.isoformat() if end_time else None,
+            'created_at': created_at.isoformat() if created_at else None,
+            'status': apt.get('status'),
+            'is_viewed': apt.get('is_viewed', False)
+        })
     
-    return appointments
+    return result
 
 @api_router.patch("/appointments/{appointment_id}/mark-viewed")
 async def mark_appointment_viewed(appointment_id: str):
