@@ -638,12 +638,31 @@ const DashboardNew = () => {
                   Listing Rezervacija - {getPeriodLabel()}
                 </h2>
               </div>
-              <button
-                onClick={() => setShowAppointmentsList(false)}
-                className="text-white hover:bg-amber-700 rounded-full p-2 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-3">
+                {/* Print Button */}
+                <button
+                  onClick={handlePrintListing}
+                  className="flex items-center gap-2 px-4 py-2 bg-white text-amber-600 rounded-lg font-medium hover:bg-amber-50 transition-colors"
+                >
+                  <Printer className="w-5 h-5" />
+                  Štampaj
+                </button>
+                {/* Delete All Button */}
+                <button
+                  onClick={handleDeleteAllAppointments}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                  Obriši Sve
+                </button>
+                {/* Close Button */}
+                <button
+                  onClick={() => setShowAppointmentsList(false)}
+                  className="text-white hover:bg-amber-700 rounded-full p-2 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             {/* Modal Content */}
