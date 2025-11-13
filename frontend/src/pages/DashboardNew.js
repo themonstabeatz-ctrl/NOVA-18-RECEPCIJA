@@ -184,23 +184,34 @@ const DashboardNew = () => {
 
       {/* Period Selector */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 print:hidden">
-        <div className="flex gap-3">
-          {['day', 'week', 'month', 'year'].map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                period === p
-                  ? 'bg-[#C8A165] text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {p === 'day' && 'Danas'}
-              {p === 'week' && 'Ova Nedelja'}
-              {p === 'month' && 'Ovaj Mesec'}
-              {p === 'year' && 'Ova Godina'}
-            </button>
-          ))}
+        <div className="flex gap-3 items-center justify-between">
+          <div className="flex gap-3">
+            {['day', 'week', 'month', 'year'].map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                  period === p
+                    ? 'bg-[#C8A165] text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {p === 'day' && 'Danas'}
+                {p === 'week' && 'Ova Nedelja'}
+                {p === 'month' && 'Ovaj Mesec'}
+                {p === 'year' && 'Ova Godina'}
+              </button>
+            ))}
+          </div>
+          
+          {/* Appointments List Button */}
+          <button
+            onClick={handleShowAppointmentsList}
+            className="flex items-center gap-2 px-6 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors shadow-md"
+          >
+            <List className="w-5 h-5" />
+            Listing Rezervacija
+          </button>
         </div>
         <p className="text-sm text-gray-600 mt-2">
           Period: {new Date(detailedData.start_date).toLocaleDateString('sr-RS')} - {new Date(detailedData.end_date).toLocaleDateString('sr-RS')}
