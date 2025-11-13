@@ -206,38 +206,81 @@ const Navbar = () => {
             ) : (
               <div className="divide-y">
                 {notifications.map((notification) => (
-                  <div key={notification.id} className="p-4 hover:bg-gray-50 border-l-4 border-blue-500">
+                  <div key={notification.id} className="p-4 hover:bg-gray-50 border-l-4 border-amber-500 transition-colors">
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 mt-1">
-                        <Calendar className="w-5 h-5 text-blue-600" />
+                        <Calendar className="w-5 h-5 text-amber-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-bold text-blue-600">
-                          🔔 Nova rezervacija
+                        <p className="text-sm font-bold text-amber-700 mb-2">
+                          🔔 Nova online rezervacija
                         </p>
-                        <p className="text-base font-semibold text-gray-900 mt-1">
+                        
+                        {/* Client Info */}
+                        <p className="text-lg font-semibold text-gray-900">
                           {notification.client_first_name} {notification.client_last_name}
                         </p>
-                        <div className="mt-2 space-y-1">
-                          <p className="text-sm text-gray-700">
-                            💆 <span className="font-medium">{notification.service_name || 'N/A'}</span>
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            📅 {formatDateTime(notification.start_time)}
-                          </p>
-                          {notification.price && (
-                            <p className="text-sm font-semibold text-green-600">
-                              💰 {notification.price.toLocaleString()} RSD
-                            </p>
+                        
+                        {/* Service & Date/Time */}
+                        <div className="mt-3 space-y-2 bg-amber-50 p-3 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <span className="text-amber-700 font-semibold">💆‍♀️ Usluga:</span>
+                            <span className="font-medium text-gray-800 flex-1">
+                              {notification.service_name || 'N/A'}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <span className="text-amber-700 font-semibold">📅 Datum i vreme:</span>
+                            <span className="text-gray-700">
+                              {formatDateTime(notification.start_time)}
+                            </span>
+                          </div>
+                          
+                          {notification.service_duration && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-amber-700 font-semibold">⏱️ Trajanje:</span>
+                              <span className="text-gray-700">
+                                {notification.service_duration} min
+                              </span>
+                            </div>
                           )}
+                          
+                          {notification.therapist_name && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-amber-700 font-semibold">👤 Terapeut:</span>
+                              <span className="text-gray-700">
+                                {notification.therapist_name}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Price */}
+                        {notification.service_price && (
+                          <div className="mt-3 p-2 bg-green-50 rounded-lg border border-green-200">
+                            <p className="text-base font-bold text-green-700 flex items-center gap-2">
+                              💰 Cena: {notification.service_price.toLocaleString()} RSD
+                            </p>
+                          </div>
+                        )}
+                        
+                        {/* Contact Info */}
+                        <div className="mt-3 space-y-1 text-sm">
                           {notification.client_phone && (
-                            <p className="text-xs text-gray-500">
-                              📞 {notification.client_phone}
+                            <p className="text-gray-600 flex items-center gap-2">
+                              <span className="font-semibold">📞 Telefon:</span>
+                              <a href={`tel:${notification.client_phone}`} className="text-blue-600 hover:underline">
+                                {notification.client_phone}
+                              </a>
                             </p>
                           )}
                           {notification.client_email && (
-                            <p className="text-xs text-gray-500">
-                              📧 {notification.client_email}
+                            <p className="text-gray-600 flex items-center gap-2">
+                              <span className="font-semibold">📧 Email:</span>
+                              <a href={`mailto:${notification.client_email}`} className="text-blue-600 hover:underline">
+                                {notification.client_email}
+                              </a>
                             </p>
                           )}
                         </div>
