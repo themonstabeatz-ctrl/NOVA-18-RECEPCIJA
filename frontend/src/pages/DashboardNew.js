@@ -89,8 +89,121 @@ const DashboardNew = () => {
     });
   };
 
+  const formatDate = (dateTimeStr) => {
+    const date = new Date(dateTimeStr);
+    return date.toLocaleDateString('sr-RS', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (dateTimeStr) => {
+    const date = new Date(dateTimeStr);
+    return date.toLocaleTimeString('sr-RS', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Group appointments by date (day)
+  const groupAppointmentsByDay = () => {
+    if (!detailedData?.appointments_by_service) return {};
+    
+    const grouped = {};
+    detailedData.appointments_by_service.forEach(serviceData => {
+      serviceData.appointments?.forEach(apt => {
+        const date = new Date(apt.start_time);
+        const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+        
+        if (!grouped[dateKey]) {
+          grouped[dateKey] = [];
+        }
+        
+        grouped[dateKey].push({
+          ...apt,
+          service_name: serviceData.service_name,
+          service_duration: serviceData.service_duration
+        });
+      });
+    });
+    
+    // Sort appointments within each day by start_time
+    Object.keys(grouped).forEach(dateKey => {
+      grouped[dateKey].sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+    });
+    
+    return grouped;
+  };
+
   const handleShowAppointmentsList = () => {
     setShowAppointmentsList(true);
+  };
+
+  const handlePrintListing = () => {
+    const printContent = document.getElementById('appointments-listing-print');
+    if (!printContent) return;
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Listing Rezervacija - ${getPeriodLabel()}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: #C8A165; margin-bottom: 20px; }
+            .summary { background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+            .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center; }
+            .summary-item p:first-child { color: #6b7280; font-size: 14px; }
+            .summary-item p:last-child { font-size: 24px; font-weight: bold; color: #1f2937; }
+            .day-section { margin-bottom: 30px; page-break-inside: avoid; }
+            .day-header { background: #C8A165; color: white; padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; font-size: 18px; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            th { background: #f3f4f6; padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 12px; text-transform: uppercase; }
+            td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+            .total-row { background: #f9fafb; font-weight: bold; }
+            .price { color: #059669; font-weight: bold; }
+            @media print {
+              .no-print { display: none; }
+              body { margin: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
+  const handleDeleteAllAppointments = async () => {
+    if (!window.confirm(`Da li ste sigurni da želite da obrišete SVE rezervacije za period "${getPeriodLabel()}"?\n\nOvo će obrisati ${detailedData?.total_appointments || 0} rezervacija i ne može se poništiti!`)) {
+      return;
+    }
+    
+    try {
+      const grouped = groupAppointmentsByDay();
+      const allAppointmentIds = Object.values(grouped).flat().map(apt => apt.id);
+      
+      // Delete each appointment
+      for (const id of allAppointmentIds) {
+        await appointmentService.delete(id);
+      }
+      
+      alert(`Uspešno obrisano ${allAppointmentIds.length} rezervacija!`);
+      setShowAppointmentsList(false);
+      fetchData(); // Reload dashboard data
+    } catch (error) {
+      console.error('Error deleting appointments:', error);
+      alert('Greška pri brisanju rezervacija. Pokušajte ponovo.');
+    }
   };
 
   const COLORS = ['#C8A165', '#8B7355', '#D4AF37', '#CD853F'];
