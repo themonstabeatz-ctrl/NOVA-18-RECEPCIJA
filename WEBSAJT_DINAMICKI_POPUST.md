@@ -13,45 +13,13 @@
 
 ## 💻 ŠTA WEBSAJT TREBA DA ŠALJE:
 
-Websajt treba da:
-1. Proveri DA LI izabrane usluge imaju aktivan popust
-2. Ako DA - pošalje taj procenat
-3. Ako NE - pošalje 0
+**Jednostavno:**
+- Uvek šalji `discount_couples_massage: 0`
+- Backend će koristiti originalnu cenu
 
 ---
 
-## 💻 KOD KOJI TREBA PROMENITI:
-
-### 1. Funkcija za Kalkulaciju Popusta
-
-```javascript
-// NOVA FUNKCIJA - Dodaj ovu funkciju u bookingApi.js ili main.js
-function calculateCoupleDiscount(person1ServiceId, person2ServiceId, services) {
-  // Pronađi izabrane usluge
-  const service1 = services.find(s => s.id === person1ServiceId);
-  const service2 = services.find(s => s.id === person2ServiceId);
-  
-  if (!service1 || !service2) {
-    return 0; // Ako nema usluga, nema popusta
-  }
-  
-  // Uzmi discount_percentage iz svake usluge
-  const discount1 = service1.discount_percentage || 0;
-  const discount2 = service2.discount_percentage || 0;
-  
-  // Prosečan popust (ili možeš uzeti maksimum)
-  const averageDiscount = (discount1 + discount2) / 2;
-  
-  console.log('🔍 Discount Calculation:');
-  console.log('  Service 1:', service1.name, '- Discount:', discount1 + '%');
-  console.log('  Service 2:', service2.name, '- Discount:', discount2 + '%');
-  console.log('  Final discount:', averageDiscount + '%');
-  
-  return averageDiscount;
-}
-```
-
-### 2. Ažuriraj Booking Funkciju
+## 💻 KOD ZA WEBSAJT:
 
 ```javascript
 // STARO - OBRIŠI OVO:
