@@ -22,7 +22,7 @@
 ## 💻 KOD ZA WEBSAJT:
 
 ```javascript
-// STARO - OBRIŠI OVO:
+// AŽURIRAJ BOOKING FUNKCIJU - samo postavi discount na 0
 async function bookCoupleAppointment(formData) {
   const bookingData = {
     client_first_name: formData.firstName,
@@ -33,33 +33,8 @@ async function bookCoupleAppointment(formData) {
     duration_type: getDurationType(formData.selectedService),
     person1_services: [formData.person1ServiceId],
     person2_services: [formData.person2ServiceId],
-    discount_couples_massage: 15.0  // ❌ HARDKODOVANO
+    discount_couples_massage: 0  // ✅ UVEK 0 - NEMA POPUSTA
   };
-  // ... rest of code
-}
-
-// NOVO - KORISTI OVO:
-async function bookCoupleAppointment(formData, services) {  // ← Dodaj 'services' parametar
-  // Izračunaj dinamički popust
-  const dynamicDiscount = calculateCoupleDiscount(
-    formData.person1ServiceId,
-    formData.person2ServiceId,
-    services
-  );
-  
-  const bookingData = {
-    client_first_name: formData.firstName,
-    client_last_name: formData.lastName,
-    client_phone: formData.phone,
-    client_email: formData.email,
-    start_time: formatToISO(formData.date, formData.time),
-    duration_type: getDurationType(formData.selectedService),
-    person1_services: [formData.person1ServiceId],
-    person2_services: [formData.person2ServiceId],
-    discount_couples_massage: dynamicDiscount  // ✅ DINAMIČKI
-  };
-  
-  console.log('📤 Sending booking with discount:', dynamicDiscount + '%');
   
   const response = await fetch(
     'https://spabooking.emergent.host/api/book-couple-appointment',
@@ -80,39 +55,6 @@ async function bookCoupleAppointment(formData, services) {  // ← Dodaj 'servic
   console.log('✅ Booking successful:', appointment);
   return appointment;
 }
-```
-
-### 3. Prosleđivanje Services Pri Pozivu
-
-```javascript
-// U komponenti gde pozivas bookCoupleAppointment:
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  try {
-    setLoading(true);
-    setError(null);
-    
-    // Učitaj services ako već nisu učitane
-    if (!services || services.length === 0) {
-      const response = await fetch('https://spabooking.emergent.host/api/services');
-      const servicesData = await response.json();
-      setServices(servicesData);
-    }
-    
-    // Pozovi booking SA services parametrom
-    const appointment = await bookCoupleAppointment(formData, services);  // ← Dodaj 'services'
-    
-    // Uspešno!
-    showBookingConfirmation(appointment);
-    
-  } catch (error) {
-    setError('Došlo je do greške pri zakazivanju.');
-  } finally {
-    setLoading(false);
-  }
-};
 ```
 
 ---
