@@ -1,16 +1,17 @@
-# 🎯 VAŽNA ISPRAVKA - Dinamički Popusti
+# 🎯 VAŽNA ISPRAVKA - UKLONJEN POPUST SA COUPLE APPOINTMENTA
 
-## ❌ TRENUTNI PROBLEM:
+## ✅ ŠTA JE URAĐENO (13.11.2025):
 
-Websajt hardkoduje `discount_couples_massage: 15.0` u svakom booking zahtevu.
+**Backend je izmenjen** - couple appointmenti VIŠE NE PRIMENJUJU nikakav popust!
 
 **Rezultat:**
-- Uvek se primenjuje 15% popust (čak i kada nije aktiviran u booking sistemu)
-- Cena 8,800 RSD → prikazuje se kao 7,480 RSD
+- ✅ Cena je uvek ORIGINALNA (bez popusta)
+- ✅ 2x usluga po 4,400 RSD = 8,800 RSD (ne 7,480 RSD)
+- ✅ Dashboard prikazuje tačnu cenu
 
 ---
 
-## ✅ REŠENJE - Dinamički Izračunaj Popust:
+## 💻 ŠTA WEBSAJT TREBA DA ŠALJE:
 
 Websajt treba da:
 1. Proveri DA LI izabrane usluge imaju aktivan popust
