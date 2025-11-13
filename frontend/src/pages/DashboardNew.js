@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { analyticsService } from '../services/api';
-import { TrendingUp, Users, DollarSign, Clock, Printer, LogOut, PieChart, BarChart3 } from 'lucide-react';
+import { analyticsService, appointmentService, serviceService } from '../services/api';
+import { TrendingUp, Users, DollarSign, Clock, Printer, LogOut, PieChart, BarChart3, List, X } from 'lucide-react';
 import { BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Login from '../components/Login';
 
