@@ -1409,10 +1409,53 @@ async def get_detailed_analytics(
     total_discount_given = sum(cat["discount_given"] for cat in categories.values())
     total_appointments = sum(cat["appointments_count"] for cat in categories.values())
     
+    # Group appointments by service for detailed listing
+    appointments_by_service = {}
+    for apt in appointments:
+        service = service_map.get(apt['service_id'])
+        if not service:
+            continue
+        
+        service_id = service['id']
+        if service_id not in appointments_by_service:
+            appointments_by_service[service_id] = {
+                "service_id": service_id,
+                "service_name": service['name'],
+                "service_duration": service.get('duration'),
+                "service_category": service.get('category', 'Obicne masaze'),
+                "appointments": []
+            }
+        
+        # Calculate price for this appointment
+        original_price = service.get('price', 0)
+        discount_percentage = service.get('discount_percentage', 0)
+        total_price = original_price * (1 - discount_percentage / 100)
+        
+        appointments_by_service[service_id]["appointments"].append({
+            "id": apt['id'],
+            "client_first_name": apt.get('client_first_name'),
+            "client_last_name": apt.get('client_last_name'),
+            "client_phone": apt.get('client_phone'),
+            "client_email": apt.get('client_email'),
+            "start_time": apt['start_time'],
+            "end_time": apt.get('end_time'),
+            "status": apt['status'],
+            "total_price": total_price,
+            "original_price": original_price,
+            "discount_percentage": discount_percentage
+        })
+    
+    # Convert to list and sort appointments within each service
+    appointments_by_service_list = list(appointments_by_service.values())
+    for service_data in appointments_by_service_list:
+        service_data["appointments"].sort(key=lambda x: x["start_time"])
+    
     return {
         "period": period,
         "start_date": date_start.isoformat(),
         "end_date": date_end.isoformat(),
+        "total_revenue": total_revenue,
+        "total_appointments": total_appointments,
         "summary": {
             "total_revenue": total_revenue,
             "total_original_revenue": total_original_revenue,
@@ -1422,7 +1465,8 @@ async def get_detailed_analytics(
         },
         "by_category": categories,
         "by_discount": discount_stats,
-        "appointments_with_discount": appointments_with_discount
+        "appointments_with_discount": appointments_with_discount,
+        "appointments_by_service": appointments_by_service_list
     }
 
 
