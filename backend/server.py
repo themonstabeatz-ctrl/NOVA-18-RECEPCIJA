@@ -527,7 +527,7 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
         if service_id not in service_map:
             raise HTTPException(status_code=404, detail=f"Service {service_id} not found")
     
-    # Calculate total price with 15% discount
+    # Calculate total price WITHOUT any discount
     total_price = 0
     person1_service_names = []
     person2_service_names = []
@@ -542,8 +542,7 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
         total_price += service['price']
         person2_service_names.append(service['name'])
     
-    # Apply 15% discount
-    discounted_price = total_price * 0.85
+    # NO DISCOUNT APPLIED - use original price
     
     # Calculate total duration (both persons are serviced simultaneously - together at the same time)
     total_duration = couple.duration_type  # 60, 90, or 120 minutes (they go together, not one after another)
@@ -558,7 +557,7 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     elif couple.duration_type == 90:
         service_name = f"Masaža za parove - 180 min (2x90 min)"
     else:  # 120
-        service_name = f"Masaža za parove - 240 min (2x60 ili 120 min)"
+        service_name = f"Masaža za parove - 240 min (2x120 min)"
     
     # Create a dummy service entry for couple package
     couple_service_id = str(uuid.uuid4())
@@ -566,9 +565,11 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
         "id": couple_service_id,
         "name": service_name,
         "duration": total_duration,
-        "price": discounted_price,
+        "price": total_price,  # ORIGINAL PRICE - NO DISCOUNT
         "description": f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}",
-        "created_at": datetime.now().isoformat()
+        "created_at": datetime.now().isoformat(),
+        "category": "couple",
+        "discount_percentage": 0.0
     }
     
     # Store couple service details
