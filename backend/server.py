@@ -842,19 +842,41 @@ async def get_unviewed_appointments_count():
 
 @api_router.get("/appointments/unviewed/list")
 async def get_unviewed_appointments():
-    """Get list of unviewed appointments"""
+    """Get list of unviewed appointments with service details"""
     appointments = await db.appointments.find(
         {"is_viewed": False}
     ).sort("created_at", -1).to_list(100)
     
-    # Parse datetime strings
+    # Get all services for lookup
+    services = await db.services.find({}, {"_id": 0}).to_list(1000)
+    service_map = {s['id']: s for s in services}
+    
+    # Get all therapists for lookup
+    therapists = await db.therapists.find({}, {"_id": 0}).to_list(1000)
+    therapist_map = {t['id']: t for t in therapists}
+    
+    # Enrich appointments with service and therapist details
     for apt in appointments:
+        # Parse datetime strings
         if isinstance(apt.get('start_time'), str):
             apt['start_time'] = datetime.fromisoformat(apt['start_time'])
         if isinstance(apt.get('end_time'), str):
             apt['end_time'] = datetime.fromisoformat(apt['end_time'])
         if isinstance(apt.get('created_at'), str):
             apt['created_at'] = datetime.fromisoformat(apt['created_at'])
+        
+        # Add service details
+        service = service_map.get(apt.get('service_id'))
+        if service:
+            apt['service_name'] = service.get('name')
+            apt['service_price'] = service.get('price')
+            apt['service_duration'] = service.get('duration')
+            apt['service_category'] = service.get('category', 'regular')
+        
+        # Add therapist name
+        therapist = therapist_map.get(apt.get('therapist_id'))
+        if therapist:
+            apt['therapist_name'] = therapist.get('name')
     
     return appointments
 
