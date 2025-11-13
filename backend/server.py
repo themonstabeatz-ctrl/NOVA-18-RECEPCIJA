@@ -648,12 +648,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         total_price += discounted_price
         person2_service_names.append(service['name'])
     
-    # Store original total price (without couple discount)
-    original_total_price = total_price
-    
-    # Apply couple discount
-    discount_amount = total_price * (couple.discount_couples_massage / 100)
-    final_discounted_price = total_price - discount_amount
+    # NO DISCOUNT APPLIED - use original total price
     
     # Calculate total duration (both persons are serviced simultaneously - together at the same time)
     total_duration = couple.duration_type  # 60, 90, or 120 minutes (they go together, not one after another)
@@ -671,23 +666,16 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         service_name = f"Masaža za parove - 240 min (2x120 min)"
     
     # Create a dummy service entry for couple package
-    # IMPORTANT: Store ORIGINAL price without discount, and keep discount info in metadata
     couple_service_id = str(uuid.uuid4())
     couple_service = {
         "id": couple_service_id,
         "name": service_name,
         "duration": total_duration,
-        "price": original_total_price,  # Store ORIGINAL price (without couple discount)
+        "price": total_price,  # ORIGINAL PRICE - NO DISCOUNT
         "description": f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}",
         "created_at": datetime.now().isoformat(),
         "category": "couple",
-        "discount_percentage": 0.0,  # Don't apply discount on service level
-        "metadata": {
-            "couple_discount_applied": couple.discount_couples_massage,
-            "original_price": original_total_price,
-            "discount_amount": discount_amount,
-            "final_price": final_discounted_price
-        }
+        "discount_percentage": 0.0
     }
     
     # Store couple service details
