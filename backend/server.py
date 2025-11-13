@@ -844,7 +844,7 @@ async def get_unviewed_appointments_count():
 async def get_unviewed_appointments():
     """Get list of unviewed appointments with service details"""
     appointments = await db.appointments.find(
-        {"is_viewed": False}
+        {"is_viewed": False}, {"_id": 0}
     ).sort("created_at", -1).to_list(100)
     
     # Get all services for lookup
