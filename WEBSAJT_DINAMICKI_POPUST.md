@@ -61,39 +61,25 @@ async function bookCoupleAppointment(formData) {
 
 ## 🧪 TESTIRANJE:
 
-### Test 1: BEZ Aktivnog Popusta
-1. Idi u booking sistem: https://spabooking.emergent.host/services
-2. Proveri da "Kartica Masaza za parove" NEMA popusta (0%)
-3. Zakаži termin sa websajta (2x usluga po 4,400 RSD = 8,800 RSD)
-4. Dashboard treba da prikaže: **8,800 RSD** ✅
-
-### Test 2: SA Aktivnim Popustom (15%)
-1. Idi u booking sistem: https://spabooking.emergent.host/services
-2. Postavi 15% popust na "Kartica Masaza za parove"
-3. Zakаži termin sa websajta (2x usluga po 4,400 RSD = 8,800 RSD)
-4. Dashboard treba da prikaže: **7,480 RSD** (8,800 - 15%) ✅
+### Test: Couple Appointment
+1. Zakаži termin sa websajta za parove (2x usluga po 4,400 RSD)
+2. Dashboard treba da prikaže: **8,800 RSD** ✅ (ORIGINALNA CENA)
 
 ---
 
 ## 🎯 OČEKIVANI REZULTAT:
 
-✅ **Bez popusta:** Originalna cena (8,800 RSD)
-✅ **Sa 15% popustom:** Diskontovana cena (7,480 RSD)
-✅ **Sa 10% popustom:** Diskontovana cena (7,920 RSD)
-✅ **Sa 5% popustom:** Diskontovana cena (8,360 RSD)
+✅ **Uvek:** Originalna cena (bez popusta)
+✅ **2x 4,400 RSD:** Dashboard prikazuje 8,800 RSD
+✅ **2x 5,600 RSD:** Dashboard prikazuje 11,200 RSD
 
 ---
 
-## ⚠️ NAPOMENA:
+## ⚠️ VAŽNO:
 
-Ako Osoba 1 ima 15% popust, a Osoba 2 ima 10% popust:
-- Prosečan popust: (15 + 10) / 2 = **12.5%**
-
-Ili možeš koristiti:
-- Maksimum popust: Math.max(15, 10) = **15%**
-- Minimum popust: Math.min(15, 10) = **10%**
-
-Trenutno koristi **prosek** (average), ali možeš promeniti u funkciji `calculateCoupleDiscount()`.
+- **NEMA više popusta** na couple appointmente
+- Websajt treba **UVEK** da šalje `discount_couples_massage: 0`
+- Backend će automatski koristiti originalnu cenu
 
 ---
 
