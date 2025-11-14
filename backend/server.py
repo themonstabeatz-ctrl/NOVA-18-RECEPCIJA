@@ -1406,7 +1406,7 @@ async def get_detailed_analytics(
                 "service_name": service['name'],
                 "category": category,
                 "original_price": original_price,
-                "discounted_price": discounted_price,
+                "discounted_price": service_price,
                 "discount_percentage": discount_percentage,
                 "discount_amount": discount_amount
             })
