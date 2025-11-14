@@ -362,12 +362,12 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Analytics Revenue Endpoint Discount Calculations"
-    - "Analytics Therapist Statistics Discount Calculations"
-    - "Specific Discount Scenario Verification (4400 RSD → 4180 RSD)"
+    - "Price Snapshotting - Regular Appointments"
+    - "Price Snapshotting - Couple Appointments"
+    - "Price Snapshotting - Notifications and Listing"
   stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
+  test_priority: "critical_first"
 
 agent_communication:
   - agent: "testing"
