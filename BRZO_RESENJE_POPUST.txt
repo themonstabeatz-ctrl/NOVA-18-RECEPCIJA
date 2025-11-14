@@ -1,0 +1,68 @@
+═══════════════════════════════════════════════════════
+   🚨 BRZO REŠENJE - Popust Za Couple Masažu
+═══════════════════════════════════════════════════════
+
+PROBLEM:
+--------
+Websajt šalje: discount_couples_massage: 0
+Rezultat: NEMA popusta u booking sistemu
+
+REŠENJE:
+--------
+Promenite jednu liniju koda!
+
+PRONAĐITE:
+----------
+discount_couples_massage: 0
+
+PROMENITE U:
+------------
+discount_couples_massage: 15.0
+
+═══════════════════════════════════════════════════════
+
+KOMPLETAN PRIMER KODA:
+-----------------------
+
+const bookingData = {
+  client_first_name: formData.firstName,
+  client_last_name: formData.lastName,
+  client_phone: formData.phone,
+  client_email: formData.email,
+  start_time: formatToISO(formData.date, formData.time),
+  duration_type: getDurationType(formData.selectedService),
+  person1_services: [formData.person1ServiceId],
+  person2_services: [formData.person2ServiceId],
+  discount_couples_massage: 15.0  // <-- OVO PROMENITE!
+};
+
+═══════════════════════════════════════════════════════
+
+KAKO TESTIRATI:
+---------------
+1. Napravite rezervaciju preko websajta
+2. Ulogujte se na: https://spabooking.emergent.host
+3. Lozinka: studio149
+4. Proverite Dashboard
+5. Treba da vidite: 7,480 RSD (umesto 8,800 RSD)
+
+OČEKIVANE CENE SA 15% POPUSTOM:
+--------------------------------
+2x60 min:  8,800 → 7,480 RSD
+2x90 min:  11,200 → 9,520 RSD
+2x120 min: 13,600 → 11,560 RSD
+
+═══════════════════════════════════════════════════════
+
+KADA DEAKTIVIRATE POPUST:
+--------------------------
+Promenite nazad na: discount_couples_massage: 0
+
+═══════════════════════════════════════════════════════
+
+NAPOMENA:
+---------
+Za kompletan dinamički kod (automatska provera popusta),
+pogledajte: INSTRUKCIJE_ZA_WEBSAJT_AGENT_POPUST.md
+
+═══════════════════════════════════════════════════════
