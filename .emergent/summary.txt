@@ -1,123 +1,147 @@
 <analysis>**original_problem_statement:**
-Korisnik je prvobitno zatražio povezivanje booking sistema sa svojim websajtom, prijavljujući da popusti ne reaguju. Tokom rada, zahtevi su se proširili na rešavanje problema sa nestalim uslugama, ispravljanje pogrešnog prikaza popusta na websajtu (popusti su se prikazivali na svim uslugama umesto samo na Masaža za parove), i rešavanje grešaka prilikom online rezervacija. Korisnik je takođe zatražio veliku nadogradnju Dashboard-a kako bi prikazivao detaljnu analitiku (zaradu po kategorijama, sa i bez popusta), implementaciju sistema za notifikacije o novim rezervacijama, kao i brojne ispravke korisničkog interfejsa na stranici za termine (vidljivost akcija, ispravno trajanje termina za parove, klikabilna ikonica kalendara, fiksirana kolona za akcije). Dodatni zahtevi su uključivali dodavanje novih opcija za trajanje masaža i čišćenje baze podataka od test podataka. Ključni problem koji se ponavljao je korisnikova konfuzija između PREVIEW i PRODUCTION okruženja.
+Korisnik je prvobitno zahtevao ispravku za popuste koji se ne primenjuju ispravno sa eksternog websajta. Tokom sesije, zahtevi su se razvili u seriju kompleksnih izmena i ispravki, uključujući:
+1.  **Logika Popusta:** Kompletna revizija načina na koji se popusti obračunavaju i čuvaju. Prvobitno je korisnik tražio da se uklone svi popusti, zatim da se popusti dinamički primenjuju samo kada su poslati sa websajta, i na kraju, da se popusti ispravno primenjuju na sve usluge, a ne samo na Masaže za parove.
+2.  **Dashboard Funkcionalnost:** Dodavanje nove funkcionalnosti Listing Rezervacija unutar Dashboard-a. Ovaj listing treba da prikazuje sve rezervacije za izabrani period (danas, nedelja, mesec), grupisane po danima, sa rednim brojevima, imenom klijenta, nazivom usluge, cenom, i opcijama za brisanje svih i štampanje liste.
+3.  **Prikaz Podataka:** Zahtev da se popusti (procenat i iznos) eksplicitno prikazuju svuda: u Dashboard karticama, u Listing Rezervacija modalu, i u notifikacijama.
+4.  **UI/UX Ispravke:** Rešavanje problema preklapanja teksta na stranici Termini i poboljšanje prikaza notifikacija sa više detalja (naziv usluge, cena).
+5.  **Terminologija:** Preimenovanje kategorije couple u Kartica Masaza za parove na Dashboard-u.
 
 **what currently exists?**
-Postoji kompletan Spa & Massage Booking Management System (React, FastAPI, MongoDB). Sistem sada ima značajno unapređen Dashboard koji prikazuje detaljnu analitiku sa grafikonima (zarada po kategorijama, distribucija popusta) i filterima po periodu. Implementiran je sistem notifikacija sa zvonce-ikonicom 🔔 u navigaciji za obaveštavanje o novim online rezervacijama, prikazujući detalje termina. Korisnički interfejs na stranici Termini je poboljšan: kolona Akcije je sada fiksirana sa desne strane, ikonica kalendara je ispravljena i klikabilna, a prostor je bolje optimizovan. Stranica za usluge podržava nova trajanja (300, 360, 420 min). Backend je ažuriran da podrži sve ove nove funkcionalnosti, a brojni bug-ovi su ispravljeni, uključujući logiku za obračunavanje trajanja i cene za couple termine. Kreirana je i detaljna dokumentacija za websajt agenta kako bi se omogućila potpuna integracija.
+Aplikacija je značajno modifikovana. Backend () je prošao kroz nekoliko iteracija revizije logike za popuste. Sada endpointi za kreiranje rezervacija (i za obične i za couple masaže) primenjuju popust i ažuriraju cenu usluge direktno u bazi podataka. Endpoint za analitiku () je ažuriran da preimenuje kategoriju couple i da vraća detaljne podatke o rezervacijama, uključujući i naziv usluge. Frontend (, ) je ažuriran da prikazuje informacije o popustu na više mesta. Kreirano je više verzija detaljnih instrukcija za eksternog websajt agenta kako bi se osiguralo da se popusti ispravno šalju.
 
 **Last working item**:
-*   **Last item agent was working**: Rešavanje problema gde je websajt uvek primenjivao popust od 15% na rezervacije, bez obzira da li je popust bio aktivan u booking sistemu. Korisnik je pojasnio da želi da se popust primenjuje dinamički. Agent je ispravio backend da podrazumevana vrednost popusta bude 0, i kreirao je novu, detaljnu instrukciju () za websajt agenta koja objašnjava kako da dinamički preuzme aktivan procenat popusta iz booking sistema i pošalje ga prilikom rezervacije.
-*   **Status**: BLOCKED (čeka se da korisnikov websajt agent primeni date instrukcije)
-*   **Agent Testing Done**: Y (Agent je ispravio backend i pripremio instrukcije.)
-*   **Which testing method agent to use?**: Manuelno testiranje od strane korisnika nakon što websajt agent implementira izmene.
+*   **Last item agent was working**: Rešavanje kritičnog bug-a gde aktiviranje popusta na usluzi retroaktivno menja cenu za SVE prethodne rezervacije te usluge. Agent je ispravno identifikovao da je problem u tome što rezervacije ne čuvaju svoju cenu, već je dinamički preuzimaju od servisa. Rešenje koje je agent započeo je snapshot-ovanje cene u trenutku kreiranja rezervacije i čuvanje te cene unutar samog  dokumenta. Agent je započeo implementaciju ovog rešenja.
+*   **Status**: IN PROGRESS
+*   **Agent Testing Done**: N
+*   **Which testing method agent to use?**: backend testing agent. Potrebno je kreirati test scenario:
+    1. Kreirati rezervaciju A za uslugu X po punoj ceni.
+    2. Aktivirati popust od 10% na uslugu X.
+    3. Kreirati rezervaciju B za istu uslugu X po sniženoj ceni.
+    4. Proveriti putem API-ja da analitika i listinzi prikazuju rezervaciju A sa punom cenom, a rezervaciju B sa sniženom cenom.
 *   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
-*   **Issue 1: Websajt primenjuje popuste statički umesto dinamički (P0)**
-    *   **Description**: Websajt trenutno šalje hardkodovanu vrednost za popust prilikom rezervacije. Potrebno je da websajt dinamički proveri da li za izabranu uslugu postoji aktivan popust u booking sistemu i da tu vrednost (npr. 15% ili 0%) pošalje prilikom kreiranja rezervacije.
-    *   **Attempted fixes**: Agent je podesio da backend API podrazumevano prihvata 0% popusta. Kreiran je fajl sa instrukcijama  za websajt agenta.
+*   **Issue 1: Cene starih rezervacija se menjaju kada se aktivira popust (P0)**
+    *   **Description**: Sistem ne čuva cenu u trenutku rezervacije. Umesto toga, cena se dinamički povlači iz zapisa o usluzi. Ako se cena usluge promeni (npr. aktivira se popust), sve prethodne rezervacije za tu uslugu sada prikazuju novu, netačnu cenu.
+    *   **Attempted fixes**: Agent je započeo izmenu endpointa  () kako bi snapshot-ovao cenu usluge i sačuvao je direktno u dokumentu rezervacije.
     *   **Next debug checklist**:
-        1.  Korisnik treba da prosledi instrukcije iz  svom websajt agentu.
-        2.  Websajt agent treba da implementira logiku za dinamičko preuzimanje i slanje procenta popusta.
-        3.  Korisnik treba da testira kompletan proces (aktiviranje/deaktiviranje popusta u booking sistemu i pravljenje rezervacije preko websajta) kako bi potvrdio da se ispravna cena beleži u Dashboard-u.
-    *   **Why fix this issue and what will be achieved with the fix?**: Da bi se osiguralo tačno fakturisanje i finansijsko izveštavanje. Cene na websajtu moraju da odgovaraju aktivnim promocijama.
-    *   **Status**: BLOCKED
-    *   **Is recurring issue?**: Y
-    *   **Should Test frontend/backend/both after fix?**: Both (E2E test)
+        1.  Dovršiti izmenu u  za .
+        2.  Primeniti istu logiku snapshot-ovanja cene na SVE endpointe koji kreiraju rezervacije (, ).
+        3.  Ažurirati SVE endpointe koji čitaju podatke o rezervacijama (, , ) da koriste sačuvanu  iz dokumenta rezervacije, umesto da je traže iz povezane usluge.
+        4.  Sprovesti temeljan test (opisan u Last working item).
+    *   **Why fix this issue and what will be achieved with the fix?**: Osigurava se istorijska tačnost finansijskih podataka. Ovo je kritično za ispravno finansijsko izveštavanje i izbegavanje zabune.
+    *   **Status**: IN PROGRESS
+    *   **Is recurring issue?**: N
+    *   **Should Test frontend/backend/both after fix?**: backend
+    *   **Blocked on other issue**: -
+
+*   **Issue 2: Brojač notifikacija prikazuje netačan broj (P2)**
+    *   **Description**: Agent je primetio (Chat 73) da ikonica zvona za notifikacije prikazuje pogrešan broj nepregledanih notifikacija (npr. prikazuje 5 iako backend API vraća 0). Problem nije rešen.
+    *   **Attempted fixes**: Agent je pretpostavio da je problem u kešu pretraživača, ali nije sproveo dalje istraživanje.
+    *   **Next debug checklist**:
+        1.  U , proveriti  hook koji poziva .
+        2.  Proveriti da li se  state resetuje na 0 pre novog poziva API-ja.
+        3.  Ispitati da li postoji problem sa  unutar React komponente.
+    *   **Why fix this issue and what will be achieved with the fix?**: Korisnik će imati tačan uvid u broj novih online rezervacija.
+    *   **Status**: NOT STARTED
+    *   **Is recurring issue?**: N
+    *   **Should Test frontend/backend/both after fix?**: frontend
 
 **In progress Task List**:
-*   **Task 1: Kompletna integracija sa websajtom (P0)**
-    *   **Where to resume**: Korisnik treba da prosledi finalne instrukcije ( i ) svom websajt agentu.
-    *   **What will be achieved with this?**: Websajt će ispravno prikazivati usluge, dinamički primenjivati popuste, i omogućiti online rezervacije koje se ispravno beleže u booking sistemu.
-    *   **Status**: IN PROGRESS (Blocked on external website agent)
-    *   **Should Test frontend/backend/both after fix?**: Both
-    *   **Blocked on something**: Akcija od strane eksternog websajt agenta.
+*   **Task 1: Implementacija snapshot-ovanja cene rezervacije (P0)**
+    *   **Where to resume**: U fajlu . Agent je modifikovao  (linija 404) ali mora da ažurira i  endpoint (oko linije 1435) da koristi novu  vrednost iz samog appointment-a, a ne iz .
+    *   **What will be achieved with this?**: Rešiće se kritičan bug opisan u Issue 1.
+    *   **Status**: IN PROGRESS
+    *   **Should Test frontend/backend/both after fix?**: backend
+    *   **Blocked on something**: -
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks**:
-    *   **(P0) Deploy na Production**: Korisnik treba da uradi ReDeploy poslednje PREVIEW verzije na svoje PRODUCTION okruženje () kako bi sve nove funkcionalnosti (Dashboard, notifikacije, ispravke) postale aktivne.
-    *   **(P1) Čišćenje Production Baze**: Nakon deploy-a, korisnik želi da obriše sve postojeće termine iz production baze. Agent je savetovao da se to uradi ručno preko interfejsa, koristeći novododatu kantu za brisanje.
+    *   **(P0) Deploy na Production**: Nakon što se reši problem sa cenama i korisnik potvrdi ispravnost, potrebno je da korisnik uradi ReDeploy na .
+    *   **(P1) Testiranje od strane Websajt Agenta**: Korisnik treba da prosledi finalne instrukcije () svom websajt agentu i da testira ceo tok rezervacije sa popustom.
+    *   **(P2) Čišćenje Production Baze**: Po želji korisnika, nakon deploy-a.
 *   **Future Tasks**:
     *   Integracija sa POS/kasa i terminalom za kartice.
     *   Sistem za recenzije (reviews).
     *   Loyalty program.
 
 **Completed work in this session**
-*   **Potpuno novi Dashboard**: Implementiran u  sa detaljnom analitikom po kategorijama, grafikonima (Recharts), prikazom popusta, filterima po periodu, i ispravljenom valutom (RSD).
-*   **Sistem Notifikacija**: Dodata zvonce-ikonica 🔔 u  koja prikazuje broj i detalje novih online rezervacija.
-*   **Backend API Proširenje**: Kreiran novi endpoint  za napredni Dashboard i endpointi za notifikacije.
-*   **UI/UX Poboljšanja na stranici Termini**: Akcije kolona je sada fiksirana (), ikonica kalendara je popravljena i klikabilna, a prostor je optimizovan.
-*   **Ispravke Bug-ova**: Popravljen obračun trajanja za termine za parove, uklonjen hardkodiran tekst popusta, i ispravljena logika za podrazumevani popust pri online rezervaciji (sa 15% na 0%).
-*   **Čišćenje Baze Podataka**: Obrisani svi test termini i test terapeuti iz PREVIEW baze.
-*   **Proširenje Usluga**: Dodate opcije za trajanje od 300, 360 i 420 minuta.
-*   **Kreiranje Dokumentacije**: Napravljeno više fajlova sa detaljnim instrukcijama za websajt agenta.
+*   **Kompletna revizija logike za popuste**: Implementiran mehanizam gde se aktiviranjem popusta na usluzi ažurira njena cena u bazi, sa čuvanjem originalne cene u metapodacima.
+*   **Proširena podrška za popuste**: Logika za popuste je dodata na SVE endpointe za kreiranje rezervacija, uključujući i starije () koje koristi eksterni websajt.
+*   **Novi Listing Rezervacija u Dashboard-u**: U  dodat je modal koji prikazuje detaljan spisak rezervacija, grupisan po danima, sa opcijama za štampanje i brisanje.
+*   **Poboljšan prikaz popusta**: Ažuriran frontend (, ) da prikazuje iznos i procenat popusta na karticama kategorija, u listingu rezervacija i u notifikacijama.
+*   **Renaming kategorije**: Backend je ažuriran da kategoriju couple prikazuje kao Kartica Masaza za parove.
+*   **Poboljšane Notifikacije**: Backend i frontend su ažurirani da u notifikacijama prikazuju pun naziv usluge, cenu i informacije o popustu.
+*   **Kreirana detaljna dokumentacija**: Napravljeno je više  fajlova sa preciznim instrukcijama za eksternog websajt agenta.
 
 **Earlier issues found/mentioned but not fixed**
-*   Nema. Svi prijavljeni problemi su adresirani.
+*   **Issue 1: Netačan broj na znački za notifikacije.** (Videti All Pending/In progress Issue list, Issue 2).
+*   **Issue 2: Rezervacije se ne prikazuju na stranici Termini.** Tokom otklanjanja grešaka (Chat 36-53), agent je naišao na problem gde se novokreirane rezervacije nisu prikazivale na stranici . Agent je sumnjao na problem sa vremenskim zonama, ali je odustao od daljeg rešavanja. Ovo je potencijalni bug koji treba istražiti.
 
 **Known issue recurrence from previous fork**
-*   **Issue recurrence in previous fork**: Korisnikova konfuzija oko razlike između PREVIEW i PRODUCTION okruženja i procesa deploy-menta.
-*   **Recurrence count**: Visok.
-*   **Status**: RESOLVED (za sada). Agent je više puta objasnio razliku i proces, ali ovo ostaje potencijalna tačka zabune.
+*   Nema.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-*   **Frontend**: React, Tailwind CSS, **Recharts** (nova biblioteka za grafikone),  za direktnu DOM manipulaciju.
-*   **Backend**: FastAPI, Pydantic.
-*   **UI/UX**:  za fiksiranje kolona u tabeli.
+*   **Price Snapshotting**: Ključni koncept koji se trenutno implementira. Cena se mora zamrznuti i sačuvati unutar dokumenta rezervacije u trenutku kreiranja, kako bi se osigurala istorijska tačnost.
+*   **Backend Driven UI**: Većina logike za obračun i prikaz (npr. preimenovanje kategorija) se radi na backendu kako bi frontend bio što jednostavniji.
+*   **External API Dependency**: Rad aplikacije u velikoj meri zavisi od toga kako i koje endpointe poziva eksterni websajt.
 
 **key DB schema**
-*   **appointments**: dodat  (za praćenje notifikacija).
+*   **appointments**: **TREBA DA SE DODA** polje  ili slično, za čuvanje snapshot-ovane cene. Trenutno ga nema.
+*   **services**: Sadrži , , i .  se dinamički menja kada se popust aktivira/deaktivira.
 
 **changes in tech stack**
-*   Frontend: Dodata je  biblioteka za prikaz grafikona.
+*   Nema.
 
 **All files**
-*   **/app/backend/server.py**: Ažuriran za novu analitiku, notifikacije i ispravke grešaka.
-*   **/app/frontend/src/pages/DashboardNew.js**: Potpuno nov fajl za napredni dashboard.
-*   **/app/frontend/src/pages/Appointments.js**: Značajna poboljšanja korisničkog interfejsa.
-*   **/app/frontend/src/components/Navbar.js**: Implementiran sistem notifikacija.
-*   **, **: Kreirani fajlovi sa instrukcijama za eksternog websajt agenta.
+*   **/app/backend/server.py**: Centralni fajl sa svom poslovnom logikom. Više puta menjan radi ispravki logike popusta i analitike. Trenutno se menja radi implementacije snapshot-ovanja cena.
+*   **/app/frontend/src/pages/DashboardNew.js**: Glavni fajl za dashboard. Značajno proširen novim modalom za listing rezervacija i prikazom popusta.
+*   **/app/frontend/src/components/Navbar.js**: Ažuriran za bolji prikaz notifikacija.
+*   **/app/INSTRUKCIJE_ZA_WEBSAJT_AGENT_POPUST.md**, **/app/KONACNE_INSTRUKCIJE_WEBSAJT.md**: Najnovije instrukcije za eksternog websajt agenta.
 
 **Areas that need refactoring**:
-*   Stari fajl  je sada suvišan i može biti obrisan jer ga je zamenio .
+*   Logika za popuste u  je postala veoma kompleksna zbog više izmena. Nakon što se implementira snapshot-ovanje cena, moglo bi se razmotriti refaktorisanje kako bi se pojednostavila. Endpoint  koji menja cenu usluge direktno u bazi je centralna tačka ovog kompleksnog ponašanja.
 
 **key api endpoints**
-*   **** (NOVO): Vraća detaljne podatke za novi dashboard.
-*   **** (NOVO): Vraća nepregledane termine za notifikacije.
-*   **** (NOVO): Označava sve termine kao pregledane.
-*   **** (IZMENJENO): Popravljen obračun trajanja i podrazumevani popust.
+*   : Treba da se ažurira da čuva cenu.
+*   , : Treba da se ažuriraju da čuvaju cenu.
+*   : Treba da se ažurira da koristi sačuvanu cenu iz rezervacije.
+*   : Centralni endpoint za upravljanje popustima na pojedinačnim uslugama.
 
 **Critical Info for New Agent**
-*   **Preview vs. Production**: Korisnik često meša ova dva okruženja. Vi radite na PREVIEW (). Korisnik je zadužen za deploy na PRODUCTION () klikom na ReDeploy. Oba okruženja imaju odvojene baze podataka.
-*   **Eksterni Websajt Agent**: Ključni deo posla zavisi od eksternog websajt agenta koji nije pod našom kontrolom. Sva uputstva za njega se nalaze u  i  fajlovima u  folderu.
-*   **Baza je očišćena**: PREVIEW baza podataka je očišćena od termina i test terapeuta. Za testiranje je potrebno kreirati nove podatke.
+*   **Glavni problem je snapshot-ovanje cena.** Apsolutni prioritet je da se dovrši implementacija gde se cena rezervacije čuva unutar samog  dokumenta. Bez ovoga, finansijski podaci su nepouzdani.
+*   **Eksterni websajt koristi stari endpoint.** Websajt koristi , a ne samo noviji . Zbog toga obe verzije endpointa moraju biti sinhronizovane i podržavati istu logiku.
+*   **Popusti menjaju cenu u  kolekciji.** Trenutna logika je da aktivacija popusta menja  polje u  kolekciji. Ovo je uzrok glavnog problema. Kada se implementira snapshot-ovanje, ova logika se može revidirati, ali za sada je važno razumeti kako funkcioniše.
 
 **documents created in this job**
-*   
-*   
-*   (i brojni drugi helper fajlovi za websajt agenta)
+*   /app/URGENTNO_WEBSAJT_POPUST.md
+*   /app/INSTRUKCIJE_ZA_WEBSAJT_AGENT_POPUST.md
+*   /app/BRZO_RESENJE_POPUST.txt
+*   /app/KONACNE_INSTRUKCIJE_WEBSAJT.md
 
 **Last 5 User Messages and any pending user messages**
-1.  **Korisnik**: Prijavio problem sa cenom (8,800 RSD se prikazuje kao 7,480 RSD) na Dashboard-u. (Agent je utvrdio da korisnik testira na PRODUCTION verziji sa starim kodom).
-2.  **Korisnik**: Pita da li je problem možda do websajta. (Agent je potvrdio da websajt verovatno šalje hardkodovan popust).
-3.  **Korisnik**: Pojasnio da želi da se popusti primenjuju dinamički - samo ako su aktivni u sistemu.
-4.  **Korisnik**: Želi da mu se pomogne.
-5.  **Korisnik**: Spreman za sledeći korak.
+1.  **Korisnik**: Prijavljuje da popust za Aroma terapiju ne radi kao za Masažu za parove. (Rešeno ažuriranjem logike za popuste na pojedinačnim uslugama).
+2.  **Korisnik**: Prijavljuje kritičan bug: rezervacija bez popusta naknadno dobija popust ako se on aktivira na usluzi. (Ovo je pokrenulo trenutni ).
+3.  **Korisnik**: Traži detaljnije instrukcije za websajt agenta. (Agent je kreirao nove  fajlove).
+4.  **Korisnik**: Javlja da popust i dalje ne radi uprkos poslatim instrukcijama. (Agent je otkrio da websajt koristi stari endpoint i ispravio ga).
+5.  **Korisnik**: Ponovo prijavljuje da popust ne radi za obične masaže, što je dovelo do otkrića fundamentalnog problema sa cenama.
 
 **Project Health Check:**
-*   **Broken**: Ništa nije pokvareno u PREVIEW okruženju. Glavni izazov je sinhronizacija između PREVIEW koda, PRODUCTION koda, i koda eksternog websajta.
+*   **Broken**: Logika za prikazivanje cena istorijskih rezervacija je pokvarena. Ovo je kritičan problem koji se trenutno rešava.
 *   **Mocked**: Nema.
 
 **Testing status**
-*   **Testing agent used**: NO (Agent je koristio ,  i  alat).
-*   **Troubleshoot agent used**: YES
+*   **Testing agent used after significant changes**: NO
+*   **Troubleshoot agent used after agent stuck in loop**: NO
 *   **Test files created**: Nema.
-*   **Known regressions**: Nema.
+*   **Known regressions**: Cena istorijskih rezervacija se menja, što je velika regresija u funkcionalnosti.
 
 **Credentials to test flow:**
 *   **Dashboard lozinka**: 
 
 **What agent forgot to execute**
-*   Agent nije obrisao stari  fajl, što je manja stavka za čišćenje koda. Sve ostale zahteve je uspešno adresirao.</analysis>
+*   Agent nije rešio problem sa netačnim brojem notifikacija, odbacivši ga kao potencijalni problem sa kešom.
+*   Agent nije završio debagovanje problema gde se termini ne prikazuju na stranici .</analysis>
