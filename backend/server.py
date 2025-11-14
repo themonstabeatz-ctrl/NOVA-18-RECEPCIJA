@@ -146,6 +146,7 @@ class CoupleAppointmentCreateOld(BaseModel):
     duration_type: int  # 60, 90, or 120 (base duration per person)
     person1_services: List[str]  # List of service IDs for person 1
     person2_services: List[str]  # List of service IDs for person 2
+    discount_couples_massage: float = 0.0  # Added: percentage discount (default 0)
     status: AppointmentStatus = AppointmentStatus.SCHEDULED
 
 
