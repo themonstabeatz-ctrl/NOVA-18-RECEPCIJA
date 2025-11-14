@@ -789,6 +789,11 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     doc['end_time'] = doc['end_time'].isoformat()
     doc['created_at'] = doc['created_at'].isoformat()
     
+    # CRITICAL: Snapshot price at time of booking (for /book-couple-appointment)
+    doc['snapshot_price'] = discounted_price
+    doc['snapshot_original_price'] = original_price
+    doc['snapshot_discount_percentage'] = discount_percentage
+    
     await db.appointments.insert_one(doc)
     
     logger.info(f"✅ Couple appointment created successfully: {appointment_obj.id}")
