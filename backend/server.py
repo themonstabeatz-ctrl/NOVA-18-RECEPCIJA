@@ -1440,10 +1440,13 @@ async def get_detailed_analytics(
                 "appointments": []
             }
         
-        # Calculate price for this appointment
-        original_price = service.get('price', 0)
+        # Get price - this is already the discounted price if discount was applied
+        final_price = service.get('price', 0)
         discount_percentage = service.get('discount_percentage', 0)
-        total_price = original_price * (1 - discount_percentage / 100)
+        
+        # Get original price from metadata if available
+        metadata = service.get('metadata', {})
+        original_price = metadata.get('original_price', final_price)
         
         appointments_by_service[service_id]["appointments"].append({
             "id": apt['id'],
@@ -1454,7 +1457,7 @@ async def get_detailed_analytics(
             "start_time": apt['start_time'],
             "end_time": apt.get('end_time'),
             "status": apt['status'],
-            "total_price": total_price,
+            "total_price": final_price,  # This is the discounted price (what customer pays)
             "original_price": original_price,
             "discount_percentage": discount_percentage
         })
