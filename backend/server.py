@@ -340,7 +340,7 @@ async def update_service(service_id: str, service: ServiceCreate):
 
 @api_router.patch("/services/{service_id}/discount")
 async def update_service_discount(service_id: str, discount: float):
-    """Update only the discount percentage for a service"""
+    """Update discount percentage and automatically adjust price"""
     if discount < 0 or discount > 100:
         raise HTTPException(status_code=400, detail="Discount must be between 0 and 100")
     
@@ -348,9 +348,39 @@ async def update_service_discount(service_id: str, discount: float):
     if not existing:
         raise HTTPException(status_code=404, detail="Service not found")
     
+    # Get original price from metadata if it exists, otherwise use current price
+    metadata = existing.get('metadata')
+    if metadata and isinstance(metadata, dict) and 'original_price' in metadata:
+        original_price = metadata['original_price']
+    else:
+        # First time setting discount, save current price as original
+        original_price = existing.get('price', 0)
+    
+    # Calculate new discounted price
+    if discount > 0:
+        discounted_price = original_price * (1 - discount / 100)
+        update_data = {
+            "price": discounted_price,
+            "discount_percentage": discount,
+            "metadata": {
+                "original_price": original_price,
+                "discount_applied": discount,
+                "final_price": discounted_price
+            }
+        }
+    else:
+        # No discount - restore original price
+        update_data = {
+            "price": original_price,
+            "discount_percentage": 0,
+            "metadata": None
+        }
+    
+    logger.info(f"💸 Service {service_id}: Discount {discount}% - Price {existing.get('price')} → {update_data['price']}")
+    
     await db.services.update_one(
         {"id": service_id}, 
-        {"$set": {"discount_percentage": discount}}
+        {"$set": update_data}
     )
     
     updated = await db.services.find_one({"id": service_id}, {"_id": 0})
