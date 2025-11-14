@@ -259,9 +259,23 @@ const Navbar = () => {
                         {/* Price */}
                         {notification.service_price && (
                           <div className="mt-3 p-2 bg-green-50 rounded-lg border border-green-200">
-                            <p className="text-base font-bold text-green-700 flex items-center gap-2">
-                              💰 Cena: {notification.service_price.toLocaleString()} RSD
-                            </p>
+                            {notification.discount_percentage > 0 ? (
+                              <div>
+                                <p className="text-xs text-gray-500 line-through">
+                                  Original: {notification.original_price.toLocaleString()} RSD
+                                </p>
+                                <p className="text-base font-bold text-green-700 flex items-center gap-2">
+                                  💰 Cena: {notification.service_price.toLocaleString()} RSD
+                                  <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                                    -{notification.discount_percentage}%
+                                  </span>
+                                </p>
+                              </div>
+                            ) : (
+                              <p className="text-base font-bold text-green-700 flex items-center gap-2">
+                                💰 Cena: {notification.service_price.toLocaleString()} RSD
+                              </p>
+                            )}
                           </div>
                         )}
                         
