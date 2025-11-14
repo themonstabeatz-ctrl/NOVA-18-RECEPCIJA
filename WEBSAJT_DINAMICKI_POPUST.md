@@ -66,25 +66,49 @@ async function bookCoupleAppointment(formData, activeDiscount = 0) {
 
 ## 🧪 TESTIRANJE:
 
-### Test: Couple Appointment
-1. Zakаži termin sa websajta za parove (2x usluga po 4,400 RSD)
-2. Dashboard treba da prikaže: **8,800 RSD** ✅ (ORIGINALNA CENA)
+### Test 1: SA Popustom (15%)
+1. Aktiviraj 15% popust u booking sistemu
+2. Zakаži termin sa websajta: `discount_couples_massage: 15.0`
+3. **Dashboard prikazuje:** 7,480 RSD ✅ (diskontovano)
+4. **Listing Rezervacija:** 7,480 RSD ✅
+5. **Notifikacije:** 7,480 RSD ✅
+
+### Test 2: BEZ Popusta
+1. Deaktiviraj popust u booking sistemu
+2. Zakаži termin sa websajta: `discount_couples_massage: 0`
+3. **Dashboard prikazuje:** 8,800 RSD ✅ (puna cena)
+4. **Listing Rezervacija:** 8,800 RSD ✅
+5. **Notifikacije:** 8,800 RSD ✅
 
 ---
 
 ## 🎯 OČEKIVANI REZULTAT:
 
-✅ **Uvek:** Originalna cena (bez popusta)
-✅ **2x 4,400 RSD:** Dashboard prikazuje 8,800 RSD
-✅ **2x 5,600 RSD:** Dashboard prikazuje 11,200 RSD
+✅ **SA 15% popustom:**
+  - 2x 4,400 RSD = 8,800 - 15% = **7,480 RSD** (prikazano)
+
+✅ **BEZ popusta:**
+  - 2x 4,400 RSD = **8,800 RSD** (prikazano)
+
+✅ **SA 10% popustom:**
+  - 2x 5,600 RSD = 11,200 - 10% = **10,080 RSD** (prikazano)
+
+---
+
+## 📋 BACKEND ČUVA:
+
+- `price`: Diskontovana cena (što klijent plaća) ✅
+- `discount_percentage`: Procenat popusta
+- `metadata.original_price`: Originalna cena (pre popusta)
+- `metadata.final_price`: Finalna cena (nakon popusta)
 
 ---
 
 ## ⚠️ VAŽNO:
 
-- **NEMA više popusta** na couple appointmente
-- Websajt treba **UVEK** da šalje `discount_couples_massage: 0`
-- Backend će automatski koristiti originalnu cenu
+- Websajt šalje **procenat popusta** koji je aktivan
+- Backend automatski izračunava i čuva diskontovanu cenu
+- Sve sekcije (Dashboard, Listing, Notifikacije) prikazuju **DISKONTOVANU CENU**
 
 ---
 
