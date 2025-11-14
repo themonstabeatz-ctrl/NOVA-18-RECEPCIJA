@@ -1315,17 +1315,9 @@ async def get_detailed_analytics(
     services = await db.services.find({}, {"_id": 0}).to_list(1000)
     service_map = {s['id']: s for s in services}
     
-    # Initialize category stats
+    # Initialize category stats (without "Kartica Masaza za parove" - will be added dynamically from "couple")
     categories = {
         "Obicne masaze": {
-            "appointments_count": 0,
-            "revenue": 0,
-            "original_revenue": 0,
-            "discount_given": 0,
-            "with_discount": 0,
-            "without_discount": 0
-        },
-        "Kartica Masaza za parove": {
             "appointments_count": 0,
             "revenue": 0,
             "original_revenue": 0,
