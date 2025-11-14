@@ -550,6 +550,11 @@ async def create_couple_appointment_v2(couple: CoupleAppointmentCreate):
     doc['end_time'] = doc['end_time'].isoformat()
     doc['created_at'] = doc['created_at'].isoformat()
     
+    # CRITICAL: Snapshot price at time of booking (for /couple/v2)
+    doc['snapshot_price'] = couple.total_price_after_discount
+    doc['snapshot_original_price'] = couple.total_price_before_discount
+    doc['snapshot_discount_percentage'] = couple.discount_couples_massage
+    
     await db.appointments.insert_one(doc)
     return appointment_obj
 
