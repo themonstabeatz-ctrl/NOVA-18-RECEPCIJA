@@ -1,29 +1,34 @@
-# 🎯 VAŽNA ISPRAVKA - UKLONJEN POPUST SA COUPLE APPOINTMENTA
+# 🎯 DINAMIČKI POPUST - Couple Masaža
 
-## ✅ ŠTA JE URAĐENO (13.11.2025):
+## ✅ AŽURIRANO (13.11.2025 - 23:00):
 
-**Backend je izmenjen** - couple appointmenti VIŠE NE PRIMENJUJU nikakav popust!
+**Backend SADA PODRŽAVA popuste!** Websajt može da šalje procenat popusta.
 
 **Rezultat:**
-- ✅ Cena je uvek ORIGINALNA (bez popusta)
-- ✅ 2x usluga po 4,400 RSD = 8,800 RSD (ne 7,480 RSD)
-- ✅ Dashboard prikazuje tačnu cenu
+- ✅ Ako je popust aktivan (npr. 15%), websajt šalje `discount_couples_massage: 15.0`
+- ✅ Backend primenjuje popust i čuva diskontovanu cenu
+- ✅ Dashboard, Listing Rezervacija i Notifikacije prikazuju **DISKONTOVANU CENU**
+- ✅ Originalna cena se čuva u metadata za referencu
+
+**Primeri:**
+- **SA popustom (15%):** 2x 4,400 RSD = 8,800 RSD → 7,480 RSD (prikazana cena)
+- **BEZ popusta (0%):** 2x 4,400 RSD = 8,800 RSD (prikazana cena)
 
 ---
 
 ## 💻 ŠTA WEBSAJT TREBA DA ŠALJE:
 
-**Jednostavno:**
-- Uvek šalji `discount_couples_massage: 0`
-- Backend će koristiti originalnu cenu
+**Dinamički popust:**
+1. Ako je popust aktivan u booking sistemu → šalji procenat (npr. `15.0`)
+2. Ako NEMA popusta → šalji `0`
 
 ---
 
 ## 💻 KOD ZA WEBSAJT:
 
 ```javascript
-// AŽURIRAJ BOOKING FUNKCIJU - samo postavi discount na 0
-async function bookCoupleAppointment(formData) {
+// AŽURIRAJ BOOKING FUNKCIJU - dinamički popust
+async function bookCoupleAppointment(formData, activeDiscount = 0) {
   const bookingData = {
     client_first_name: formData.firstName,
     client_last_name: formData.lastName,
@@ -33,7 +38,7 @@ async function bookCoupleAppointment(formData) {
     duration_type: getDurationType(formData.selectedService),
     person1_services: [formData.person1ServiceId],
     person2_services: [formData.person2ServiceId],
-    discount_couples_massage: 0  // ✅ UVEK 0 - NEMA POPUSTA
+    discount_couples_massage: activeDiscount  // ✅ Dinamički - 0 ili npr. 15.0
   };
   
   const response = await fetch(
