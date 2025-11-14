@@ -1547,16 +1547,22 @@ async def get_detailed_analytics(
                 "appointments": []
             }
         
-        # Get price - this is already the discounted price if discount was applied
-        final_price = service.get('price', 0)
-        discount_percentage = service.get('discount_percentage', 0)
-        
-        # Get original price from metadata if available
-        metadata = service.get('metadata')
-        if metadata and isinstance(metadata, dict):
-            original_price = metadata.get('original_price', final_price)
+        # PRIORITY: Use snapshot price from appointment if available (prevents retroactive price changes)
+        if 'snapshot_price' in apt:
+            final_price = apt['snapshot_price']
+            original_price = apt.get('snapshot_original_price', final_price)
+            discount_percentage = apt.get('snapshot_discount_percentage', 0)
         else:
-            original_price = final_price
+            # Fallback: Get price from service (for old appointments without snapshot)
+            final_price = service.get('price', 0)
+            discount_percentage = service.get('discount_percentage', 0)
+            
+            # Get original price from metadata if available
+            metadata = service.get('metadata')
+            if metadata and isinstance(metadata, dict):
+                original_price = metadata.get('original_price', final_price)
+            else:
+                original_price = final_price
         
         appointments_by_service[service_id]["appointments"].append({
             "id": apt['id'],
