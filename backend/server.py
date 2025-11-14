@@ -1361,10 +1361,21 @@ async def get_detailed_analytics(
             continue
         
         category = service.get('category', 'Obicne masaze')
-        original_price = service.get('price', 0)
+        
+        # Map "couple" category to "Kartica Masaza za parove"
+        if category == 'couple':
+            category = 'Kartica Masaza za parove'
+        
+        # Get price from service - this is already discounted if discount was applied
+        service_price = service.get('price', 0)
         discount_percentage = service.get('discount_percentage', 0)
-        discounted_price = original_price * (1 - discount_percentage / 100)
-        discount_amount = original_price - discounted_price
+        
+        # Get original price from metadata if available
+        metadata = service.get('metadata', {})
+        original_price = metadata.get('original_price', service_price)
+        
+        # Calculate actual discount amount
+        discount_amount = original_price - service_price
         
         # Get or create category (if not in predefined list)
         if category not in categories:
