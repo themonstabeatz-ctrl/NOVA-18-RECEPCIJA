@@ -891,6 +891,14 @@ async def get_unviewed_appointments():
         service_price = service.get('price') if service else None
         service_duration = service.get('duration') if service else None
         service_category = service.get('category', 'regular') if service else None
+        discount_percentage = service.get('discount_percentage', 0) if service else 0
+        
+        # Get original price from metadata if discount was applied
+        original_price = service_price
+        if service and discount_percentage > 0:
+            metadata = service.get('metadata')
+            if metadata and isinstance(metadata, dict):
+                original_price = metadata.get('original_price', service_price)
         
         # Add therapist name
         therapist = therapist_map.get(apt.get('therapist_id'))
@@ -908,6 +916,8 @@ async def get_unviewed_appointments():
             'service_id': apt.get('service_id'),
             'service_name': service_name,
             'service_price': service_price,
+            'original_price': original_price,
+            'discount_percentage': discount_percentage,
             'service_duration': service_duration,
             'service_category': service_category,
             'start_time': start_time.isoformat() if start_time else None,
