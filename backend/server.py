@@ -1390,7 +1390,7 @@ async def get_detailed_analytics(
         
         # Update category stats
         categories[category]["appointments_count"] += 1
-        categories[category]["revenue"] += discounted_price
+        categories[category]["revenue"] += service_price  # This is the discounted price (what customer pays)
         categories[category]["original_revenue"] += original_price
         categories[category]["discount_given"] += discount_amount
         
