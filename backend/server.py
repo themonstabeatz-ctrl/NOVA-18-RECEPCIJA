@@ -1438,16 +1438,22 @@ async def get_detailed_analytics(
         if category == 'couple':
             category = 'Kartica Masaza za parove'
         
-        # Get price from service - this is already discounted if discount was applied
-        service_price = service.get('price', 0)
-        discount_percentage = service.get('discount_percentage', 0)
-        
-        # Get original price from metadata if available
-        metadata = service.get('metadata')
-        if metadata and isinstance(metadata, dict):
-            original_price = metadata.get('original_price', service_price)
+        # PRIORITY: Use snapshot price from appointment if available (prevents retroactive price changes)
+        if 'snapshot_price' in apt:
+            service_price = apt['snapshot_price']
+            original_price = apt.get('snapshot_original_price', service_price)
+            discount_percentage = apt.get('snapshot_discount_percentage', 0)
         else:
-            original_price = service_price
+            # Fallback: Get price from service (for old appointments without snapshot)
+            service_price = service.get('price', 0)
+            discount_percentage = service.get('discount_percentage', 0)
+            
+            # Get original price from metadata if available
+            metadata = service.get('metadata')
+            if metadata and isinstance(metadata, dict):
+                original_price = metadata.get('original_price', service_price)
+            else:
+                original_price = service_price
         
         # Calculate actual discount amount
         discount_amount = original_price - service_price
