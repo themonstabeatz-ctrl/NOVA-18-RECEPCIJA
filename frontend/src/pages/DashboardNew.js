@@ -766,9 +766,25 @@ const DashboardNew = () => {
                                           </p>
                                         </td>
                                         <td className="px-4 py-3 text-right">
-                                          <span className="price text-sm font-bold text-green-700">
-                                            {formatCurrency(apt.total_price)}
-                                          </span>
+                                          {apt.discount_percentage > 0 ? (
+                                            <div>
+                                              <p className="text-xs text-gray-400 line-through">
+                                                {formatCurrency(apt.original_price)}
+                                              </p>
+                                              <div className="flex items-center justify-end gap-2">
+                                                <span className="price text-sm font-bold text-green-700">
+                                                  {formatCurrency(apt.total_price)}
+                                                </span>
+                                                <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                                                  -{apt.discount_percentage}%
+                                                </span>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <span className="price text-sm font-bold text-green-700">
+                                              {formatCurrency(apt.total_price)}
+                                            </span>
+                                          )}
                                         </td>
                                       </tr>
                                     );
