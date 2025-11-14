@@ -1418,7 +1418,7 @@ async def get_detailed_analytics(
         if discount_key not in discount_stats:
             discount_stats[discount_key] = {"count": 0, "revenue": 0}
         discount_stats[discount_key]["count"] += 1
-        discount_stats[discount_key]["revenue"] += discounted_price
+        discount_stats[discount_key]["revenue"] += service_price
     
     # Calculate totals
     total_revenue = sum(cat["revenue"] for cat in categories.values())
