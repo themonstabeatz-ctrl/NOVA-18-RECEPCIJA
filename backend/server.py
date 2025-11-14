@@ -529,7 +529,7 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
         if service_id not in service_map:
             raise HTTPException(status_code=404, detail=f"Service {service_id} not found")
     
-    # Calculate total price WITHOUT any discount
+    # Calculate total price
     total_price = 0
     person1_service_names = []
     person2_service_names = []
@@ -544,7 +544,15 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
         total_price += service['price']
         person2_service_names.append(service['name'])
     
-    # NO DISCOUNT APPLIED - use original price
+    # Apply couple discount if provided
+    discount_percentage = couple.discount_couples_massage if couple.discount_couples_massage else 0.0
+    original_price = total_price
+    
+    # Calculate discounted price
+    if discount_percentage > 0:
+        discounted_price = total_price * (1 - discount_percentage / 100)
+    else:
+        discounted_price = total_price
     
     # Calculate total duration (both persons are serviced simultaneously - together at the same time)
     total_duration = couple.duration_type  # 60, 90, or 120 minutes (they go together, not one after another)
@@ -567,11 +575,16 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
         "id": couple_service_id,
         "name": service_name,
         "duration": total_duration,
-        "price": total_price,  # ORIGINAL PRICE - NO DISCOUNT
+        "price": discounted_price,  # STORE DISCOUNTED PRICE
         "description": f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}",
         "created_at": datetime.now().isoformat(),
         "category": "couple",
-        "discount_percentage": 0.0
+        "discount_percentage": discount_percentage,
+        "metadata": {
+            "original_price": original_price,
+            "discount_applied": discount_percentage,
+            "final_price": discounted_price
+        } if discount_percentage > 0 else None
     }
     
     # Store couple service details
