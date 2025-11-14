@@ -608,6 +608,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     Automatically assigns first available therapist if not provided
     """
     logger.info(f"Website couple booking - duration_type: {couple.duration_type}, person1: {couple.person1_services}, person2: {couple.person2_services}")
+    logger.info(f"🔍 DISCOUNT FROM WEBSITE: {couple.discount_couples_massage}%")
     
     # Get first available therapist
     therapists = await db.therapists.find({"is_active": True}, {"_id": 0}).to_list(10)
