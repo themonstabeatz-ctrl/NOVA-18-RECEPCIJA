@@ -102,7 +102,44 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the services API endpoint to verify it returns discount information correctly"
+user_problem_statement: "🎯 CRITICAL TESTING: Price Snapshotting - Prevention of Retroactive Price Changes"
+
+backend:
+  - task: "Price Snapshotting - Regular Appointments"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 CRITICAL SUCCESS: Price snapshotting prevents retroactive price changes! Test scenario: 1) Created appointment for 'Masaža toplim uljem - 60 min' at 4600 RSD (no discount), 2) Activated 10% discount on service (new price 4140 RSD), 3) Created second appointment (got discounted price 4140 RSD), 4) VERIFIED: First appointment retained original 4600 RSD price via snapshot_price field, 5) Second appointment correctly shows 4140 RSD with 10% discount. Appointment IDs: 33e4c486-d725-467b-9732-d8e8e8d0358e (original price), f0b9e355-0055-4ecd-b4a5-2a2af5783ead (discounted). Analytics correctly separates discounted vs non-discounted appointments."
+
+  - task: "Price Snapshotting - Couple Appointments"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 CRITICAL SUCCESS: Couple appointment price snapshotting works perfectly! Test scenario: 1) Created couple appointment with 5% discount (9500 RSD final price), 2) Created second couple appointment with 15% discount (8500 RSD final price), 3) VERIFIED: Both appointments retain their snapshot discount percentages (5% and 15% respectively) in unviewed appointments list. Appointment IDs: 371e6be7-dd3a-4fcc-987c-91447ff2a800 (5% snapshot), be465df4-6b36-4797-bac4-26220659ebb5 (15% snapshot). Snapshot data correctly preserved and used by listing endpoints."
+
+  - task: "Price Snapshotting - Notifications and Listing"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 CRITICAL SUCCESS: Notifications and listing endpoints correctly use snapshot prices! GET /api/appointments/unviewed/list prioritizes snapshot_price, snapshot_original_price, and snapshot_discount_percentage fields from appointments over current service prices. Found 4 appointments using snapshot data and 1 using service fallback (for old appointments without snapshots). Analytics endpoint correctly identifies discounted appointments in appointments_with_discount list. Retroactive price changes are completely prevented - old appointments maintain their booking-time prices."
 
 backend:
   - task: "Couple Massage Booking Endpoint - 60 minute duration"
