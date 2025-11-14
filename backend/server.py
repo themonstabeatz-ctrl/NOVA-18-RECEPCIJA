@@ -423,6 +423,17 @@ async def create_appointment(appointment: AppointmentCreate):
     # Note: Overlap validation removed - multiple appointments can be scheduled at the same time
     # This allows multiple therapists and rooms to be utilized simultaneously
     
+    # Snapshot service price and discount at time of booking
+    service_price = service.get('price', 0)
+    service_discount = service.get('discount_percentage', 0)
+    
+    # Get original price if discount is applied
+    service_metadata = service.get('metadata')
+    if service_metadata and isinstance(service_metadata, dict) and 'original_price' in service_metadata:
+        original_price = service_metadata['original_price']
+    else:
+        original_price = service_price
+    
     # Create appointment object with corrected start_time
     appointment_dict = appointment.model_dump()
     appointment_dict['start_time'] = start_time
@@ -433,6 +444,11 @@ async def create_appointment(appointment: AppointmentCreate):
     doc['start_time'] = doc['start_time'].isoformat()
     doc['end_time'] = doc['end_time'].isoformat()
     doc['created_at'] = doc['created_at'].isoformat()
+    
+    # CRITICAL: Snapshot price at time of booking (don't rely on service price later)
+    doc['snapshot_price'] = service_price
+    doc['snapshot_original_price'] = original_price
+    doc['snapshot_discount_percentage'] = service_discount
     
     await db.appointments.insert_one(doc)
     return appointment_obj
