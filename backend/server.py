@@ -965,17 +965,25 @@ async def get_unviewed_appointments():
         # Add service details
         service = service_map.get(apt.get('service_id'))
         service_name = service.get('name') if service else None
-        service_price = service.get('price') if service else None
         service_duration = service.get('duration') if service else None
         service_category = service.get('category', 'regular') if service else None
-        discount_percentage = service.get('discount_percentage', 0) if service else 0
         
-        # Get original price from metadata if discount was applied
-        original_price = service_price
-        if service and discount_percentage > 0:
-            metadata = service.get('metadata')
-            if metadata and isinstance(metadata, dict):
-                original_price = metadata.get('original_price', service_price)
+        # PRIORITY: Use snapshot price from appointment if available (prevents retroactive price changes)
+        if 'snapshot_price' in apt:
+            service_price = apt['snapshot_price']
+            original_price = apt.get('snapshot_original_price', service_price)
+            discount_percentage = apt.get('snapshot_discount_percentage', 0)
+        else:
+            # Fallback: Get price from service (for old appointments without snapshot)
+            service_price = service.get('price') if service else None
+            discount_percentage = service.get('discount_percentage', 0) if service else 0
+            
+            # Get original price from metadata if discount was applied
+            original_price = service_price
+            if service and discount_percentage > 0:
+                metadata = service.get('metadata')
+                if metadata and isinstance(metadata, dict):
+                    original_price = metadata.get('original_price', service_price)
         
         # Add therapist name
         therapist = therapist_map.get(apt.get('therapist_id'))
