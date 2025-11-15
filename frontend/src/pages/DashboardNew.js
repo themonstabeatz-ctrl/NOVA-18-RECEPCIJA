@@ -6,6 +6,7 @@ import { BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, Cartesi
 import Login from '../components/Login';
 
 const DashboardNew = () => {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState('week');
   const [detailedData, setDetailedData] = useState(null);
   const [loading, setLoading] = useState(true);
