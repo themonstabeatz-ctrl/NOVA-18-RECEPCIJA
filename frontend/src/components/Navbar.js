@@ -77,18 +77,20 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            {/* Hidden Dashboard access - click logo to open Dashboard */}
-            <Link to="/" className="flex-shrink-0 flex items-center gap-2 sm:gap-3 cursor-default">
-              <img 
-                src={process.env.REACT_APP_LOGO_URL} 
-                alt="Bua Luang Thai Spa Logo" 
-                className="h-12 sm:h-14 md:h-16 w-auto"
-              />
+            <div className="flex-shrink-0 flex items-center gap-2 sm:gap-3">
+              {/* Hidden Dashboard access - only logo is clickable (smaller sensitive area) */}
+              <Link to="/" className="cursor-default">
+                <img 
+                  src={process.env.REACT_APP_LOGO_URL} 
+                  alt="Bua Luang Thai Spa Logo" 
+                  className="h-12 sm:h-14 md:h-16 w-auto"
+                />
+              </Link>
               <div className="flex flex-col justify-center">
                 <span className="text-sm sm:text-lg md:text-xl font-bold text-amber-700 leading-tight">Bua Luang</span>
                 <span className="text-sm sm:text-lg md:text-xl font-bold text-amber-700 leading-tight">Thai Spa</span>
               </div>
-            </Link>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
