@@ -931,15 +931,15 @@ async def update_appointment_status(appointment_id: str, status: AppointmentStat
 
 @api_router.get("/appointments/unviewed/count")
 async def get_unviewed_appointments_count():
-    """Get count of unviewed appointments (excludes soft-deleted)"""
-    count = await db.appointments.count_documents({"is_viewed": False, "is_deleted": {"$ne": True}})
+    """Get count of unviewed appointments"""
+    count = await db.appointments.count_documents({"is_viewed": False})
     return {"count": count}
 
 @api_router.get("/appointments/unviewed/list")
 async def get_unviewed_appointments():
-    """Get list of unviewed appointments with service details (excludes soft-deleted)"""
+    """Get list of unviewed appointments with service details"""
     appointments = await db.appointments.find(
-        {"is_viewed": False, "is_deleted": {"$ne": True}}, {"_id": 0}
+        {"is_viewed": False}, {"_id": 0}
     ).sort("created_at", -1).to_list(100)
     
     # Get all services for lookup
