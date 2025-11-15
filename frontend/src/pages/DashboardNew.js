@@ -220,7 +220,7 @@ const DashboardNew = () => {
     return (
       <Login 
         isOpen={showLoginModal} 
-        onClose={() => setShowLoginModal(false)}
+        onClose={() => navigate('/appointments')}
         onLogin={handleLogin}
       />
     );
