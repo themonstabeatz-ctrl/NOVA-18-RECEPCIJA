@@ -1399,14 +1399,13 @@ async def get_detailed_analytics(
             date_start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
             date_end = date_start.replace(year=now.year + 1)
     
-    # Get appointments (includes soft-deleted appointments for Dashboard - shows ALL appointments ever created)
+    # Get appointments
     query = {
         "start_time": {
             "$gte": date_start.isoformat(),
             "$lt": date_end.isoformat()
         },
         "status": {"$in": [AppointmentStatus.SCHEDULED, AppointmentStatus.COMPLETED]}
-        # NOTE: We do NOT filter by is_deleted here - Dashboard should show ALL appointments
     }
     
     appointments = await db.appointments.find(query, {"_id": 0}).to_list(10000)
