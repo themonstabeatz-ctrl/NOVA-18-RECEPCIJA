@@ -812,8 +812,8 @@ async def get_appointments(
     therapist_id: Optional[str] = Query(None),
     status: Optional[AppointmentStatus] = Query(None)
 ):
-    """Get appointments with optional filters"""
-    query = {}
+    """Get appointments with optional filters (excludes soft-deleted appointments for Termini page)"""
+    query = {"is_deleted": {"$ne": True}}  # Only show active (non-deleted) appointments
     
     if start_date and end_date:
         query["start_time"] = {
