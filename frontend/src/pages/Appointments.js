@@ -660,8 +660,17 @@ const Appointments = () => {
                             {getServiceName(appointment.service_id)}
                           </div>
                           {(() => {
-                            const service = services.find(s => s.id === appointment.service_id);
-                            const discount = service?.discount_percentage || 0;
+                            // PRIORITY: Use snapshot discount from appointment if available (prevents retroactive changes)
+                            let discount = 0;
+                            if (appointment.snapshot_discount_percentage !== undefined) {
+                              // Use snapshot value from booking time
+                              discount = appointment.snapshot_discount_percentage || 0;
+                            } else {
+                              // Fallback: Use current service discount (for old appointments)
+                              const service = services.find(s => s.id === appointment.service_id);
+                              discount = service?.discount_percentage || 0;
+                            }
+                            
                             if (discount > 0) {
                               return (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 border border-red-200">
