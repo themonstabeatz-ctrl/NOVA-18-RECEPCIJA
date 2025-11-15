@@ -912,9 +912,12 @@ async def update_appointment(appointment_id: str, appointment: AppointmentCreate
 
 @api_router.delete("/appointments/{appointment_id}")
 async def delete_appointment(appointment_id: str):
-    """Delete an appointment"""
-    result = await db.appointments.delete_one({"id": appointment_id})
-    if result.deleted_count == 0:
+    """Soft delete an appointment (mark as deleted, but keep in database for Dashboard)"""
+    result = await db.appointments.update_one(
+        {"id": appointment_id},
+        {"$set": {"is_deleted": True}}
+    )
+    if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Appointment not found")
     return {"message": "Appointment deleted successfully"}
 
