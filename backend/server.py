@@ -109,6 +109,7 @@ class Appointment(AppointmentBase):
     end_time: datetime
     created_at: datetime = Field(default_factory=lambda: datetime.now())
     is_viewed: bool = False  # Flag for notifications
+    is_deleted: bool = False  # Soft delete flag (for Dashboard to show all, Termini to show active only)
     # Snapshot fields for price history (prevents retroactive price changes)
     snapshot_price: Optional[float] = None
     snapshot_original_price: Optional[float] = None
