@@ -28,31 +28,6 @@ const DashboardNew = () => {
     }
   }, [period, isAuthenticated]);
 
-  // Refresh data when page becomes visible (e.g., returning from Termini page)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && isAuthenticated) {
-        fetchData();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Also refresh when window gains focus
-    const handleFocus = () => {
-      if (isAuthenticated) {
-        fetchData();
-      }
-    };
-    
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [isAuthenticated]);
-
   const fetchData = async () => {
     setLoading(true);
     try {
