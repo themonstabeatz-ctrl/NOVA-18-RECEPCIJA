@@ -11,7 +11,7 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
 
   const navItems = [
-    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+    // Dashboard is hidden - accessible only via logo click (secret feature)
     { path: '/appointments', label: 'Termini', icon: Calendar },
     { path: '/therapists', label: 'Terapeuti', icon: Users },
     { path: '/services', label: 'Usluge', icon: Briefcase },
