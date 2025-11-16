@@ -512,7 +512,7 @@ def test_couple_appointment_discounts():
         all_services = response.json()
         
         # Find regular services to use in couple appointments
-        regular_services = [s for s in all_services if s.get('category', 'regular') == 'regular']
+        regular_services = [s for s in all_services if s.get('category', 'regular') in ['regular', 'Obicne masaze']]
         
         if len(regular_services) < 2:
             print("   ❌ FAILED: Potrebno je minimum 2 regularne usluge za couple rezervaciju")
