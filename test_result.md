@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "🎯 CRITICAL TESTING: Price Snapshotting - Prevention of Retroactive Price Changes"
+user_problem_statement: "🎯 KRITIČNI TEST: Kompletna Provera Popusta na SVIM Uslugama - Testing comprehensive discount functionality for all services"
 
 backend:
   - task: "Price Snapshotting - Regular Appointments"
