@@ -434,6 +434,11 @@ const Appointments = () => {
     return service?.name || 'Unknown';
   };
 
+  const getServiceDescription = (id) => {
+    const service = services.find((s) => s.id === id);
+    return service?.description || null;
+  };
+
   const formatTime = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' });
