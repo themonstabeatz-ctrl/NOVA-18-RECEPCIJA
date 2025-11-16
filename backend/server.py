@@ -1548,6 +1548,7 @@ async def get_detailed_analytics(
                 "service_name": service['name'],
                 "service_duration": service.get('duration'),
                 "service_category": service.get('category', 'Obicne masaze'),
+                "service_description": service.get('description'),  # For couple appointments - shows massage names
                 "appointments": []
             }
         
