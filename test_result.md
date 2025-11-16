@@ -262,6 +262,54 @@ backend:
         agent: "testing"
         comment: "✅ PASSED: Verified specific discount calculation scenario from requirements. Found 'Tradicionalna tajlandska masaža - 60 min' service with 4400.0 RSD price. Confirmed discount calculation: 4400 * (1 - 5/100) = 4400 * 0.95 = 4180 RSD. Backend implementation correctly applies this formula in both analytics endpoints (lines 830-840 and 896-903). Analytics endpoints are functional and ready to process discounted services when discount_percentage > 0."
 
+  - task: "Comprehensive Discount Activation Testing - Masaža stopala"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ CRITICAL SUCCESS: Masaža stopala discount activation works perfectly! Tested 3 services (30, 45, 60 min) that previously had 0% discount. Successfully activated 5% discount on all services using PATCH /api/services/{service_id}/discount?discount=5 endpoint. VERIFIED: 1) Price calculations correct (2400→2280, 2900→2755, 3500→3325 RSD), 2) Metadata preservation works (original_price saved), 3) Snapshot mechanism captures discount data for new reservations (snapshot_discount_percentage=5%), 4) All appointment snapshots contain correct original and discounted prices. Created 3 test appointments with proper snapshot data. RESULT: ✅ DISCOUNT ACTIVATION FULLY FUNCTIONAL on previously problematic services."
+
+  - task: "Comprehensive Discount Testing - Multiple Percentages"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Multiple discount percentage testing successful! Tested service 'Glava, vrat, ramena i leđa - 30 min' with all discount levels: 10% (2400→2160 RSD), 15% (2400→2040 RSD), 5% (2400→2280 RSD), 0% (restored to 2400 RSD). VERIFIED: 1) All discount calculations mathematically correct using formula price * (1 - discount/100), 2) Metadata properly updated for each change, 3) Discount removal (0%) restores original price, 4) Endpoint handles all valid discount percentages (0, 5, 10, 15). RESULT: ✅ DISCOUNT PERCENTAGE FLEXIBILITY WORKS PERFECTLY."
+
+  - task: "Couple Appointment Discount Testing"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Couple appointment discount functionality verified! Successfully created couple appointment using POST /api/book-couple-appointment with 15% discount. VERIFIED: 1) Couple appointment creation works with discount_couples_massage parameter, 2) Snapshot mechanism captures 15% discount correctly (snapshot_discount_percentage=15), 3) Appointment created with proper service combination and pricing. RESULT: ✅ COUPLE APPOINTMENT DISCOUNTS FUNCTIONAL - Snapshot preservation works for couple bookings."
+
+  - task: "Discount Endpoint API Format Verification"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Discount endpoint API format confirmed! Endpoint PATCH /api/services/{service_id}/discount expects discount as query parameter (?discount=X), not in request body. VERIFIED: 1) Correct API format: PATCH /services/{id}/discount?discount=5, 2) Endpoint validates discount range (0-100), 3) Returns updated service with new price and metadata, 4) Handles both discount activation and removal. RESULT: ✅ API FORMAT CORRECT - Query parameter approach works as designed."
+
 frontend:
   - task: "Dashboard Modal Password Protection"
     implemented: true
