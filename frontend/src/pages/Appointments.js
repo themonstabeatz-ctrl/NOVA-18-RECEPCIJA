@@ -659,10 +659,17 @@ const Appointments = () => {
                           <div className="text-xs text-gray-500">{appointment.client_email}</div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <div className="text-sm text-gray-900">
-                            {getServiceName(appointment.service_id)}
+                          <div>
+                            <div className="text-sm text-gray-900">
+                              {getServiceName(appointment.service_id)}
+                            </div>
+                            {getServiceDescription(appointment.service_id) && (
+                              <div className="text-xs text-gray-600 mt-1">
+                                {getServiceDescription(appointment.service_id)}
+                              </div>
+                            )}
                           </div>
                           {(() => {
                             // PRIORITY: Use snapshot discount from appointment if available (prevents retroactive changes)
