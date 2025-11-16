@@ -70,11 +70,8 @@ def test_discount_activation_masaza_stopala():
         
         try:
             # Activate 5% discount
-            discount_data = {"discount_percentage": 5}
             response = requests.patch(
-                f"{BACKEND_URL}/services/{service_id}/discount",
-                json=discount_data,
-                headers={"Content-Type": "application/json"}
+                f"{BACKEND_URL}/services/{service_id}/discount?discount=5"
             )
             
             print(f"   PATCH /services/{service_id}/discount Response: {response.status_code}")
