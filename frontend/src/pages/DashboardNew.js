@@ -763,6 +763,11 @@ const DashboardNew = () => {
                                           <p className="text-sm font-medium text-gray-900">
                                             {apt.service_name}
                                           </p>
+                                          {apt.service_description && (
+                                            <p className="text-xs text-gray-600 mt-1">
+                                              {apt.service_description}
+                                            </p>
+                                          )}
                                           <p className="text-xs text-gray-500 mt-1">
                                             ⏱️ {apt.service_duration || 'N/A'} min
                                           </p>
