@@ -410,9 +410,10 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Price Snapshotting - Regular Appointments"
-    - "Price Snapshotting - Couple Appointments"
-    - "Price Snapshotting - Notifications and Listing"
+    - "Comprehensive Discount Activation Testing - Masaža stopala"
+    - "Comprehensive Discount Testing - Multiple Percentages"
+    - "Couple Appointment Discount Testing"
+    - "Discount Endpoint API Format Verification"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
