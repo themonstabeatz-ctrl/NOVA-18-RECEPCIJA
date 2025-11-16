@@ -302,7 +302,9 @@ const Services = () => {
                 ) : (
                   services.filter(s => s.category === activeCategory).map((service) => {
                     const discount = service.discount_percentage || 0;
-                    const discountedPrice = service.price * (1 - discount / 100);
+                    // CRITICAL: Always show ORIGINAL price in "Cena" column
+                    const originalPrice = service.metadata?.original_price || service.price;
+                    const discountedPrice = originalPrice * (1 - discount / 100);
                     
                     return (
                       <tr key={service.id} data-testid={`service-row-${service.id}`}>
@@ -326,7 +328,7 @@ const Services = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            {service.price.toLocaleString()} RSD
+                            {originalPrice.toLocaleString()} RSD
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -336,7 +338,7 @@ const Services = () => {
                                 {discountedPrice.toLocaleString()} RSD
                               </div>
                               <div className="text-xs text-gray-500">
-                                Ušteda: {(service.price - discountedPrice).toLocaleString()} RSD
+                                Ušteda: {(originalPrice - discountedPrice).toLocaleString()} RSD
                               </div>
                             </div>
                           ) : (
