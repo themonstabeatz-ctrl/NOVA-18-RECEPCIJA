@@ -126,7 +126,8 @@ const DashboardNew = () => {
         grouped[dateKey].push({
           ...apt,
           service_name: serviceData.service_name,
-          service_duration: serviceData.service_duration
+          service_duration: serviceData.service_duration,
+          service_description: serviceData.service_description  // For couple appointments
         });
       });
     });
