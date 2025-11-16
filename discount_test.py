@@ -442,11 +442,8 @@ def test_discount_tradicionalna_tajlandska_90min():
         print(f"\n   Aktiviranje popusta {i}: {service_name}")
         
         try:
-            discount_data = {"discount_percentage": 10}
             response = requests.patch(
-                f"{BACKEND_URL}/services/{service_id}/discount",
-                json=discount_data,
-                headers={"Content-Type": "application/json"}
+                f"{BACKEND_URL}/services/{service_id}/discount?discount=10"
             )
             
             if response.status_code != 200:
