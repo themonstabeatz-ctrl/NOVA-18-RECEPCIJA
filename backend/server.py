@@ -438,21 +438,20 @@ async def create_appointment(appointment: AppointmentCreate):
     else:
         original_price = service_price
     
-    # Create appointment object with corrected start_time
+    # Create appointment object with corrected start_time and snapshot data
     appointment_dict = appointment.model_dump()
     appointment_dict['start_time'] = start_time
     appointment_dict['end_time'] = end_time
+    # CRITICAL: Add snapshot fields to appointment object
+    appointment_dict['snapshot_price'] = service_price
+    appointment_dict['snapshot_original_price'] = original_price
+    appointment_dict['snapshot_discount_percentage'] = service_discount
     appointment_obj = Appointment(**appointment_dict)
     
     doc = appointment_obj.model_dump()
     doc['start_time'] = doc['start_time'].isoformat()
     doc['end_time'] = doc['end_time'].isoformat()
     doc['created_at'] = doc['created_at'].isoformat()
-    
-    # CRITICAL: Snapshot price at time of booking (don't rely on service price later)
-    doc['snapshot_price'] = service_price
-    doc['snapshot_original_price'] = original_price
-    doc['snapshot_discount_percentage'] = service_discount
     
     await db.appointments.insert_one(doc)
     return appointment_obj
