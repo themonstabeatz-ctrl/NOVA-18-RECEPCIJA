@@ -768,7 +768,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     # Store couple service details
     await db.services.insert_one(couple_service)
     
-    # Create appointment with couple service
+    # Create appointment with couple service and snapshot data
     appointment_dict = {
         "client_first_name": couple.client_first_name,
         "client_last_name": couple.client_last_name,
@@ -780,7 +780,11 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         "end_time": end_time,
         "status": AppointmentStatus.SCHEDULED,
         "body_map_gender": None,
-        "body_map_points": []
+        "body_map_points": [],
+        # CRITICAL: Add snapshot fields to appointment object
+        "snapshot_price": discounted_price,
+        "snapshot_original_price": original_price,
+        "snapshot_discount_percentage": discount_percentage
     }
     
     appointment_obj = Appointment(**appointment_dict)
@@ -789,11 +793,6 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     doc['start_time'] = doc['start_time'].isoformat()
     doc['end_time'] = doc['end_time'].isoformat()
     doc['created_at'] = doc['created_at'].isoformat()
-    
-    # CRITICAL: Snapshot price at time of booking (for /book-couple-appointment)
-    doc['snapshot_price'] = discounted_price
-    doc['snapshot_original_price'] = original_price
-    doc['snapshot_discount_percentage'] = discount_percentage
     
     await db.appointments.insert_one(doc)
     
