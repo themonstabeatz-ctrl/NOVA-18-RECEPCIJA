@@ -531,7 +531,7 @@ async def create_couple_appointment_v2(couple: CoupleAppointmentCreate):
     # Store couple service
     await db.services.insert_one(couple_service)
     
-    # Create appointment
+    # Create appointment with snapshot data
     appointment_dict = {
         "client_first_name": couple.client_first_name,
         "client_last_name": couple.client_last_name,
@@ -543,7 +543,11 @@ async def create_couple_appointment_v2(couple: CoupleAppointmentCreate):
         "end_time": end_time,
         "status": couple.status,
         "body_map_gender": None,
-        "body_map_points": []
+        "body_map_points": [],
+        # CRITICAL: Add snapshot fields to appointment object
+        "snapshot_price": couple.total_price_after_discount,
+        "snapshot_original_price": couple.total_price_before_discount,
+        "snapshot_discount_percentage": couple.discount_couples_massage
     }
     
     appointment_obj = Appointment(**appointment_dict)
@@ -552,11 +556,6 @@ async def create_couple_appointment_v2(couple: CoupleAppointmentCreate):
     doc['start_time'] = doc['start_time'].isoformat()
     doc['end_time'] = doc['end_time'].isoformat()
     doc['created_at'] = doc['created_at'].isoformat()
-    
-    # CRITICAL: Snapshot price at time of booking (for /couple/v2)
-    doc['snapshot_price'] = couple.total_price_after_discount
-    doc['snapshot_original_price'] = couple.total_price_before_discount
-    doc['snapshot_discount_percentage'] = couple.discount_couples_massage
     
     await db.appointments.insert_one(doc)
     return appointment_obj
