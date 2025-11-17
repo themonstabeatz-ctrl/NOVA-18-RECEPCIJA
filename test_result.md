@@ -105,6 +105,18 @@
 user_problem_statement: "🎯 KRITIČNI TEST: Kompletna Provera Popusta na SVIM Uslugama - Testing comprehensive discount functionality for all services"
 
 backend:
+  - task: "Comprehensive System Test - All 5 Scenarios (Serbian Review Request)"
+    implemented: true
+    working: true
+    file: "/app/complete_system_test.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 KRITIČNI USPEH: Kompletan sistem test za popuste, cene i rezervacije PROŠAO SVA 5 SCENARIJA! Test pokriva: 1) Obične masaže - popusti rade (4 servisa sa aktivnim popustima 10-15%), 2) [PAROVI] masaže - NEMA popusta na backend-u (35 servisa, svi imaju discount_percentage = 0%), 3) Snapshot mehanizam - retroaktivna zaštita (stare rezervacije zadržavaju originalne cene kada se aktiviraju novi popusti), 4) Dashboard i termini - prikaz cena (koriste snapshot podatke iz rezervacija), 5) Services stranica - originalne cene (metadata.original_price ispravno čuva originalne cene). REŠENI KRITIČNI BUGOVI: Snapshot fields nisu se vraćali u API odgovoru (dodati u appointment_dict), 31 couple servis je imao popuste (uklonjeni svi popusti). Created comprehensive test suite: complete_system_test.py. SISTEM POTPUNO FUNKCIONALAN!"
+
   - task: "Price Snapshotting - Regular Appointments"
     implemented: true
     working: true
