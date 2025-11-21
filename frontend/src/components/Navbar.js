@@ -46,6 +46,15 @@ const Navbar = () => {
   const handleBellClick = async () => {
     if (!showNotifications) {
       await loadNotifications();
+      // Automatically mark all as viewed when opening notification modal
+      if (unviewedCount > 0) {
+        try {
+          await appointmentService.markAllViewed();
+          setUnviewedCount(0);
+        } catch (error) {
+          console.error('Error auto-marking viewed:', error);
+        }
+      }
     }
     setShowNotifications(!showNotifications);
   };
