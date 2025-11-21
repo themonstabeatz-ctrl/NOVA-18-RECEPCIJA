@@ -411,12 +411,34 @@ async def create_service(service: ServiceCreate):
 
 @api_router.get("/services", response_model=List[Service])
 async def get_services():
-    """Get all services"""
+    """
+    Get all services with calculated final_price based on best available discount.
+    For each service, the system finds all services with the same service_code
+    and applies the highest discount percentage.
+    """
     services = await db.services.find({}, {"_id": 0}).to_list(1000)
     
     for service in services:
         if isinstance(service['created_at'], str):
             service['created_at'] = datetime.fromisoformat(service['created_at'])
+        
+        # Calculate final_price using best discount logic
+        service_code = service.get('service_code')
+        if service_code:
+            discount_info = await get_best_discount_for_service_code(service_code)
+            original_price = service.get('metadata', {}).get('original_price', service.get('price', 0))
+            
+            # Apply best discount
+            best_discount = discount_info['best_discount_percentage']
+            final_price = original_price * (1 - best_discount / 100.0)
+            
+            service['final_price'] = round(final_price, 2)
+            service['discount_percentage'] = best_discount
+        else:
+            # Fallback if service_code doesn't exist (shouldn't happen after migration)
+            original_price = service.get('metadata', {}).get('original_price', service.get('price', 0))
+            discount = service.get('discount_percentage', 0)
+            service['final_price'] = round(original_price * (1 - discount / 100.0), 2)
     
     return services
 
