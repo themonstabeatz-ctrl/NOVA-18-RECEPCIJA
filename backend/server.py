@@ -889,63 +889,84 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         if service_id not in service_map:
             raise HTTPException(status_code=404, detail=f"Service {service_id} not found")
     
-    # NEW LOGIC: Calculate price using service_code to find best discount for each service
-    # We will collect all discounts and use ONLY THE HIGHEST ONE for the entire booking
-    total_original_price = 0
-    person1_service_names = []
-    person2_service_names = []
-    all_best_discounts = []  # Track all best discounts to find the maximum
-    
-    # Process person 1 services
-    for service_id in couple.person1_services:
-        service = service_map[service_id]
-        service_code = service.get('service_code')
+    # PRIORITY 1: Check if websajt sent complete pricing snapshot (Varijanta 1)
+    # This prevents double calculation - discount is calculated only once in GET /api/services
+    if couple.final_price is not None and couple.original_price is not None:
+        # Websajt sent complete pricing snapshot - use it directly
+        logger.info(f"📸 COUPLE: Using snapshot from websajt: original={couple.original_price}, final={couple.final_price}, discount={couple.discount_percentage}%")
+        original_price = couple.original_price
+        discounted_price = couple.final_price
+        discount_percentage = couple.discount_percentage if couple.discount_percentage is not None else 0.0
         
-        # Get original price
-        original_price_single = service.get('metadata', {}).get('original_price', service.get('price', 0))
-        total_original_price += original_price_single
-        person1_service_names.append(service['name'])
+        # Still need service names for description
+        person1_service_names = []
+        person2_service_names = []
+        for service_id in couple.person1_services:
+            if service_id in service_map:
+                person1_service_names.append(service_map[service_id]['name'])
+        for service_id in couple.person2_services:
+            if service_id in service_map:
+                person2_service_names.append(service_map[service_id]['name'])
+    else:
+        # PRIORITY 2: Websajt sent only service_ids (backward compatibility)
+        # Calculate discount here (this is the "double calculation" scenario we want to avoid)
+        logger.info(f"⚙️ COUPLE: Websajt didn't send snapshot - calculating discount from service_code")
         
-        # Find best discount for this service_code
-        if service_code:
-            discount_info = await get_best_discount_for_service_code(service_code)
-            best_discount = discount_info['best_discount_percentage']
-            all_best_discounts.append(best_discount)
-            logger.info(f"Person 1 - {service['name']}: service_code={service_code}, best_discount={best_discount}%")
-        else:
-            all_best_discounts.append(service.get('discount_percentage', 0))
-    
-    # Process person 2 services
-    for service_id in couple.person2_services:
-        service = service_map[service_id]
-        service_code = service.get('service_code')
+        total_original_price = 0
+        person1_service_names = []
+        person2_service_names = []
+        all_best_discounts = []  # Track all best discounts to find the maximum
         
-        # Get original price
-        original_price_single = service.get('metadata', {}).get('original_price', service.get('price', 0))
-        total_original_price += original_price_single
-        person2_service_names.append(service['name'])
+        # Process person 1 services
+        for service_id in couple.person1_services:
+            service = service_map[service_id]
+            service_code = service.get('service_code')
+            
+            # Get original price
+            original_price_single = service.get('metadata', {}).get('original_price', service.get('price', 0))
+            total_original_price += original_price_single
+            person1_service_names.append(service['name'])
+            
+            # Find best discount for this service_code
+            if service_code:
+                discount_info = await get_best_discount_for_service_code(service_code)
+                best_discount = discount_info['best_discount_percentage']
+                all_best_discounts.append(best_discount)
+                logger.info(f"Person 1 - {service['name']}: service_code={service_code}, best_discount={best_discount}%")
+            else:
+                all_best_discounts.append(service.get('discount_percentage', 0))
         
-        # Find best discount for this service_code
-        if service_code:
-            discount_info = await get_best_discount_for_service_code(service_code)
-            best_discount = discount_info['best_discount_percentage']
-            all_best_discounts.append(best_discount)
-            logger.info(f"Person 2 - {service['name']}: service_code={service_code}, best_discount={best_discount}%")
-        else:
-            all_best_discounts.append(service.get('discount_percentage', 0))
-    
-    # CRITICAL: Apply ONLY the highest discount from all available discounts
-    # This includes discounts from individual services AND the couple discount from website
-    all_best_discounts.append(couple.discount_couples_massage if couple.discount_couples_massage else 0.0)
-    
-    # Find the maximum discount
-    discount_percentage = max(all_best_discounts) if all_best_discounts else 0.0
-    
-    logger.info(f"💰 Price Calculation: original={total_original_price}, all_discounts={all_best_discounts}, APPLYING_BEST={discount_percentage}%")
-    
-    # Calculate final price with SINGLE best discount
-    original_price = total_original_price
-    discounted_price = original_price * (1 - discount_percentage / 100)
+        # Process person 2 services
+        for service_id in couple.person2_services:
+            service = service_map[service_id]
+            service_code = service.get('service_code')
+            
+            # Get original price
+            original_price_single = service.get('metadata', {}).get('original_price', service.get('price', 0))
+            total_original_price += original_price_single
+            person2_service_names.append(service['name'])
+            
+            # Find best discount for this service_code
+            if service_code:
+                discount_info = await get_best_discount_for_service_code(service_code)
+                best_discount = discount_info['best_discount_percentage']
+                all_best_discounts.append(best_discount)
+                logger.info(f"Person 2 - {service['name']}: service_code={service_code}, best_discount={best_discount}%")
+            else:
+                all_best_discounts.append(service.get('discount_percentage', 0))
+        
+        # CRITICAL: Apply ONLY the highest discount from all available discounts
+        # This includes discounts from individual services AND the couple discount from website
+        all_best_discounts.append(couple.discount_couples_massage if couple.discount_couples_massage else 0.0)
+        
+        # Find the maximum discount
+        discount_percentage = max(all_best_discounts) if all_best_discounts else 0.0
+        
+        logger.info(f"💰 Price Calculation: original={total_original_price}, all_discounts={all_best_discounts}, APPLYING_BEST={discount_percentage}%")
+        
+        # Calculate final price with SINGLE best discount
+        original_price = total_original_price
+        discounted_price = original_price * (1 - discount_percentage / 100)
     
     # Calculate total duration (both persons are serviced simultaneously - together at the same time)
     total_duration = couple.duration_type  # 60, 90, or 120 minutes (they go together, not one after another)
