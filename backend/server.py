@@ -580,42 +580,54 @@ async def create_appointment(appointment: AppointmentCreate):
     # Note: Overlap validation removed - multiple appointments can be scheduled at the same time
     # This allows multiple therapists and rooms to be utilized simultaneously
     
-    # NEW LOGIC: Use service_code to find the best discount across all categories
-    service_code = service.get('service_code')
-    
-    if service_code:
-        # Find best discount for this service_code
-        discount_info = await get_best_discount_for_service_code(service_code)
-        best_discount = discount_info['best_discount_percentage']
-        
-        # Get original price from metadata
-        service_metadata = service.get('metadata')
-        if service_metadata and isinstance(service_metadata, dict) and 'original_price' in service_metadata:
-            original_price = service_metadata['original_price']
-        else:
-            original_price = service.get('price', 0)
-        
-        # Calculate final price with best discount
-        final_price = original_price * (1 - best_discount / 100.0)
+    # PRIORITY 1: Check if websajt sent snapshot data (Varijanta 1)
+    # This prevents double calculation - discount is calculated only once in GET /api/services
+    if appointment.final_price is not None and appointment.original_price is not None:
+        # Websajt sent complete pricing snapshot - use it directly
+        logger.info(f"📸 Using snapshot from websajt: original={appointment.original_price}, final={appointment.final_price}, discount={appointment.discount_percentage}%")
+        final_price = appointment.final_price
+        original_price = appointment.original_price
+        best_discount = appointment.discount_percentage if appointment.discount_percentage is not None else 0.0
     else:
-        # Fallback to old logic if service_code doesn't exist
-        service_price = service.get('price', 0)
-        service_discount = service.get('discount_percentage', 0)
+        # PRIORITY 2: Websajt sent only service_id (backward compatibility)
+        # Calculate discount here (this is the "double calculation" scenario we want to avoid)
+        logger.info(f"⚙️ Websajt didn't send snapshot - calculating discount from service_code")
         
-        service_metadata = service.get('metadata')
-        if service_metadata and isinstance(service_metadata, dict) and 'original_price' in service_metadata:
-            original_price = service_metadata['original_price']
+        service_code = service.get('service_code')
+        
+        if service_code:
+            # Find best discount for this service_code
+            discount_info = await get_best_discount_for_service_code(service_code)
+            best_discount = discount_info['best_discount_percentage']
+            
+            # Get original price from metadata
+            service_metadata = service.get('metadata')
+            if service_metadata and isinstance(service_metadata, dict) and 'original_price' in service_metadata:
+                original_price = service_metadata['original_price']
+            else:
+                original_price = service.get('price', 0)
+            
+            # Calculate final price with best discount
+            final_price = original_price * (1 - best_discount / 100.0)
         else:
-            original_price = service_price
-        
-        best_discount = service_discount
-        final_price = service_price
+            # Fallback to old logic if service_code doesn't exist
+            service_price = service.get('price', 0)
+            service_discount = service.get('discount_percentage', 0)
+            
+            service_metadata = service.get('metadata')
+            if service_metadata and isinstance(service_metadata, dict) and 'original_price' in service_metadata:
+                original_price = service_metadata['original_price']
+            else:
+                original_price = service_price
+            
+            best_discount = service_discount
+            final_price = service_price
     
     # Create appointment object with corrected start_time and snapshot data
     appointment_dict = appointment.model_dump()
     appointment_dict['start_time'] = start_time
     appointment_dict['end_time'] = end_time
-    # CRITICAL: Add snapshot fields to appointment object with BEST discount applied
+    # CRITICAL: Add snapshot fields to appointment object
     appointment_dict['snapshot_price'] = round(final_price, 2)
     appointment_dict['snapshot_original_price'] = original_price
     appointment_dict['snapshot_discount_percentage'] = best_discount
