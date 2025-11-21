@@ -439,10 +439,10 @@ frontend:
 
 metadata:
   created_by: "testing_agent"
-  version: "1.6"
-  test_sequence: 7
-  last_updated: "2025-11-15 10:45:00"
-  testing_status: "COMPREHENSIVE_DISCOUNT_TESTING_COMPLETE"
+  version: "1.7"
+  test_sequence: 8
+  last_updated: "2025-11-21 19:10:00"
+  testing_status: "COMPREHENSIVE_E2E_TESTING_COMPLETE_SERBIAN_REVIEW"
 
 test_plan:
   current_focus: 
