@@ -65,6 +65,8 @@ const Navbar = () => {
       setUnviewedCount(0);
       setNotifications([]);
       setShowNotifications(false);
+      // Reload count to ensure sync
+      await loadUnviewedCount();
     } catch (error) {
       console.error('Error marking all viewed:', error);
     }
