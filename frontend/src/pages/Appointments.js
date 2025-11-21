@@ -80,6 +80,19 @@ const Appointments = () => {
     fetchData();
   }, [selectedDate]);
 
+  // Auto-mark all appointments as viewed when page loads
+  useEffect(() => {
+    const markAsViewed = async () => {
+      try {
+        await appointmentService.markAllViewed();
+        console.log('Auto-marked all appointments as viewed on Appointments page load');
+      } catch (error) {
+        console.error('Error auto-marking appointments as viewed:', error);
+      }
+    };
+    markAsViewed();
+  }, []); // Run once on component mount
+
   const fetchData = async () => {
     setLoading(true);
     try {
