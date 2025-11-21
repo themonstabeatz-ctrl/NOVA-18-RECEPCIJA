@@ -446,13 +446,11 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Comprehensive Discount Activation Testing - Masaža stopala"
-    - "Comprehensive Discount Testing - Multiple Percentages"
-    - "Couple Appointment Discount Testing"
-    - "Discount Endpoint API Format Verification"
+    - "Comprehensive E2E Testing - Serbian Review Request"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
+  completed_e2e_testing: true
 
 agent_communication:
   - agent: "testing"
