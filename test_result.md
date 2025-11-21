@@ -566,3 +566,97 @@ The new discount system successfully:
 
 **Next Step**: Coordinate with websajt agent to implement frontend changes according to new instructions.
 
+
+---
+
+## 🔔 P2 Task - Notification Counter Fix
+**Date**: 2025-11-21
+**Feature**: Auto-mark appointments as viewed on bell click and Appointments page load
+
+### 📋 Problem
+Notification bell badge showed incorrect count of unviewed appointments. Counter did not drop to 0 after user viewed appointments.
+
+### ✅ Solution Implemented - Option D (Combination)
+
+**Priority 1**: Auto-mark when user clicks bell icon and opens notification modal
+**Priority 2**: Auto-mark when user opens "Termini" (Appointments) page
+**Bonus**: Manual button "Označi sve kao pregledano" remains as option
+
+### 🔧 Changes Made
+
+**1. Updated `Navbar.js`:**
+- Modified `handleBellClick()` function
+- When modal opens, automatically calls `markAllViewed()` if `unviewedCount > 0`
+- Badge disappears immediately after marking
+
+**2. Updated `Appointments.js`:**
+- Added new `useEffect` hook that runs on component mount
+- Automatically calls `markAllViewed()` when page loads
+- Ensures all appointments are marked as viewed when user sees the list
+
+### 🧪 Test Results
+
+**Test 1: Create New Appointment**
+- Status: ✅ PASS
+- New appointment created with `is_viewed: false`
+- Badge shows count: 1
+
+**Test 2: Click Bell Icon**
+- Status: ✅ PASS
+- Modal opens and shows notification
+- Auto-calls `markAllViewed()`
+- Badge disappears (count = 0)
+- Backend confirms: `unviewed_count = 0`
+
+**Test 3: Open Appointments Page**
+- Status: ✅ PASS
+- Page loads and displays all appointments
+- Auto-calls `markAllViewed()`
+- Badge disappears (count = 0)
+- Backend confirms: `unviewed_count = 0`
+
+**Test 4: Manual Button**
+- Status: ✅ PASS
+- "Označi sve kao pregledano" button still works
+- Calls `markAllViewed()` manually
+
+### 📊 Summary Table
+
+| Scenario | Status | Details |
+|----------|--------|---------|
+| Create new appointment | ✅ | `is_viewed: false`, badge shows "1" |
+| Click bell icon | ✅ | Auto-marks all, badge disappears |
+| Open Termini page | ✅ | Auto-marks all, badge disappears |
+| Manual button | ✅ | Works as before |
+
+### 🎯 Expected Behavior
+
+**Daily workflow:**
+1. New reservation arrives → Badge shows "1" 🔴
+2. User clicks bell → Modal opens → Badge disappears ✅
+3. OR user goes to "Termini" → Page loads → Badge disappears ✅
+
+**No longer needed:**
+- ❌ Manually clicking "Označi sve kao pregledano"
+- ❌ Deleting appointments to make counter drop
+
+### 📝 Documentation Created
+
+- `/app/NOTIFICATION_COUNTER_FIX.md` - Complete technical documentation
+
+### 🎉 Result
+
+✅ **P2 TASK COMPLETED AND TESTED**
+
+Notification counter now works correctly:
+- Badge shows accurate count of unviewed appointments
+- Auto-marks as viewed when user opens modal or Appointments page
+- No more manual intervention needed
+- Counter always syncs with backend
+
+### 🔄 Next Steps
+
+Ready for:
+- E2E comprehensive testing
+- Production deployment
+
