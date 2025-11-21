@@ -65,6 +65,7 @@ class ServiceBase(BaseModel):
     category: Optional[str] = Field(default="regular", description="Service category: regular, couple")
     metadata: Optional[dict] = Field(default=None, description="Additional metadata for couple appointments")
     discount_percentage: float = Field(default=0.0, ge=0, le=100, description="Active discount percentage (0-100%)")
+    service_code: Optional[str] = Field(default=None, description="Unique service code for matching across categories")
 
 class ServiceCreate(ServiceBase):
     pass
@@ -73,6 +74,7 @@ class Service(ServiceBase):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: datetime = Field(default_factory=lambda: datetime.now())
+    final_price: Optional[float] = Field(default=None, description="Calculated price after discount")
 
 
 # ============================================
