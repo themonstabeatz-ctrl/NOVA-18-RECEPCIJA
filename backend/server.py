@@ -103,7 +103,12 @@ class AppointmentBase(BaseModel):
     body_map_points: Optional[List[Dict[str, Any]]] = []  # List of marked points
 
 class AppointmentCreate(AppointmentBase):
-    pass
+    # Optional snapshot fields - if provided by websajt, use them directly
+    # This prevents double calculation of discount (once in GET /api/services, once in POST)
+    service_code: Optional[str] = None
+    original_price: Optional[float] = None
+    discount_percentage: Optional[float] = None
+    final_price: Optional[float] = None
 
 class Appointment(AppointmentBase):
     model_config = ConfigDict(extra="ignore")
