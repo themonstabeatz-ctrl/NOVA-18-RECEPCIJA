@@ -392,6 +392,17 @@ async def create_service(service: ServiceCreate):
         raise HTTPException(status_code=400, detail="Duration must be 30, 45, 60, 90, 120, 180, or 240 minutes")
     
     service_obj = Service(**service.model_dump())
+    
+    # Auto-generate service_code if not provided
+    if not service_obj.service_code:
+        service_obj.service_code = generate_service_code(service_obj.name, service_obj.duration)
+    
+    # Ensure metadata has original_price
+    if not service_obj.metadata:
+        service_obj.metadata = {}
+    if 'original_price' not in service_obj.metadata:
+        service_obj.metadata['original_price'] = service_obj.price
+    
     doc = service_obj.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     
