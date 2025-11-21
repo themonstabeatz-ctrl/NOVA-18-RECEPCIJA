@@ -245,7 +245,7 @@ async def get_best_discount_for_service_code(service_code: str) -> dict:
     # Find all services with this service_code
     services = await db.services.find({"service_code": service_code}, {"_id": 0}).to_list(100)
     
-    if not services:
+    if not services or len(services) == 0:
         return {
             "best_discount_percentage": 0.0,
             "original_price": 0.0,
@@ -254,6 +254,14 @@ async def get_best_discount_for_service_code(service_code: str) -> dict:
     
     # Find the service with the highest discount
     best_service = max(services, key=lambda s: s.get('discount_percentage', 0.0))
+    
+    # Safety check - should never be None but just in case
+    if best_service is None:
+        return {
+            "best_discount_percentage": 0.0,
+            "original_price": 0.0,
+            "service_id": None
+        }
     
     # Get original price from metadata or use price
     original_price = best_service.get('metadata', {}).get('original_price', best_service.get('price', 0.0))
