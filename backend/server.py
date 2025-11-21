@@ -444,13 +444,30 @@ async def get_services():
 
 @api_router.get("/services/{service_id}", response_model=Service)
 async def get_service(service_id: str):
-    """Get a specific service"""
+    """Get a specific service with calculated final_price"""
     service = await db.services.find_one({"id": service_id}, {"_id": 0})
     if not service:
         raise HTTPException(status_code=404, detail="Service not found")
     
     if isinstance(service['created_at'], str):
         service['created_at'] = datetime.fromisoformat(service['created_at'])
+    
+    # Calculate final_price using best discount logic
+    service_code = service.get('service_code')
+    if service_code:
+        discount_info = await get_best_discount_for_service_code(service_code)
+        original_price = service.get('metadata', {}).get('original_price', service.get('price', 0))
+        
+        # Apply best discount
+        best_discount = discount_info['best_discount_percentage']
+        final_price = original_price * (1 - best_discount / 100.0)
+        
+        service['final_price'] = round(final_price, 2)
+        service['discount_percentage'] = best_discount
+    else:
+        original_price = service.get('metadata', {}).get('original_price', service.get('price', 0))
+        discount = service.get('discount_percentage', 0)
+        service['final_price'] = round(original_price * (1 - discount / 100.0), 2)
     
     return service
 
