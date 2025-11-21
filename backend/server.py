@@ -868,36 +868,63 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         if service_id not in service_map:
             raise HTTPException(status_code=404, detail=f"Service {service_id} not found")
     
-    # Calculate total price with discount
-    total_price = 0
+    # NEW LOGIC: Calculate price using service_code to find best discount for each service
+    # We will collect all discounts and use ONLY THE HIGHEST ONE for the entire booking
+    total_original_price = 0
     person1_service_names = []
     person2_service_names = []
+    all_best_discounts = []  # Track all best discounts to find the maximum
     
+    # Process person 1 services
     for service_id in couple.person1_services:
         service = service_map[service_id]
-        original_price = service['price']
-        discount_pct = service.get('discount_percentage', 0)
-        discounted_price = original_price * (1 - discount_pct / 100)
-        total_price += discounted_price
+        service_code = service.get('service_code')
+        
+        # Get original price
+        original_price_single = service.get('metadata', {}).get('original_price', service.get('price', 0))
+        total_original_price += original_price_single
         person1_service_names.append(service['name'])
+        
+        # Find best discount for this service_code
+        if service_code:
+            discount_info = await get_best_discount_for_service_code(service_code)
+            best_discount = discount_info['best_discount_percentage']
+            all_best_discounts.append(best_discount)
+            logger.info(f"Person 1 - {service['name']}: service_code={service_code}, best_discount={best_discount}%")
+        else:
+            all_best_discounts.append(service.get('discount_percentage', 0))
     
+    # Process person 2 services
     for service_id in couple.person2_services:
         service = service_map[service_id]
-        original_price = service['price']
-        discount_pct = service.get('discount_percentage', 0)
-        discounted_price = original_price * (1 - discount_pct / 100)
-        total_price += discounted_price
+        service_code = service.get('service_code')
+        
+        # Get original price
+        original_price_single = service.get('metadata', {}).get('original_price', service.get('price', 0))
+        total_original_price += original_price_single
         person2_service_names.append(service['name'])
+        
+        # Find best discount for this service_code
+        if service_code:
+            discount_info = await get_best_discount_for_service_code(service_code)
+            best_discount = discount_info['best_discount_percentage']
+            all_best_discounts.append(best_discount)
+            logger.info(f"Person 2 - {service['name']}: service_code={service_code}, best_discount={best_discount}%")
+        else:
+            all_best_discounts.append(service.get('discount_percentage', 0))
     
-    # Apply couple discount if provided by website
-    discount_percentage = couple.discount_couples_massage if couple.discount_couples_massage else 0.0
-    original_price = total_price
+    # CRITICAL: Apply ONLY the highest discount from all available discounts
+    # This includes discounts from individual services AND the couple discount from website
+    all_best_discounts.append(couple.discount_couples_massage if couple.discount_couples_massage else 0.0)
     
-    # Calculate discounted price
-    if discount_percentage > 0:
-        discounted_price = total_price * (1 - discount_percentage / 100)
-    else:
-        discounted_price = total_price
+    # Find the maximum discount
+    discount_percentage = max(all_best_discounts) if all_best_discounts else 0.0
+    
+    logger.info(f"💰 Price Calculation: original={total_original_price}, all_discounts={all_best_discounts}, APPLYING_BEST={discount_percentage}%")
+    
+    # Calculate final price with SINGLE best discount
+    original_price = total_original_price
+    discounted_price = original_price * (1 - discount_percentage / 100)
     
     # Calculate total duration (both persons are serviced simultaneously - together at the same time)
     total_duration = couple.duration_type  # 60, 90, or 120 minutes (they go together, not one after another)
