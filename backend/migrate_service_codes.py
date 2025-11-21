@@ -85,6 +85,8 @@ async def migrate_service_codes():
         })
         
         # Ensure original_price exists in metadata
+        if metadata is None:
+            metadata = {}
         if 'original_price' not in metadata:
             metadata['original_price'] = price
         
