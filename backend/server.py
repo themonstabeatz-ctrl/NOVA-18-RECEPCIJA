@@ -575,25 +575,45 @@ async def create_appointment(appointment: AppointmentCreate):
     # Note: Overlap validation removed - multiple appointments can be scheduled at the same time
     # This allows multiple therapists and rooms to be utilized simultaneously
     
-    # Snapshot service price and discount at time of booking
-    service_price = service.get('price', 0)
-    service_discount = service.get('discount_percentage', 0)
+    # NEW LOGIC: Use service_code to find the best discount across all categories
+    service_code = service.get('service_code')
     
-    # Get original price if discount is applied
-    service_metadata = service.get('metadata')
-    if service_metadata and isinstance(service_metadata, dict) and 'original_price' in service_metadata:
-        original_price = service_metadata['original_price']
+    if service_code:
+        # Find best discount for this service_code
+        discount_info = await get_best_discount_for_service_code(service_code)
+        best_discount = discount_info['best_discount_percentage']
+        
+        # Get original price from metadata
+        service_metadata = service.get('metadata')
+        if service_metadata and isinstance(service_metadata, dict) and 'original_price' in service_metadata:
+            original_price = service_metadata['original_price']
+        else:
+            original_price = service.get('price', 0)
+        
+        # Calculate final price with best discount
+        final_price = original_price * (1 - best_discount / 100.0)
     else:
-        original_price = service_price
+        # Fallback to old logic if service_code doesn't exist
+        service_price = service.get('price', 0)
+        service_discount = service.get('discount_percentage', 0)
+        
+        service_metadata = service.get('metadata')
+        if service_metadata and isinstance(service_metadata, dict) and 'original_price' in service_metadata:
+            original_price = service_metadata['original_price']
+        else:
+            original_price = service_price
+        
+        best_discount = service_discount
+        final_price = service_price
     
     # Create appointment object with corrected start_time and snapshot data
     appointment_dict = appointment.model_dump()
     appointment_dict['start_time'] = start_time
     appointment_dict['end_time'] = end_time
-    # CRITICAL: Add snapshot fields to appointment object
-    appointment_dict['snapshot_price'] = service_price
+    # CRITICAL: Add snapshot fields to appointment object with BEST discount applied
+    appointment_dict['snapshot_price'] = round(final_price, 2)
     appointment_dict['snapshot_original_price'] = original_price
-    appointment_dict['snapshot_discount_percentage'] = service_discount
+    appointment_dict['snapshot_discount_percentage'] = best_discount
     appointment_obj = Appointment(**appointment_dict)
     
     doc = appointment_obj.model_dump()
