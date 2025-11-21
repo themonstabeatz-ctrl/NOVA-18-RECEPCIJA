@@ -185,6 +185,102 @@ class BusinessHoursUpdate(BaseModel):
     slot_duration: Optional[int] = None
 
 
+
+# ============================================
+# Helper Functions - Service Code & Discount Logic
+# ============================================
+def generate_service_code(name: str, duration: int) -> str:
+    """
+    Generate a unique service code from service name and duration.
+    This code is used to match the same massage across different categories.
+    
+    Example:
+        "[PAROVI] Aroma terapija - 60 min" -> "AROMA_TERAPIJA_60"
+        "Aroma terapija - 60 min" -> "AROMA_TERAPIJA_60"
+    """
+    import re
+    import unicodedata
+    
+    # Remove [PAROVI] prefix and other category prefixes
+    clean_name = re.sub(r'^\[.*?\]\s*', '', name)
+    
+    # Remove duration suffix if present (e.g., "- 60 min", "- 90 min")
+    clean_name = re.sub(r'\s*-?\s*\d+\s*min\s*$', '', clean_name, flags=re.IGNORECASE)
+    
+    # Normalize unicode characters (ć -> c, š -> s, etc.)
+    clean_name = unicodedata.normalize('NFKD', clean_name)
+    clean_name = clean_name.encode('ascii', 'ignore').decode('ascii')
+    
+    # Convert to uppercase and replace spaces/special chars with underscore
+    clean_name = re.sub(r'[^a-zA-Z0-9]+', '_', clean_name.upper())
+    
+    # Remove leading/trailing underscores
+    clean_name = clean_name.strip('_')
+    
+    # Add duration to make it unique
+    service_code = f"{clean_name}_{duration}"
+    
+    return service_code
+
+
+async def get_best_discount_for_service_code(service_code: str) -> dict:
+    """
+    Find all services with the same service_code and return the one with the highest discount.
+    
+    Returns:
+        dict with keys: 
+            - best_discount_percentage (float)
+            - original_price (float)
+            - service_id (str) - ID of the service with best discount
+    """
+    # Find all services with this service_code
+    services = await db.services.find({"service_code": service_code}, {"_id": 0}).to_list(100)
+    
+    if not services:
+        return {
+            "best_discount_percentage": 0.0,
+            "original_price": 0.0,
+            "service_id": None
+        }
+    
+    # Find the service with the highest discount
+    best_service = max(services, key=lambda s: s.get('discount_percentage', 0.0))
+    
+    # Get original price from metadata or use price
+    original_price = best_service.get('metadata', {}).get('original_price', best_service.get('price', 0.0))
+    
+    return {
+        "best_discount_percentage": best_service.get('discount_percentage', 0.0),
+        "original_price": original_price,
+        "service_id": best_service.get('id')
+    }
+
+
+async def calculate_discounted_price(service_code: str, base_price: float) -> dict:
+    """
+    Calculate the final price after applying the best available discount for a service_code.
+    
+    Returns:
+        dict with keys:
+            - final_price (float)
+            - discount_percentage (float)
+            - original_price (float)
+    """
+    discount_info = await get_best_discount_for_service_code(service_code)
+    
+    best_discount = discount_info['best_discount_percentage']
+    original_price = discount_info['original_price'] if discount_info['original_price'] > 0 else base_price
+    
+    # Calculate final price with discount
+    final_price = original_price * (1 - best_discount / 100.0)
+    
+    return {
+        "final_price": round(final_price, 2),
+        "discount_percentage": best_discount,
+        "original_price": original_price
+    }
+
+
 # ============================================
 # Routes - Therapists
 # ============================================
