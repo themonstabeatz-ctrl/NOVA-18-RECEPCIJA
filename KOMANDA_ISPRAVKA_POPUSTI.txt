@@ -12,7 +12,7 @@ STARO:
 const BOOKING_API = 'https://spabooking.emergent.host/api';
 
 NOVO:
-const BOOKING_API = 'https://discount-fixer.preview.emergentagent.com/api';
+const BOOKING_API = 'https://prices-snapshot.preview.emergentagent.com/api';
 
 ========================================
 ISPRAVKA 2: Dodaj Funkciju za Proveru
@@ -91,7 +91,7 @@ import { shouldShowDiscount } from '../services/bookingApi';
 TESTIRANJE
 ========================================
 
-1. U booking sistemu (https://discount-fixer.preview.emergentagent.com/services):
+1. U booking sistemu (https://prices-snapshot.preview.emergentagent.com/services):
    - Idi na "Kartica Masaza za parove"
    - Postavi -15% popust
    - Potvrdi

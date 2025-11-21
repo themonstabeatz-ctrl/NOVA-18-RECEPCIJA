@@ -18,7 +18,7 @@ import sys
 import time
 
 # Backend URL from environment
-BACKEND_URL = "https://discount-fixer.preview.emergentagent.com/api"
+BACKEND_URL = "https://prices-snapshot.preview.emergentagent.com/api"
 
 def print_header(title):
     """Print a formatted header"""

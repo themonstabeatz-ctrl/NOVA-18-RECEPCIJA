@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import sys
 
 # Backend URL from environment
-BACKEND_URL = "https://discount-fixer.preview.emergentagent.com/api"
+BACKEND_URL = "https://prices-snapshot.preview.emergentagent.com/api"
 
 def test_price_snapshotting_regular_appointments():
     """

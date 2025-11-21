@@ -383,12 +383,12 @@ Ako imaš bilo kakvih pitanja ili probleme:
 
 **Booking sistem Backend URL:**
 ```
-https://discount-fixer.preview.emergentagent.com/api
+https://prices-snapshot.preview.emergentagent.com/api
 ```
 
 **Dashboard URL:**
 ```
-https://discount-fixer.preview.emergentagent.com/
+https://prices-snapshot.preview.emergentagent.com/
 Lozinka: studio149
 ```
 

@@ -14,7 +14,7 @@ Primeri (isto kao radna verzija):
 - [PAROVI] Aromaterapija 120 min: 7,200 RSD
 ```
 
-**Backend je IDENTIČAN kao na: https://spabooking.preview.emergentagent.com/**
+**Backend je IDENTIČAN kao na: https://prices-snapshot.preview.emergentagent.com/**
 
 ---
 
@@ -35,7 +35,7 @@ Primeri (isto kao radna verzija):
 
 ### KORAK 1: Fetch Servisa
 ```javascript
-const services = await fetch('https://discount-fixer.preview.emergentagent.com/api/services')
+const services = await fetch('https://prices-snapshot.preview.emergentagent.com/api/services')
   .then(r => r.json());
 
 const coupleServices = services.filter(s => 
@@ -97,7 +97,7 @@ const booking = {
   status: "scheduled"
 };
 
-await fetch('https://discount-fixer.preview.emergentagent.com/api/appointments/couple', {
+await fetch('https://prices-snapshot.preview.emergentagent.com/api/appointments/couple', {
   method: 'POST',
   headers: {'Content-Type': 'application/json'},
   body: JSON.stringify(booking)
@@ -116,7 +116,7 @@ await fetch('https://discount-fixer.preview.emergentagent.com/api/appointments/c
 
 ```javascript
 // 1. Fetch
-const services = await fetch('https://discount-fixer.preview.emergentagent.com/api/services')
+const services = await fetch('https://prices-snapshot.preview.emergentagent.com/api/services')
   .then(r => r.json());
 
 const couple = services.filter(s => s.name.startsWith('[PAROVI]'));
@@ -164,7 +164,7 @@ console.log('Finalno:', final);  // 9000
 ## 📞 FINALNA PORUKA
 
 **Backend je IDENTIČAN kao radna verzija:**
-- https://spabooking.preview.emergentagent.com/api
+- https://prices-snapshot.preview.emergentagent.com/api
 
 **Tvoj websajt treba da radi ISTO kao radna verzija:**
 - Fetch servise (discount = 0%)

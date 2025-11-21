@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import sys
 
 # Backend URL from environment
-BACKEND_URL = "https://discount-fixer.preview.emergentagent.com/api"
+BACKEND_URL = "https://prices-snapshot.preview.emergentagent.com/api"
 
 def test_discount_activation_masaza_stopala():
     """Test 1: Popusti na "Masaža stopala" (trenutno 0% na svima)"""
