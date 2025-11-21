@@ -119,6 +119,16 @@ const Appointments = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate email format if provided
+    if (formData.client_email && formData.client_email.trim() !== '') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.client_email)) {
+        alert('Molimo unesite validnu email adresu (npr. ime@example.com)');
+        return;
+      }
+    }
+    
     try {
       // datetime-local gives us "2025-10-19T14:00" format
       // We need to send it as-is with just :00 for seconds
