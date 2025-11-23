@@ -199,17 +199,28 @@ class BusinessHoursUpdate(BaseModel):
 # ============================================
 # Helper Functions - Service Code & Discount Logic
 # ============================================
-def generate_service_code(name: str, duration: int) -> str:
+def generate_service_code(name: str, duration: int, is_couple: bool = False) -> str:
     """
     Generate a unique service code from service name and duration.
-    This code is used to match the same massage across different categories.
+    
+    IMPORTANT: Single and Couple services have DIFFERENT service codes!
+    This ensures they are treated as SEPARATE products.
     
     Example:
-        "[PAROVI] Aroma terapija - 60 min" -> "AROMA_TERAPIJA_60"
-        "Aroma terapija - 60 min" -> "AROMA_TERAPIJA_60"
+        "Aroma terapija - 60 min" (single) -> "AROMA_TERAPIJA_60"
+        "[PAROVI] Aroma terapija - 60 min" (couple) -> "AROMA_TERAPIJA_60_COUPLE"
+    
+    Args:
+        name: Service name
+        duration: Duration in minutes
+        is_couple: True if this is a couple/[PAROVI] service
     """
     import re
     import unicodedata
+    
+    # Check if this is a couple service from name
+    is_couple_from_name = name.startswith('[PAROVI]')
+    is_couple_service = is_couple or is_couple_from_name
     
     # Remove [PAROVI] prefix and other category prefixes
     clean_name = re.sub(r'^\[.*?\]\s*', '', name)
@@ -229,6 +240,10 @@ def generate_service_code(name: str, duration: int) -> str:
     
     # Add duration to make it unique
     service_code = f"{clean_name}_{duration}"
+    
+    # CRITICAL: Add _COUPLE suffix for couple services to separate them from single services
+    if is_couple_service:
+        service_code = f"{service_code}_COUPLE"
     
     return service_code
 
