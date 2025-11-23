@@ -13,12 +13,27 @@ Vraća usluge sa sledećim poljima:
 ```json
 {
   "id": "...",
-  "name": "Masaža stopala",
+  "name": "Masaža stopala - 60 min",
   "duration": 60,
-  "price": 3000,                    // Ovo je ORIGINALNA cena
-  "discount_percentage": 15,         // Aktivan popust
-  "final_price": 2550,              // FINALNA cena nakon popusta
+  "price": 3150,                    // Ovo je ORIGINALNA cena
+  "discount_percentage": 10,         // Aktivan popust (0 ako nema popusta)
+  "final_price": 2835,              // FINALNA cena nakon popusta
   "service_code": "MASAZA_STOPALA_60",
+  "is_couple": false,
+  "category": "regular"
+}
+```
+
+**Primer bez popusta:**
+```json
+{
+  "id": "...",
+  "name": "Tradicionalna tajlandska masaža - 60 min",
+  "duration": 60,
+  "price": 4400,
+  "discount_percentage": 0,          // Nema popusta
+  "final_price": 4400,              // Ista kao price
+  "service_code": "TRADICIONALNA_60",
   "is_couple": false,
   "category": "regular"
 }
