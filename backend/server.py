@@ -453,13 +453,26 @@ async def create_service(service: ServiceCreate):
     return service_obj
 
 @api_router.get("/services", response_model=List[Service])
-async def get_services():
+async def get_services(service_type: Optional[str] = Query(None, description="Filter by type: 'single' or 'couple'")):
     """
     Get all services with calculated final_price based on best available discount.
     For each service, the system finds all services with the same service_code
     and applies the highest discount percentage.
+    
+    Query parameters:
+    - service_type: Filter services by type
+      - 'single': Returns only single services (is_couple=False) - for "Obične masaže"
+      - 'couple': Returns only couple services (is_couple=True) - for "Kartica Masaza za parove"
+      - None: Returns all services
     """
-    services = await db.services.find({}, {"_id": 0}).to_list(1000)
+    # Build query based on filter
+    query = {}
+    if service_type == "single":
+        query["is_couple"] = False
+    elif service_type == "couple":
+        query["is_couple"] = True
+    
+    services = await db.services.find(query, {"_id": 0}).to_list(1000)
     
     for service in services:
         # Safety check - skip None or invalid services
