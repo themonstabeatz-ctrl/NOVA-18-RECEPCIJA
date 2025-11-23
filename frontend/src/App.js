@@ -7,6 +7,7 @@ import Appointments from './pages/Appointments';
 import Therapists from './pages/Therapists';
 import Services from './pages/Services';
 import Settings from './pages/Settings';
+import Contact from './pages/Contact';
 import './App.css';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/therapists" element={<Therapists />} />
           <Route path="/services" element={<Services />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/contact" element={<Contact />} />
         </Routes>
         <MobileHint />
       </BrowserRouter>
