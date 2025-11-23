@@ -676,3 +676,98 @@ Ready for:
 - E2E comprehensive testing
 - Production deployment
 
+
+---
+
+## 🎯 TEST SESSION: Price Display Bug Fix (Dashboard & API)
+**Date**: 2025-11-23
+**Agent**: Fork Agent (E1)
+**Testing Method**: Frontend Testing Agent (Playwright)
+
+### 🐛 Issue Reported by User
+1. **Dashboard Bug**: Vizuelno prikazivanje duplog popusta u "Listing Rezervacija i notifikacije"
+   - Problem: Frontend prikazivao `snapshot_price` (već sniženu cenu) kao precrtanu originalnu cenu, i na nju ponovo primenjivao popust
+   
+2. **Websajt Zahtev**: Dodavanje vizuelnog prikaza popusta (precrtana originalna cena + snižena cena)
+
+### 🔧 Fixes Implemented
+
+#### 1. Dashboard Fix - `Appointments.js`
+- **File**: `/app/frontend/src/pages/Appointments.js`
+- **Change**: Dodata kolona "CENA" u tabeli rezervacija
+- **Logic**:
+  ```javascript
+  // Prioritet: Koristi snapshot vrednosti iz rezervacije
+  originalPrice = appointment.snapshot_original_price
+  finalPrice = appointment.snapshot_price
+  hasDiscount = appointment.snapshot_discount_percentage > 0
+  
+  // Fallback: Koristi trenutnu cenu usluge (za stare rezervacije)
+  ```
+- **Visual**:
+  - SA POPUSTOM: Precrtana siva originalna + zelena finalna cena + `-X%` badge
+  - BEZ POPUSTA: Obična crna cena
+
+#### 2. Backend API Fix - `server.py`
+- **File**: `/app/backend/server.py`
+- **Functions Fixed**:
+  - `get_services()` (linija ~501-528)
+  - `get_best_discount_for_service_code()` (linija ~251-314)
+- **Issue**: Backend tražio `metadata.original_price` koje nije postojalo u bazi
+- **Solution**: Koristi direktno `service['price']` kao originalnu cenu
+- **Result**: `final_price` se sada ispravno obračunava kao `price * (1 - discount_percentage / 100)`
+
+### ✅ Test Results (Frontend Testing Agent)
+
+**Test File Created**: `/app/frontend/tests/appointments_price_display_test.spec.js`
+
+**Tests Passed**:
+1. ✅ Dashboard login sa `studio149` - PASS
+2. ✅ Kolona "CENA" prikazuje precrtanu originalnu i zelenu finalnu cenu - PASS
+3. ✅ Backend API `/api/services` vraća ispravne `price`, `final_price`, `discount_percentage` - PASS
+4. ✅ Validacija discount logike:
+   - `discount_percentage > 0` → `final_price < price` - PASS (129 services)
+   - `discount_percentage = 0` → `final_price = price` - PASS
+5. ✅ Booking flow funkcionalan - PASS
+6. ✅ Date navigation - PASS
+7. ✅ Listing Rezervacija modal - PASS (8+ discount elemenata detektovano)
+8. ✅ Različiti nivoi popusta (5%, 10%, 15%) - PASS
+
+**Console Errors**: None ✅
+
+### 📋 API Validation Results
+
+**Endpoint**: `GET /api/services/single/list`
+- Total services: 120
+- Services with discount: 115
+- Discount validation: 100% PASS
+
+**Example Data**:
+```json
+{
+  "name": "Masaža stopala - 60 min",
+  "price": 3150.0,
+  "final_price": 2835.0,
+  "discount_percentage": 10.0
+}
+```
+
+### 📄 Documentation Created
+- `/app/WEBSAJT_POPUST_VIZUELIZACIJA_INSTRUKCIJE.md` - Detaljne instrukcije za Websajt agenta
+
+### 🎉 Result
+✅ **P0 DASHBOARD BUG - FIXED AND TESTED**
+✅ **BACKEND API - FIXED AND VALIDATED**
+
+**Status**: Production Ready
+- Dashboard prikazuje ispravne cene sa i bez popusta
+- Backend API vraća tačne `final_price` vrednosti
+- Sve snapshot vrednosti se čuvaju ispravno
+- Nema vizuelnih ili funkcionalnih bagova
+
+### 🔄 Next Steps
+1. **Websajt**: Eksterni task - implementacija vizuelnog prikaza popusta (detaljne instrukcije kreirane)
+2. **Email Problem** (P2): Eksterni - prepušteno Websajt agentu
+3. **E2E Testing**: Opciono - kompletan E2E test pre produkcije
+4. **Production Deploy**: Nakon korisničke potvrde
+
