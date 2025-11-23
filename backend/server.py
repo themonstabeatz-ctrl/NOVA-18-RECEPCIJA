@@ -501,9 +501,16 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
             service['discount_percentage'] = best_discount
         else:
             # Fallback if service_code doesn't exist (shouldn't happen after migration)
-            original_price = service.get('metadata', {}).get('original_price', service.get('price', 0))
-            discount = service.get('discount_percentage', 0)
-            service['final_price'] = round(original_price * (1 - discount / 100.0), 2)
+            try:
+                metadata = service.get('metadata', {})
+                if metadata is None:
+                    metadata = {}
+                original_price = metadata.get('original_price', service.get('price', 0))
+                discount = service.get('discount_percentage', 0)
+                service['final_price'] = round(original_price * (1 - discount / 100.0), 2)
+            except (AttributeError, TypeError) as e:
+                logger.warning(f"Error calculating fallback price for service {service.get('name', 'unknown')}: {e}")
+                service['final_price'] = service.get('price', 0)
     
     return services
 
