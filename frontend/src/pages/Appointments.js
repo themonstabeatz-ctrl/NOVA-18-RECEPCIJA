@@ -724,6 +724,64 @@ const Appointments = () => {
                           })()}
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        {(() => {
+                          // PRIORITY: Use snapshot prices from appointment if available
+                          let originalPrice = 0;
+                          let finalPrice = 0;
+                          let hasDiscount = false;
+
+                          if (appointment.snapshot_price !== undefined) {
+                            // Use snapshot values from booking time
+                            finalPrice = appointment.snapshot_price || 0;
+                            originalPrice = appointment.snapshot_original_price || finalPrice;
+                            hasDiscount = appointment.snapshot_discount_percentage > 0;
+                          } else {
+                            // Fallback: Use current service price (for old appointments)
+                            const service = services.find(s => s.id === appointment.service_id);
+                            if (service) {
+                              originalPrice = service.price || 0;
+                              const discount = service.discount_percentage || 0;
+                              finalPrice = originalPrice * (1 - discount / 100);
+                              hasDiscount = discount > 0;
+                            }
+                          }
+
+                          return (
+                            <div className="flex flex-col items-end">
+                              {hasDiscount ? (
+                                <>
+                                  <span className="text-xs text-gray-400 line-through">
+                                    {new Intl.NumberFormat('sr-RS', { 
+                                      style: 'currency', 
+                                      currency: 'RSD',
+                                      minimumFractionDigits: 0,
+                                      maximumFractionDigits: 0
+                                    }).format(originalPrice)}
+                                  </span>
+                                  <span className="text-sm font-semibold text-green-600">
+                                    {new Intl.NumberFormat('sr-RS', { 
+                                      style: 'currency', 
+                                      currency: 'RSD',
+                                      minimumFractionDigits: 0,
+                                      maximumFractionDigits: 0
+                                    }).format(finalPrice)}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-sm font-medium text-gray-900">
+                                  {new Intl.NumberFormat('sr-RS', { 
+                                    style: 'currency', 
+                                    currency: 'RSD',
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
+                                  }).format(finalPrice)}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
                           {getTherapistName(appointment.therapist_id)}
