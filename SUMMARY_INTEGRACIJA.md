@@ -3,7 +3,7 @@
 ## ✅ ŠTA JE URAĐENO (Booking Sistem Strana)
 
 ### 1. API Endpoint - Spreman ✅
-- **URL:** `https://prices-snapshot.preview.emergentagent.com/api/services`
+- **URL:** `https://backend-pricing.preview.emergentagent.com/api/services`
 - **Status:** Radi savršeno
 - **Vraća:** 24 usluge sa svim potrebnim podacima
 - **Kategorije:**
@@ -79,17 +79,17 @@ Ili možeš reći:
 
 ### Test 1: Proveri da API radi
 ```bash
-curl https://prices-snapshot.preview.emergentagent.com/api/services | jq
+curl https://backend-pricing.preview.emergentagent.com/api/services | jq
 ```
 
 ### Test 2: Postavi popust u booking sistemu
-1. Idi na: https://prices-snapshot.preview.emergentagent.com/services
+1. Idi na: https://backend-pricing.preview.emergentagent.com/services
 2. Klikni na "Kartica Masaza za parove"
 3. Klikni na sliku za -15% popust
 4. Potvrdi
 
 ### Test 3: Proveri websajt
-1. Idi na: https://prices-snapshot.preview.emergentagent.com/
+1. Idi na: https://backend-pricing.preview.emergentagent.com/
 2. Refresh page
 3. Trebao bi da vidiš značke popusta!
 
