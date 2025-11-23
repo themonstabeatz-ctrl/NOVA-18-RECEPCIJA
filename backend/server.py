@@ -265,8 +265,16 @@ async def get_best_discount_for_service_code(service_code: str) -> dict:
         }
     
     # Safety check - should never be None but just in case
-    if best_service is None or not isinstance(best_service, dict):
-        logger.warning(f"best_service is None or not dict for service_code={service_code}")
+    if best_service is None:
+        logger.error(f"best_service is None for service_code={service_code}, services_count={len(services)}")
+        return {
+            "best_discount_percentage": 0.0,
+            "original_price": 0.0,
+            "service_id": None
+        }
+    
+    if not isinstance(best_service, dict):
+        logger.error(f"best_service is not dict: {type(best_service)} for service_code={service_code}")
         return {
             "best_discount_percentage": 0.0,
             "original_price": 0.0,
@@ -274,7 +282,14 @@ async def get_best_discount_for_service_code(service_code: str) -> dict:
         }
     
     # Get original price from metadata or use price
-    original_price = best_service.get('metadata', {}).get('original_price', best_service.get('price', 0.0))
+    try:
+        metadata = best_service.get('metadata', {})
+        if metadata is None:
+            metadata = {}
+        original_price = metadata.get('original_price', best_service.get('price', 0.0))
+    except AttributeError as e:
+        logger.error(f"AttributeError getting original_price for service_code={service_code}: best_service={best_service}, error={e}")
+        original_price = 0.0
     
     return {
         "best_discount_percentage": best_service.get('discount_percentage', 0.0),
