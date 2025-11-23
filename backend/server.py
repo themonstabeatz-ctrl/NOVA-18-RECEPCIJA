@@ -461,14 +461,23 @@ async def get_services():
     services = await db.services.find({}, {"_id": 0}).to_list(1000)
     
     for service in services:
-        if isinstance(service['created_at'], str):
+        # Safety check - skip None or invalid services
+        if service is None or not isinstance(service, dict):
+            logger.warning(f"Skipping invalid service: {service}")
+            continue
+            
+        if isinstance(service.get('created_at'), str):
             service['created_at'] = datetime.fromisoformat(service['created_at'])
         
         # Calculate final_price using best discount logic
         service_code = service.get('service_code')
         if service_code:
             discount_info = await get_best_discount_for_service_code(service_code)
-            original_price = service.get('metadata', {}).get('original_price', service.get('price', 0))
+            metadata = service.get('metadata')
+            if metadata and isinstance(metadata, dict):
+                original_price = metadata.get('original_price', service.get('price', 0))
+            else:
+                original_price = service.get('price', 0)
             
             # Apply best discount
             best_discount = discount_info['best_discount_percentage']
