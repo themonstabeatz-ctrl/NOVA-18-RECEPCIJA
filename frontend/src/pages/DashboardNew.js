@@ -584,15 +584,22 @@ const DashboardNew = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {apt.category}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        {formatCurrency(apt.original_price)}
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="flex flex-col items-end">
+                          <span className="text-sm text-gray-400 line-through">
+                            {formatCurrency(apt.original_price)}
+                          </span>
+                          <span className="text-sm font-semibold text-green-600">
+                            {formatCurrency(apt.discounted_price)}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
                           -{apt.discount_percentage}%
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 text-right">
                         {formatCurrency(apt.discounted_price)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 text-right">
