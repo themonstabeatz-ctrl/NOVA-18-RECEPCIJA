@@ -66,6 +66,7 @@ class ServiceBase(BaseModel):
     metadata: Optional[dict] = Field(default=None, description="Additional metadata for couple appointments")
     discount_percentage: float = Field(default=0.0, ge=0, le=100, description="Active discount percentage (0-100%)")
     service_code: Optional[str] = Field(default=None, description="Unique service code for matching across categories")
+    is_couple: bool = Field(default=False, description="True if this is a couple/[PAROVI] service")
 
 class ServiceCreate(ServiceBase):
     pass
