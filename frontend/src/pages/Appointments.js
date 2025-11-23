@@ -662,7 +662,7 @@ const Appointments = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {appointments.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan="8" className="px-6 py-4 text-center text-gray-500">
                       Nema zakazanih termina za ovaj dan.
                     </td>
                   </tr>
