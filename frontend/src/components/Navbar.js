@@ -37,7 +37,11 @@ const Navbar = () => {
   const loadNotifications = async () => {
     try {
       const response = await appointmentService.getUnviewedList();
-      setNotifications(response.data);
+      // Filter only appointments with discounts
+      const notificationsWithDiscount = response.data.filter(apt => 
+        apt.snapshot_discount_percentage > 0 || apt.discount_percentage > 0
+      );
+      setNotifications(notificationsWithDiscount);
     } catch (error) {
       console.error('Error loading notifications:', error);
     }
