@@ -297,15 +297,8 @@ async def get_best_discount_for_service_code(service_code: str) -> dict:
             "service_id": None
         }
     
-    # Get original price from metadata or use price
-    try:
-        metadata = best_service.get('metadata', {})
-        if metadata is None:
-            metadata = {}
-        original_price = metadata.get('original_price', best_service.get('price', 0.0))
-    except AttributeError as e:
-        logger.error(f"AttributeError getting original_price for service_code={service_code}: best_service={best_service}, error={e}")
-        original_price = 0.0
+    # IMPORTANT: service['price'] IS the original price (no need to check metadata)
+    original_price = best_service.get('price', 0.0)
     
     return {
         "best_discount_percentage": best_service.get('discount_percentage', 0.0),
