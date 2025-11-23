@@ -507,6 +507,26 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
     
     return services
 
+@api_router.get("/services/couples/list", response_model=List[Service])
+async def get_couple_services():
+    """
+    Get ONLY couple services ([PAROVI] from "Kartica Masaza za parove").
+    This endpoint is specifically for the website's "Masaža za parove" card.
+    
+    Returns services where is_couple=True.
+    """
+    return await get_services(service_type="couple")
+
+@api_router.get("/services/single/list", response_model=List[Service])
+async def get_single_services():
+    """
+    Get ONLY single services (from "Obične masaže").
+    This endpoint is specifically for the website's individual massage cards.
+    
+    Returns services where is_couple=False.
+    """
+    return await get_services(service_type="single")
+
 @api_router.get("/services/{service_id}", response_model=Service)
 async def get_service(service_id: str):
     """Get a specific service with calculated final_price"""
