@@ -502,11 +502,8 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
         service_code = service.get('service_code')
         if service_code:
             discount_info = await get_best_discount_for_service_code(service_code)
-            metadata = service.get('metadata')
-            if metadata and isinstance(metadata, dict):
-                original_price = metadata.get('original_price', service.get('price', 0))
-            else:
-                original_price = service.get('price', 0)
+            # IMPORTANT: service['price'] IS the original price
+            original_price = service.get('price', 0)
             
             # Apply best discount
             best_discount = discount_info['best_discount_percentage']
@@ -517,10 +514,7 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
         else:
             # Fallback if service_code doesn't exist (shouldn't happen after migration)
             try:
-                metadata = service.get('metadata', {})
-                if metadata is None:
-                    metadata = {}
-                original_price = metadata.get('original_price', service.get('price', 0))
+                original_price = service.get('price', 0)
                 discount = service.get('discount_percentage', 0)
                 service['final_price'] = round(original_price * (1 - discount / 100.0), 2)
             except (AttributeError, TypeError) as e:
