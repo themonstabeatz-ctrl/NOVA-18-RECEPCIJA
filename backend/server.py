@@ -253,10 +253,20 @@ async def get_best_discount_for_service_code(service_code: str) -> dict:
         }
     
     # Find the service with the highest discount
-    best_service = max(services, key=lambda s: s.get('discount_percentage', 0.0))
+    try:
+        best_service = max(services, key=lambda s: s.get('discount_percentage', 0.0) if s else 0.0)
+    except (ValueError, TypeError) as e:
+        # Handle empty list or None values in list
+        logger.warning(f"Error finding max discount for service_code={service_code}: {e}")
+        return {
+            "best_discount_percentage": 0.0,
+            "original_price": 0.0,
+            "service_id": None
+        }
     
     # Safety check - should never be None but just in case
-    if best_service is None:
+    if best_service is None or not isinstance(best_service, dict):
+        logger.warning(f"best_service is None or not dict for service_code={service_code}")
         return {
             "best_discount_percentage": 0.0,
             "original_price": 0.0,
