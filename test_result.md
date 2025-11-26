@@ -458,11 +458,13 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Comprehensive E2E Testing - Serbian Review Request"
-  stuck_tasks: []
+    - "Production Couple Booking Configuration Issue - CRITICAL"
+  stuck_tasks: 
+    - "Production Couple Booking Configuration Issue - CRITICAL"
   test_all: false
   test_priority: "critical_first"
   completed_e2e_testing: true
+  production_issue_identified: true
 
 agent_communication:
   - agent: "testing"
