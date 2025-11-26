@@ -783,47 +783,342 @@ def test_services_discount_endpoint():
     print("=" * 80)
     return all_tests_passed
 
+def test_website_couple_booking_endpoint():
+    """
+    Test the specific website couple booking endpoint that's failing on production
+    POST /api/website/book-couple-appointment
+    """
+    
+    print("=" * 80)
+    print("🎯 TESTING WEBSITE COUPLE BOOKING ENDPOINT - SERBIAN REVIEW REQUEST")
+    print("=" * 80)
+    
+    all_tests_passed = True
+    
+    # Step 1: Get couple services list
+    print("\n1. Getting couple services list...")
+    print("-" * 60)
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/services/couples/list")
+        print(f"   Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"   ❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"   Response: {response.text}")
+            return False
+        
+        couple_services = response.json()
+        print(f"   ✅ Found {len(couple_services)} couple services")
+        
+        if len(couple_services) < 2:
+            print("   ❌ ERROR: Need at least 2 couple services for testing")
+            return False
+        
+        # Use first two services for testing
+        service1 = couple_services[0]
+        service2 = couple_services[1] if len(couple_services) > 1 else couple_services[0]
+        
+        print(f"   Service 1: {service1['name']} (ID: {service1['id']}, Price: {service1['price']} RSD)")
+        print(f"   Service 2: {service2['name']} (ID: {service2['id']}, Price: {service2['price']} RSD)")
+        
+    except Exception as e:
+        print(f"   ❌ ERROR getting couple services: {e}")
+        return False
+    
+    # Step 2: Test the website booking endpoint with correct payload format
+    print("\n2. Testing POST /api/website/book-couple-appointment...")
+    print("-" * 60)
+    
+    # Test scenarios for different duration types
+    test_scenarios = [
+        {"duration_type": 60, "description": "60-minute couple massage"},
+        {"duration_type": 90, "description": "90-minute couple massage"},
+        {"duration_type": 120, "description": "120-minute couple massage (CRITICAL TEST)"}
+    ]
+    
+    for scenario in test_scenarios:
+        print(f"\n   Testing {scenario['description']}...")
+        
+        # Prepare the exact payload format expected by CoupleAppointmentWebsite model
+        start_time = datetime.now() + timedelta(days=1)  # Tomorrow
+        payload = {
+            "client_first_name": "Marko",
+            "client_last_name": "Petrović",
+            "client_phone": "+381601234567",
+            "client_email": "marko.petrovic@example.com",
+            "start_time": start_time.isoformat(),
+            "duration_type": scenario["duration_type"],
+            "person1_services": [service1["id"]],  # List of service IDs
+            "person2_services": [service2["id"]],  # List of service IDs
+            "discount_couples_massage": 0.0  # No default discount
+        }
+        
+        print(f"   Payload: {json.dumps(payload, indent=4)}")
+        
+        try:
+            # Test the website endpoint (should auto-assign therapist)
+            response = requests.post(
+                f"{BACKEND_URL}/website/book-couple-appointment",
+                json=payload,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            print(f"   Response Status: {response.status_code}")
+            print(f"   Response Headers: {dict(response.headers)}")
+            
+            if response.status_code == 404:
+                print("   ⚠️  Endpoint /api/website/book-couple-appointment not found!")
+                print("   Trying alternative endpoint: /api/book-couple-appointment")
+                
+                # Try the alternative endpoint
+                response = requests.post(
+                    f"{BACKEND_URL}/book-couple-appointment",
+                    json=payload,
+                    headers={"Content-Type": "application/json"}
+                )
+                
+                print(f"   Alternative Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                appointment_data = response.json()
+                print(f"   ✅ SUCCESS: Appointment created with ID: {appointment_data.get('id')}")
+                print(f"   Service ID: {appointment_data.get('service_id')}")
+                print(f"   Start Time: {appointment_data.get('start_time')}")
+                print(f"   End Time: {appointment_data.get('end_time')}")
+                
+                # Verify snapshot data is present
+                if 'snapshot_price' in appointment_data:
+                    print(f"   ✅ Snapshot data present:")
+                    print(f"     - Snapshot Price: {appointment_data.get('snapshot_price')} RSD")
+                    print(f"     - Original Price: {appointment_data.get('snapshot_original_price')} RSD")
+                    print(f"     - Discount: {appointment_data.get('snapshot_discount_percentage')}%")
+                else:
+                    print("   ⚠️  No snapshot data in response")
+                
+            else:
+                print(f"   ❌ FAILED: Expected 200, got {response.status_code}")
+                print(f"   Response Body: {response.text}")
+                all_tests_passed = False
+                
+                # Try to parse error details
+                try:
+                    error_data = response.json()
+                    print(f"   Error Details: {json.dumps(error_data, indent=4)}")
+                except:
+                    pass
+                
+        except Exception as e:
+            print(f"   ❌ ERROR during request: {e}")
+            all_tests_passed = False
+    
+    # Step 3: Test with invalid data to check validation
+    print("\n3. Testing validation with invalid data...")
+    print("-" * 60)
+    
+    invalid_payloads = [
+        {
+            "name": "Missing required fields",
+            "payload": {
+                "client_first_name": "Test",
+                # Missing other required fields
+            }
+        },
+        {
+            "name": "Invalid duration_type",
+            "payload": {
+                "client_first_name": "Test",
+                "client_last_name": "User",
+                "client_phone": "+381601234567",
+                "client_email": "test@example.com",
+                "start_time": (datetime.now() + timedelta(days=1)).isoformat(),
+                "duration_type": 45,  # Invalid - should be 60, 90, or 120
+                "person1_services": [service1["id"]],
+                "person2_services": [service2["id"]],
+                "discount_couples_massage": 0.0
+            }
+        },
+        {
+            "name": "Empty services lists",
+            "payload": {
+                "client_first_name": "Test",
+                "client_last_name": "User",
+                "client_phone": "+381601234567",
+                "client_email": "test@example.com",
+                "start_time": (datetime.now() + timedelta(days=1)).isoformat(),
+                "duration_type": 60,
+                "person1_services": [],  # Empty
+                "person2_services": [],  # Empty
+                "discount_couples_massage": 0.0
+            }
+        }
+    ]
+    
+    for test_case in invalid_payloads:
+        print(f"\n   Testing {test_case['name']}...")
+        
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/book-couple-appointment",
+                json=test_case["payload"],
+                headers={"Content-Type": "application/json"}
+            )
+            
+            print(f"   Response Status: {response.status_code}")
+            
+            if response.status_code in [400, 422]:  # Expected validation errors
+                print(f"   ✅ Validation working: Got expected error {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error message: {error_data.get('detail', 'No detail')}")
+                except:
+                    pass
+            else:
+                print(f"   ⚠️  Unexpected response: {response.status_code}")
+                print(f"   Response: {response.text}")
+                
+        except Exception as e:
+            print(f"   ❌ ERROR during validation test: {e}")
+    
+    # Step 4: Check backend logs for any errors
+    print("\n4. Checking backend logs...")
+    print("-" * 60)
+    print("   💡 To check backend logs manually, run:")
+    print("   tail -100 /var/log/supervisor/backend.err.log")
+    print("   tail -100 /var/log/supervisor/backend.out.log")
+    
+    return all_tests_passed
+
+def test_backend_logs_check():
+    """Check backend logs for any errors related to couple booking"""
+    
+    print("=" * 80)
+    print("🔍 CHECKING BACKEND LOGS FOR ERRORS")
+    print("=" * 80)
+    
+    try:
+        import subprocess
+        
+        print("\n1. Checking backend error logs...")
+        print("-" * 60)
+        
+        # Check error logs
+        result = subprocess.run(
+            ["tail", "-50", "/var/log/supervisor/backend.err.log"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode == 0:
+            error_logs = result.stdout.strip()
+            if error_logs:
+                print("   Backend Error Logs (last 50 lines):")
+                print("   " + "=" * 50)
+                for line in error_logs.split('\n'):
+                    print(f"   {line}")
+                print("   " + "=" * 50)
+            else:
+                print("   ✅ No recent error logs found")
+        else:
+            print(f"   ⚠️  Could not read error logs: {result.stderr}")
+        
+        print("\n2. Checking backend output logs...")
+        print("-" * 60)
+        
+        # Check output logs
+        result = subprocess.run(
+            ["tail", "-50", "/var/log/supervisor/backend.out.log"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode == 0:
+            output_logs = result.stdout.strip()
+            if output_logs:
+                print("   Backend Output Logs (last 50 lines):")
+                print("   " + "=" * 50)
+                for line in output_logs.split('\n'):
+                    print(f"   {line}")
+                print("   " + "=" * 50)
+            else:
+                print("   ✅ No recent output logs found")
+        else:
+            print(f"   ⚠️  Could not read output logs: {result.stderr}")
+            
+    except Exception as e:
+        print(f"   ❌ ERROR checking logs: {e}")
+        return False
+    
+    return True
+
 if __name__ == "__main__":
-    print("Running Backend API Tests...")
+    print("🎯 SERBIAN REVIEW REQUEST - COUPLE MASSAGE BOOKING TEST")
+    print("Running Backend API Tests for Production Issue...")
     print()
     
-    # Run analytics tests (new requirement - test discount calculations in analytics)
-    analytics_revenue_success = test_analytics_revenue_with_discounts()
-    print()
-    specific_scenario_success = test_specific_discount_scenario()
-    print()
-    analytics_discount_success = test_analytics_discount_calculations()
+    # Test the specific website couple booking endpoint
+    website_booking_success = test_website_couple_booking_endpoint()
     print()
     
-    # Run services discount tests (existing)
+    # Check backend logs
+    logs_success = test_backend_logs_check()
+    print()
+    
+    # Run existing couple appointment tests for comparison
+    couple_appointment_success = test_couple_appointment_endpoint()
+    print()
+    
+    # Run services tests to verify couple services are available
     services_success = test_services_discount_endpoint()
     
     print("\n" + "=" * 100)
-    print("OVERALL TEST RESULTS")
+    print("🎯 SERBIAN REVIEW REQUEST - OVERALL TEST RESULTS")
     print("=" * 100)
     
-    if analytics_revenue_success:
-        print("✅ Analytics Revenue Tests: PASSED")
+    if website_booking_success:
+        print("✅ Website Couple Booking Tests: PASSED")
     else:
-        print("❌ Analytics Revenue Tests: FAILED")
+        print("❌ Website Couple Booking Tests: FAILED")
     
-    if specific_scenario_success:
-        print("✅ Specific Discount Scenario Tests: PASSED")
+    if logs_success:
+        print("✅ Backend Logs Check: COMPLETED")
     else:
-        print("❌ Specific Discount Scenario Tests: FAILED")
+        print("❌ Backend Logs Check: FAILED")
     
-    if analytics_discount_success:
-        print("✅ Analytics Discount Calculation Tests: PASSED")
+    if couple_appointment_success:
+        print("✅ Couple Appointment Tests: PASSED")
     else:
-        print("❌ Analytics Discount Calculation Tests: FAILED")
+        print("❌ Couple Appointment Tests: FAILED")
     
     if services_success:
-        print("✅ Services Discount Tests: PASSED")
+        print("✅ Services Tests: PASSED")
     else:
-        print("❌ Services Discount Tests: FAILED")
+        print("❌ Services Tests: FAILED")
     
     print("=" * 100)
     
+    # Provide specific recommendations based on test results
+    print("\n🔧 RECOMMENDATIONS:")
+    if not website_booking_success:
+        print("❌ CRITICAL: Website couple booking endpoint is failing!")
+        print("   - Check if /api/website/book-couple-appointment endpoint exists")
+        print("   - Verify payload format matches CoupleAppointmentWebsite model")
+        print("   - Check required fields: duration_type, person1_services, person2_services")
+        print("   - Verify backend logs for specific error messages")
+    
+    if couple_appointment_success and not website_booking_success:
+        print("⚠️  Internal couple booking works but website endpoint fails")
+        print("   - This suggests a routing or model validation issue")
+        print("   - Website may be sending wrong payload format")
+    
+    print("\n💡 NEXT STEPS:")
+    print("   1. Check Network tab in browser dev tools on production website")
+    print("   2. Compare actual payload sent by website vs expected format")
+    print("   3. Verify backend endpoint routing for /api/website/book-couple-appointment")
+    print("   4. Test with CURL using exact payload format from browser")
+    
     # Exit with appropriate code
-    all_success = analytics_revenue_success and specific_scenario_success and analytics_discount_success and services_success
+    all_success = website_booking_success and couple_appointment_success and services_success
     sys.exit(0 if all_success else 1)
