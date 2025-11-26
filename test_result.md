@@ -166,6 +166,18 @@ backend:
         comment: "🎯 CRITICAL SUCCESS: Notifications and listing endpoints correctly use snapshot prices! GET /api/appointments/unviewed/list prioritizes snapshot_price, snapshot_original_price, and snapshot_discount_percentage fields from appointments over current service prices. Found 4 appointments using snapshot data and 1 using service fallback (for old appointments without snapshots). Analytics endpoint correctly identifies discounted appointments in appointments_with_discount list. Retroactive price changes are completely prevented - old appointments maintain their booking-time prices."
 
 backend:
+  - task: "Production Couple Booking Configuration Issue - CRITICAL"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE IDENTIFIED: Production backend (https://thai-spa-booking.emergent.host) returns 'Web booking system not configured' error for POST /api/book-couple-appointment, while preview backend works perfectly. This indicates a configuration issue or different code version on production. Preview backend successfully processes all duration types (60, 90, 120) with correct snapshot data. Production services API works (17 couple services available), but booking endpoint is blocked by configuration. REQUIRES IMMEDIATE ATTENTION: Production deployment or configuration needs to be synchronized with preview environment."
+
   - task: "Couple Massage Booking Endpoint - 60 minute duration"
     implemented: true
     working: true
