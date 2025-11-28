@@ -479,16 +479,14 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Regular Massage Booking API Integration - CRITICAL MISSING"
     - "Production Couple Booking Configuration Issue - CRITICAL"
   stuck_tasks: 
-    - "Regular Massage Booking API Integration - CRITICAL MISSING"
     - "Production Couple Booking Configuration Issue - CRITICAL"
   test_all: false
   test_priority: "critical_first"
   completed_e2e_testing: true
   production_issue_identified: true
-  regular_booking_api_missing: true
+  regular_booking_api_missing: false
 
 agent_communication:
   - agent: "testing"
