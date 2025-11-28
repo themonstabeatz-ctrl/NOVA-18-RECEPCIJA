@@ -353,6 +353,18 @@ backend:
         comment: "✅ PASSED: Discount endpoint API format confirmed! Endpoint PATCH /api/services/{service_id}/discount expects discount as query parameter (?discount=X), not in request body. VERIFIED: 1) Correct API format: PATCH /services/{id}/discount?discount=5, 2) Endpoint validates discount range (0-100), 3) Returns updated service with new price and metadata, 4) Handles both discount activation and removal. RESULT: ✅ API FORMAT CORRECT - Query parameter approach works as designed."
 
 frontend:
+  - task: "Serbian Review Request - Couple vs Regular Massage Button Comparison"
+    implemented: true
+    working: false
+    file: "https://pricing-source-truth.preview.emergentagent.com/massage"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "🎯 SERBIAN REVIEW REQUEST TESTING COMPLETE (28.11.2025): Izvršeno kompletno testiranje prema zahtevima iz Serbian review request-a. KRITIČNI NALAZI: ❌ SVI ZAKAŽITE DUGMIĆI SU ONEMOGUĆENI - Testiranje je pokazalo da i couple i regular masaže koriste identičnu komponentu sa disabled=true stanjem. Couple dugme HTML: <button class='...' disabled='' style='opacity: 0.5; cursor: not-allowed;'>ZAKAŽITE</button>. Regular dugmići imaju IDENTIČAN kod. ❌ NEMA RAZLIKE U FUNKCIONALNOSTI - Oba tipa masaža zahtevaju selekciju u dropdown-ima pre aktiviranja dugmeta. Couple masaže imaju 'Osoba 1/2 - Izaberite masažu' dropdowns, regular masaže verovatno imaju slične zahteve. ❌ NETWORK ACTIVITY - Nijedan dugme ne generiše API pozive jer su disabled. ✅ FRONTEND STRUKTURA ISPRAVNA - Stranica se učitava bez JavaScript grešaka, svi elementi su prisutni i vidljivi. ZAKLJUČAK: Problem nije u tome što regular masaže 'ne rade' - SVI dugmići su namerno onemogućeni dok korisnik ne popuni potrebne podatke. Ovo je dizajn feature, ne bug."
+
   - task: "Regular Massage Booking API Integration - CRITICAL MISSING"
     implemented: true
     working: true
