@@ -354,16 +354,19 @@ backend:
 
 frontend:
   - task: "Regular Massage Booking API Integration - CRITICAL MISSING"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "/app/frontend/src/pages/Contact.js"
-    stuck_count: 1
+    stuck_count: 0
     priority: "critical"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "🎯 CRITICAL ISSUE IDENTIFIED (28.11.2025): Regular massage booking functionality is INCOMPLETE - Contact form does not send API requests to backend. FINDINGS: ✅ Frontend flow works (massage cards → ZAKAZITE buttons → /contact page → form filling), ✅ Contact form has all required fields (firstName, lastName, phone, email, serviceDropdown with 41 options, message), ✅ Form can be filled successfully with test data, ❌ CRITICAL: Form submit does NOT trigger any API calls to backend - no network requests detected, ❌ Missing backend integration for regular massage appointments (unlike couple massages which use /api/book-couple-appointment). COMPARISON: Couple massages have full API integration, regular massages only have frontend form without backend connection. IMPACT: Users can fill contact form but reservations are not created in system. REQUIRES: Implementation of API endpoint for regular massage bookings (e.g., /api/appointments) and frontend integration to call this endpoint on form submit."
+      - working: true
+        agent: "testing"
+        comment: "🎯 SERBIAN REVIEW REQUEST TESTING COMPLETE (28.11.2025): Izvršeno kompletno testiranje običnih masaža booking funkcionalnosti prema zahtevima iz Serbian review request-a. KRITIČNI REZULTATI: ✅ CONTACT.JS UPDATED: Contact forma je ažurirana sa kompletnom API integracijom - handleSubmit funkcija poziva POST /api/appointments endpoint sa snapshot podacima (snapshot_original_price, snapshot_price, snapshot_discount_percentage). ✅ BACKEND API VERIFICATION: Direktno testiranje backend API-ja potvrđuje da POST /api/appointments endpoint radi ispravno - kreirana rezervacija ID: bade560e-e054-4fe8-a053-a74acdb17089 sa test podacima (TestObicna, Masaza, test@obicna.com, 0601234567). ✅ THERAPISTS API: GET /api/therapists endpoint vraća 4 terapeuta uključujući 'Web Rezervacije (Generic)' koji se koristi za web rezervacije. ✅ FRONTEND FLOW: Massage cards → BOOKING dugme → /contact stranica → forma sa svim poljima (ime, prezime, telefon, email, datum, vreme, usluga dropdown sa 41+ opcija, poruka) → Submit dugme. ✅ API INTEGRATION: Contact forma poziva GET /api/therapists za dobijanje terapeuta, zatim POST /api/appointments za kreiranje rezervacije sa snapshot podacima. ✅ ERROR HANDLING: Forma prikazuje alert poruke za uspešne rezervacije ('Rezervacija uspešno kreirana! Booking ID: xxx') i greške ('Greška pri kreiranju rezervacije: xxx'). ZAKLJUČAK: ✅ REGULAR MASSAGE BOOKING API INTEGRATION POTPUNO FUNKCIONALAN - Contact forma je kompletno integrisana sa backend API-jem i kreira rezervacije u sistemu."
 
   - task: "Comprehensive E2E Testing - Serbian Review Request"
     implemented: true
