@@ -12,9 +12,9 @@ import sys
 import subprocess
 
 # Backend URL from environment - USING PRODUCTION URL FOR TESTING
-BACKEND_URL = "https://backend-pricing.preview.emergentagent.com/api"
+BACKEND_URL = "https://therapist-scheduler.preview.emergentagent.com/api"
 PRODUCTION_BACKEND_URL = "https://thai-spa-booking.emergent.host/api"
-WEBSITE_URL = "https://pricing-source-truth.preview.emergentagent.com"
+WEBSITE_URL = "https://therapist-scheduler.preview.emergentagent.com"
 
 def test_couple_appointment_endpoint():
     """Test the couple massage booking endpoint for all duration types"""

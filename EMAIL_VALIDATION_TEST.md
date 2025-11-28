@@ -26,7 +26,7 @@ if (formData.client_email && formData.client_email.trim() !== '') {
 
 ### Тест 1: Невалидан Email (Требало би да спречи submission)
 
-1. Отворите https://backend-pricing.preview.emergentagent.com/appointments
+1. Отворите https://therapist-scheduler.preview.emergentagent.com/appointments
 2. Кликните на **"Zakažite termin"** дугме
 3. Попуните форму:
    - Име: `Test`

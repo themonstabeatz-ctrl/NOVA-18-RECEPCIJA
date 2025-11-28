@@ -18,7 +18,7 @@ import sys
 import subprocess
 
 # Backend URL from environment
-BACKEND_URL = "https://backend-pricing.preview.emergentagent.com/api"
+BACKEND_URL = "https://therapist-scheduler.preview.emergentagent.com/api"
 
 def test_services_service_code_and_final_price():
     """

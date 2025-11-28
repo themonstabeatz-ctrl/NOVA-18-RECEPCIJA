@@ -134,7 +134,7 @@ POST /api/appointments/couple
 
 ```bash
 # 1. Proveri [PAROVI] servise
-curl -s "https://backend-pricing.preview.emergentagent.com/api/services" | \
+curl -s "https://therapist-scheduler.preview.emergentagent.com/api/services" | \
   grep -A 5 "\[PAROVI\]" | head -20
 
 # Trebalo bi da vidiš:
@@ -145,7 +145,7 @@ curl -s "https://backend-pricing.preview.emergentagent.com/api/services" | \
 
 ```bash
 # 2. Proveri obične masaže
-curl -s "https://backend-pricing.preview.emergentagent.com/api/services" | \
+curl -s "https://therapist-scheduler.preview.emergentagent.com/api/services" | \
   grep -B 2 -A 5 "discount_percentage.*[1-9]" | head -20
 
 # Trebalo bi da vidiš:
@@ -225,7 +225,7 @@ Proveri da si:
 ---
 
 ## Backend Booking Sistem Info:
-- URL: `https://backend-pricing.preview.emergentagent.com/api`
+- URL: `https://therapist-scheduler.preview.emergentagent.com/api`
 - Status: ✅ PRODUCTION READY
 - Testiran: ✅ 18/18 testova prošlo
 - Verzija: v2 (2025-11-17)
