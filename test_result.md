@@ -499,6 +499,7 @@ test_plan:
   completed_e2e_testing: true
   production_issue_identified: true
   regular_booking_api_missing: false
+  serbian_review_request_completed: true
 
 agent_communication:
   - agent: "testing"
