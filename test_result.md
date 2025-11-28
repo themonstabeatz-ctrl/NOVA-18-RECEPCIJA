@@ -353,6 +353,18 @@ backend:
         comment: "✅ PASSED: Discount endpoint API format confirmed! Endpoint PATCH /api/services/{service_id}/discount expects discount as query parameter (?discount=X), not in request body. VERIFIED: 1) Correct API format: PATCH /services/{id}/discount?discount=5, 2) Endpoint validates discount range (0-100), 3) Returns updated service with new price and metadata, 4) Handles both discount activation and removal. RESULT: ✅ API FORMAT CORRECT - Query parameter approach works as designed."
 
 frontend:
+  - task: "Regular Massage Booking API Integration - CRITICAL MISSING"
+    implemented: false
+    working: false
+    file: "/app/frontend/src/pages/Contact.js"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "🎯 CRITICAL ISSUE IDENTIFIED (28.11.2025): Regular massage booking functionality is INCOMPLETE - Contact form does not send API requests to backend. FINDINGS: ✅ Frontend flow works (massage cards → ZAKAZITE buttons → /contact page → form filling), ✅ Contact form has all required fields (firstName, lastName, phone, email, serviceDropdown with 41 options, message), ✅ Form can be filled successfully with test data, ❌ CRITICAL: Form submit does NOT trigger any API calls to backend - no network requests detected, ❌ Missing backend integration for regular massage appointments (unlike couple massages which use /api/book-couple-appointment). COMPARISON: Couple massages have full API integration, regular massages only have frontend form without backend connection. IMPACT: Users can fill contact form but reservations are not created in system. REQUIRES: Implementation of API endpoint for regular massage bookings (e.g., /api/appointments) and frontend integration to call this endpoint on form submit."
+
   - task: "Comprehensive E2E Testing - Serbian Review Request"
     implemented: true
     working: true
