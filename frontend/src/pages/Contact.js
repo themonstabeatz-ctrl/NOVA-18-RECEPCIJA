@@ -52,9 +52,37 @@ const Contact = () => {
     };
 
     try {
+      // Get therapist ID (use first available or generic therapist)
+      const therapistsResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/therapists`);
+      const therapists = await therapistsResponse.json();
+      const therapist = therapists.find(t => t.name === 'Web Rezervacije (Generic)') || therapists[0];
+      
+      if (!therapist) {
+        alert('Nema dostupnih terapeuta. Molimo kontaktirajte recepciju.');
+        return;
+      }
+      
+      // Update payload with therapist
+      bookingPayload.therapist_id = therapist.id;
+      
       // Call booking API
       console.log('Booking payload:', bookingPayload);
-      alert('Rezervacija uspešno kreirana!');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/appointments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bookingPayload)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Booking failed');
+      }
+      
+      const result = await response.json();
+      console.log('Booking successful:', result);
+      alert(`Rezervacija uspešno kreirana! Booking ID: ${result.id}`);
       
       // Reset form
       setFormData({
@@ -69,7 +97,7 @@ const Contact = () => {
       });
     } catch (error) {
       console.error('Booking error:', error);
-      alert('Greška pri kreiranju rezervacije. Pokušajte ponovo.');
+      alert(`Greška pri kreiranju rezervacije: ${error.message}`);
     }
   };
 
