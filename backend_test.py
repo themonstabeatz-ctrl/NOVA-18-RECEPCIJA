@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Spa & Massage Booking System
-Testing couple massage booking endpoint functionality - SERBIAN REVIEW REQUEST
+Testing regular massage booking functionality - SERBIAN REVIEW REQUEST
+ISSUE: "ZAKAZITE" button on regular massages not working on production website
 """
 
 import requests
 import json
 from datetime import datetime, timedelta
 import sys
+import subprocess
 
 # Backend URL from environment - USING PRODUCTION URL FOR TESTING
 BACKEND_URL = "https://backend-pricing.preview.emergentagent.com/api"
+PRODUCTION_BACKEND_URL = "https://thai-spa-booking.emergent.host/api"
+WEBSITE_URL = "https://pricing-source-truth.preview.emergentagent.com"
 
 def test_couple_appointment_endpoint():
     """Test the couple massage booking endpoint for all duration types"""
