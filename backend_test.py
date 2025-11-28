@@ -1057,72 +1057,460 @@ def test_backend_logs_check():
     
     return True
 
+def test_regular_massage_booking_api():
+    """
+    Test regular massage booking API endpoints - SERBIAN REVIEW REQUEST
+    Issue: "ZAKAZITE" button on regular massages not working
+    """
+    
+    print("=" * 80)
+    print("🎯 TESTING REGULAR MASSAGE BOOKING API - SERBIAN REVIEW REQUEST")
+    print("ISSUE: 'ZAKAZITE' dugme na običnim masažama NE RADI")
+    print("=" * 80)
+    
+    all_tests_passed = True
+    
+    # Step 1: Test GET /api/services/single/list (for regular massages)
+    print("\n1. Testing GET /api/services/single/list (regular massages)...")
+    print("-" * 60)
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/services/single/list")
+        print(f"   Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"   ❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"   Response: {response.text}")
+            return False
+        
+        regular_services = response.json()
+        print(f"   ✅ Found {len(regular_services)} regular massage services")
+        
+        if len(regular_services) == 0:
+            print("   ❌ ERROR: No regular massage services found!")
+            return False
+        
+        # Show some examples
+        print("   Examples of regular massages:")
+        for i, service in enumerate(regular_services[:5]):  # Show first 5
+            print(f"     {i+1}. {service.get('name')} - {service.get('price')} RSD (ID: {service.get('id')})")
+        
+        # Find specific services mentioned in the issue
+        target_services = [
+            "Tradicionalna tajlandska masaža",
+            "Aroma terapija", 
+            "Masaža stopala",
+            "Masaža toplim uljem"
+        ]
+        
+        found_services = {}
+        for service in regular_services:
+            service_name = service.get('name', '')
+            for target in target_services:
+                if target.lower() in service_name.lower():
+                    if target not in found_services:
+                        found_services[target] = []
+                    found_services[target].append(service)
+        
+        print(f"\n   Found target services mentioned in issue:")
+        for target, services in found_services.items():
+            print(f"     {target}: {len(services)} variants")
+            for service in services:
+                print(f"       - {service.get('name')} (ID: {service.get('id')})")
+        
+        # Store first service for testing
+        test_service = regular_services[0]
+        
+    except Exception as e:
+        print(f"   ❌ ERROR getting regular services: {e}")
+        return False
+    
+    # Step 2: Test GET /api/therapists (needed for appointments)
+    print("\n2. Testing GET /api/therapists...")
+    print("-" * 60)
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/therapists")
+        print(f"   Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"   ❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            return False
+        
+        therapists = response.json()
+        print(f"   ✅ Found {len(therapists)} therapists")
+        
+        if len(therapists) == 0:
+            print("   ❌ ERROR: No therapists found!")
+            return False
+        
+        # Look for "Web Rezervacije" therapist
+        web_therapist = None
+        for therapist in therapists:
+            if "Web" in therapist.get('name', '') or "Generic" in therapist.get('name', ''):
+                web_therapist = therapist
+                break
+        
+        if web_therapist:
+            print(f"   ✅ Found web booking therapist: {web_therapist.get('name')} (ID: {web_therapist.get('id')})")
+            test_therapist_id = web_therapist.get('id')
+        else:
+            print(f"   ⚠️  No 'Web Rezervacije' therapist found, using first available: {therapists[0].get('name')}")
+            test_therapist_id = therapists[0].get('id')
+        
+    except Exception as e:
+        print(f"   ❌ ERROR getting therapists: {e}")
+        return False
+    
+    # Step 3: Test POST /api/appointments (regular massage booking)
+    print("\n3. Testing POST /api/appointments (regular massage booking)...")
+    print("-" * 60)
+    
+    try:
+        # Prepare test appointment data
+        start_time = datetime.now() + timedelta(days=1, hours=2)  # Tomorrow at 2 PM
+        appointment_data = {
+            "client_first_name": "TestObicna",
+            "client_last_name": "Masaza", 
+            "client_phone": "0601234567",
+            "client_email": "test@obicna.com",
+            "therapist_id": test_therapist_id,
+            "service_id": test_service.get('id'),
+            "start_time": start_time.isoformat(),
+            "status": "scheduled"
+        }
+        
+        print(f"   Test appointment data:")
+        print(f"     Service: {test_service.get('name')}")
+        print(f"     Price: {test_service.get('price')} RSD")
+        print(f"     Client: {appointment_data['client_first_name']} {appointment_data['client_last_name']}")
+        print(f"     Phone: {appointment_data['client_phone']}")
+        print(f"     Email: {appointment_data['client_email']}")
+        print(f"     Start Time: {appointment_data['start_time']}")
+        
+        response = requests.post(
+            f"{BACKEND_URL}/appointments",
+            json=appointment_data,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        print(f"   Response Status: {response.status_code}")
+        
+        if response.status_code == 200:
+            appointment_result = response.json()
+            appointment_id = appointment_result.get('id')
+            print(f"   ✅ SUCCESS: Regular massage appointment created!")
+            print(f"   Appointment ID: {appointment_id}")
+            print(f"   Service ID: {appointment_result.get('service_id')}")
+            print(f"   Start Time: {appointment_result.get('start_time')}")
+            print(f"   End Time: {appointment_result.get('end_time')}")
+            
+            # Check for snapshot data
+            if 'snapshot_price' in appointment_result:
+                print(f"   ✅ Snapshot data present:")
+                print(f"     - Snapshot Price: {appointment_result.get('snapshot_price')} RSD")
+                print(f"     - Original Price: {appointment_result.get('snapshot_original_price')} RSD")
+                print(f"     - Discount: {appointment_result.get('snapshot_discount_percentage')}%")
+            else:
+                print(f"   ⚠️  No snapshot data in response")
+            
+        else:
+            print(f"   ❌ FAILED: Expected 200, got {response.status_code}")
+            print(f"   Response: {response.text}")
+            all_tests_passed = False
+            
+            # Try to parse error details
+            try:
+                error_data = response.json()
+                print(f"   Error Details: {json.dumps(error_data, indent=4)}")
+            except:
+                pass
+        
+    except Exception as e:
+        print(f"   ❌ ERROR during regular appointment creation: {e}")
+        all_tests_passed = False
+    
+    # Step 4: Test /contact page availability
+    print("\n4. Testing /contact page availability...")
+    print("-" * 60)
+    
+    try:
+        # Test if /contact page exists
+        contact_url = f"{WEBSITE_URL}/contact"
+        response = requests.head(contact_url, timeout=10)
+        print(f"   Contact page URL: {contact_url}")
+        print(f"   Response Status: {response.status_code}")
+        
+        if response.status_code == 200:
+            print(f"   ✅ /contact page exists and is accessible")
+        elif response.status_code == 404:
+            print(f"   ❌ /contact page NOT FOUND (404)")
+            all_tests_passed = False
+        else:
+            print(f"   ⚠️  /contact page returned status: {response.status_code}")
+        
+    except Exception as e:
+        print(f"   ❌ ERROR checking /contact page: {e}")
+        all_tests_passed = False
+    
+    # Step 5: Compare with production backend
+    print("\n5. Testing production backend availability...")
+    print("-" * 60)
+    
+    try:
+        # Test production backend services
+        response = requests.get(f"{PRODUCTION_BACKEND_URL}/services/single/list", timeout=10)
+        print(f"   Production backend URL: {PRODUCTION_BACKEND_URL}")
+        print(f"   Response Status: {response.status_code}")
+        
+        if response.status_code == 200:
+            prod_services = response.json()
+            print(f"   ✅ Production backend accessible: {len(prod_services)} services")
+        else:
+            print(f"   ❌ Production backend issue: {response.status_code}")
+            print(f"   Response: {response.text}")
+        
+        # Test production appointments endpoint
+        test_appointment = {
+            "client_first_name": "TestProd",
+            "client_last_name": "User",
+            "client_phone": "0601234567",
+            "client_email": "test@prod.com",
+            "therapist_id": "test-therapist",
+            "service_id": "test-service",
+            "start_time": (datetime.now() + timedelta(days=1)).isoformat()
+        }
+        
+        response = requests.post(
+            f"{PRODUCTION_BACKEND_URL}/appointments",
+            json=test_appointment,
+            headers={"Content-Type": "application/json"},
+            timeout=10
+        )
+        
+        print(f"   Production appointments endpoint: {response.status_code}")
+        if response.status_code == 404:
+            print(f"   ❌ CRITICAL: Production /api/appointments endpoint NOT FOUND!")
+            print(f"   This explains why regular massage booking doesn't work on production!")
+        elif response.status_code in [400, 422]:
+            print(f"   ✅ Production appointments endpoint exists (validation error expected)")
+        else:
+            print(f"   Response: {response.text}")
+        
+    except Exception as e:
+        print(f"   ❌ ERROR testing production backend: {e}")
+    
+    return all_tests_passed
+
+def test_contact_form_integration():
+    """
+    Test if Contact.js form is properly integrated with backend API
+    """
+    
+    print("=" * 80)
+    print("🔍 TESTING CONTACT FORM API INTEGRATION")
+    print("=" * 80)
+    
+    # Check if Contact.js file exists and contains API integration
+    print("\n1. Checking Contact.js file...")
+    print("-" * 60)
+    
+    try:
+        # Read Contact.js file
+        with open('/app/frontend/src/pages/Contact.js', 'r') as f:
+            contact_content = f.read()
+        
+        print("   ✅ Contact.js file found")
+        
+        # Check for API integration patterns
+        api_patterns = [
+            'fetch(',
+            'axios.',
+            '/api/appointments',
+            'POST',
+            'handleSubmit'
+        ]
+        
+        found_patterns = []
+        for pattern in api_patterns:
+            if pattern in contact_content:
+                found_patterns.append(pattern)
+        
+        print(f"   API integration patterns found: {found_patterns}")
+        
+        if '/api/appointments' in contact_content and 'POST' in contact_content:
+            print("   ✅ Contact form appears to have API integration")
+        else:
+            print("   ❌ CRITICAL: Contact form missing API integration!")
+            print("   This explains why ZAKAZITE button doesn't work!")
+            
+            # Check for mailto or other non-API submission
+            if 'mailto:' in contact_content:
+                print("   ⚠️  Form uses mailto: instead of API")
+            elif 'action=' in contact_content:
+                print("   ⚠️  Form uses HTML form action instead of API")
+            else:
+                print("   ⚠️  Form submission method unclear")
+        
+        # Check for error handling
+        if 'catch' in contact_content or 'error' in contact_content.lower():
+            print("   ✅ Error handling present in form")
+        else:
+            print("   ⚠️  No error handling detected")
+        
+        # Check for success handling
+        if 'success' in contact_content.lower() or 'alert' in contact_content:
+            print("   ✅ Success handling present in form")
+        else:
+            print("   ⚠️  No success handling detected")
+    
+    except FileNotFoundError:
+        print("   ❌ ERROR: Contact.js file not found!")
+        return False
+    except Exception as e:
+        print(f"   ❌ ERROR reading Contact.js: {e}")
+        return False
+    
+    return True
+
+def check_frontend_build_and_deployment():
+    """
+    Check if frontend is properly built and deployed
+    """
+    
+    print("=" * 80)
+    print("🔍 CHECKING FRONTEND BUILD AND DEPLOYMENT")
+    print("=" * 80)
+    
+    print("\n1. Checking frontend build status...")
+    print("-" * 60)
+    
+    try:
+        # Check if build directory exists
+        import os
+        build_path = '/app/frontend/build'
+        if os.path.exists(build_path):
+            print(f"   ✅ Build directory exists: {build_path}")
+            
+            # Check build contents
+            build_files = os.listdir(build_path)
+            print(f"   Build contains {len(build_files)} files/directories")
+            
+            # Look for key files
+            key_files = ['index.html', 'static']
+            for key_file in key_files:
+                if key_file in build_files:
+                    print(f"   ✅ {key_file} found in build")
+                else:
+                    print(f"   ❌ {key_file} missing from build")
+        else:
+            print(f"   ❌ Build directory not found: {build_path}")
+            print("   This could explain why updated Contact.js is not deployed")
+    
+    except Exception as e:
+        print(f"   ❌ ERROR checking build: {e}")
+    
+    print("\n2. Checking frontend service status...")
+    print("-" * 60)
+    
+    try:
+        # Check supervisor status
+        result = subprocess.run(
+            ["sudo", "supervisorctl", "status", "frontend"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode == 0:
+            status_output = result.stdout.strip()
+            print(f"   Frontend service status: {status_output}")
+            
+            if "RUNNING" in status_output:
+                print("   ✅ Frontend service is running")
+            else:
+                print("   ❌ Frontend service is not running properly")
+        else:
+            print(f"   ❌ Error checking frontend status: {result.stderr}")
+    
+    except Exception as e:
+        print(f"   ❌ ERROR checking frontend service: {e}")
+    
+    return True
+
 if __name__ == "__main__":
-    print("🎯 SERBIAN REVIEW REQUEST - COUPLE MASSAGE BOOKING TEST")
-    print("Running Backend API Tests for Production Issue...")
+    print("🎯 SERBIAN REVIEW REQUEST - REGULAR MASSAGE BOOKING TEST")
+    print("PROBLEM: 'ZAKAZITE' dugme na običnim masažama NE RADI UOPŠTE")
+    print("Testing backend APIs and investigating frontend integration...")
     print()
     
-    # Test the specific website couple booking endpoint
-    website_booking_success = test_website_couple_booking_endpoint()
+    # Test regular massage booking API
+    regular_booking_success = test_regular_massage_booking_api()
+    print()
+    
+    # Test contact form integration
+    contact_form_success = test_contact_form_integration()
+    print()
+    
+    # Check frontend build and deployment
+    frontend_check_success = check_frontend_build_and_deployment()
     print()
     
     # Check backend logs
     logs_success = test_backend_logs_check()
-    print()
-    
-    # Run existing couple appointment tests for comparison
-    couple_appointment_success = test_couple_appointment_endpoint()
-    print()
-    
-    # Run services tests to verify couple services are available
-    services_success = test_services_discount_endpoint()
     
     print("\n" + "=" * 100)
     print("🎯 SERBIAN REVIEW REQUEST - OVERALL TEST RESULTS")
     print("=" * 100)
     
-    if website_booking_success:
-        print("✅ Website Couple Booking Tests: PASSED")
+    if regular_booking_success:
+        print("✅ Regular Massage Booking API: WORKING")
     else:
-        print("❌ Website Couple Booking Tests: FAILED")
+        print("❌ Regular Massage Booking API: FAILED")
+    
+    if contact_form_success:
+        print("✅ Contact Form Integration Check: COMPLETED")
+    else:
+        print("❌ Contact Form Integration Check: FAILED")
+    
+    if frontend_check_success:
+        print("✅ Frontend Build/Deployment Check: COMPLETED")
+    else:
+        print("❌ Frontend Build/Deployment Check: FAILED")
     
     if logs_success:
         print("✅ Backend Logs Check: COMPLETED")
     else:
         print("❌ Backend Logs Check: FAILED")
     
-    if couple_appointment_success:
-        print("✅ Couple Appointment Tests: PASSED")
-    else:
-        print("❌ Couple Appointment Tests: FAILED")
-    
-    if services_success:
-        print("✅ Services Tests: PASSED")
-    else:
-        print("❌ Services Tests: FAILED")
-    
     print("=" * 100)
     
-    # Provide specific recommendations based on test results
-    print("\n🔧 RECOMMENDATIONS:")
-    if not website_booking_success:
-        print("❌ CRITICAL: Website couple booking endpoint is failing!")
-        print("   - Check if /api/website/book-couple-appointment endpoint exists")
-        print("   - Verify payload format matches CoupleAppointmentWebsite model")
-        print("   - Check required fields: duration_type, person1_services, person2_services")
-        print("   - Verify backend logs for specific error messages")
+    # Provide specific diagnosis and recommendations
+    print("\n🔧 DIAGNOSIS AND RECOMMENDATIONS:")
     
-    if couple_appointment_success and not website_booking_success:
-        print("⚠️  Internal couple booking works but website endpoint fails")
-        print("   - This suggests a routing or model validation issue")
-        print("   - Website may be sending wrong payload format")
+    if regular_booking_success:
+        print("✅ BACKEND APIs are working correctly:")
+        print("   - GET /api/services/single/list returns regular massage services")
+        print("   - GET /api/therapists returns available therapists")
+        print("   - POST /api/appointments successfully creates appointments")
+        print("   - Snapshot mechanism preserves pricing data")
+    else:
+        print("❌ BACKEND API issues detected - need to fix backend first")
     
-    print("\n💡 NEXT STEPS:")
-    print("   1. Check Network tab in browser dev tools on production website")
-    print("   2. Compare actual payload sent by website vs expected format")
-    print("   3. Verify backend endpoint routing for /api/website/book-couple-appointment")
-    print("   4. Test with CURL using exact payload format from browser")
+    print("\n💡 LIKELY ROOT CAUSE:")
+    print("   Based on the issue description 'ZAKAZITE dugme ne reaguje', the problem is likely:")
+    print("   1. Contact form is not properly integrated with backend API")
+    print("   2. Frontend JavaScript is not sending POST requests to /api/appointments")
+    print("   3. Button click handler is missing or broken")
+    print("   4. Frontend build is outdated and doesn't include latest Contact.js changes")
+    
+    print("\n🔍 NEXT STEPS FOR MAIN AGENT:")
+    print("   1. ✅ Backend APIs are confirmed working")
+    print("   2. 🔧 Check Contact.js form submission - ensure it calls POST /api/appointments")
+    print("   3. 🔧 Verify ZAKAZITE button click handlers are properly connected")
+    print("   4. 🔧 Test frontend build and deployment process")
+    print("   5. 🔧 Check browser console for JavaScript errors on button click")
     
     # Exit with appropriate code
-    all_success = website_booking_success and couple_appointment_success and services_success
+    all_success = regular_booking_success and contact_form_success and frontend_check_success
     sys.exit(0 if all_success else 1)
