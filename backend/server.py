@@ -1232,6 +1232,70 @@ async def delete_appointment(appointment_id: str):
         raise HTTPException(status_code=404, detail="Appointment not found")
     return {"message": "Appointment deleted successfully"}
 
+@api_router.patch("/appointments/{appointment_id}/assign-therapist")
+async def assign_therapist_to_appointment(appointment_id: str, therapist_id: str):
+    """
+    Assign therapist to appointment (used by receptionist)
+    This endpoint allows receptionist to manually assign a therapist to a booking
+    """
+    # Check if appointment exists
+    appointment = await db.appointments.find_one({"id": appointment_id}, {"_id": 0})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Verify therapist exists
+    therapist = await db.therapists.find_one({"id": therapist_id}, {"_id": 0})
+    if not therapist:
+        raise HTTPException(status_code=404, detail="Therapist not found")
+    
+    # Parse times for overlap check
+    start_time = appointment['start_time']
+    end_time = appointment['end_time']
+    
+    if isinstance(start_time, str):
+        start_time = datetime.fromisoformat(start_time)
+    if isinstance(end_time, str):
+        end_time = datetime.fromisoformat(end_time)
+    
+    # Check for overlapping appointments with this therapist
+    overlapping = await db.appointments.find({
+        "id": {"$ne": appointment_id},
+        "therapist_id": therapist_id,
+        "status": AppointmentStatus.SCHEDULED,
+        "$or": [
+            {
+                "start_time": {"$lt": end_time.isoformat()},
+                "end_time": {"$gt": start_time.isoformat()}
+            }
+        ]
+    }).to_list(1)
+    
+    if overlapping:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Therapist {therapist['name']} is not available at this time"
+        )
+    
+    # Assign therapist
+    result = await db.appointments.update_one(
+        {"id": appointment_id},
+        {"$set": {"therapist_id": therapist_id}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to assign therapist")
+    
+    # Return updated appointment
+    updated = await db.appointments.find_one({"id": appointment_id}, {"_id": 0})
+    if isinstance(updated['start_time'], str):
+        updated['start_time'] = datetime.fromisoformat(updated['start_time'])
+    if isinstance(updated['end_time'], str):
+        updated['end_time'] = datetime.fromisoformat(updated['end_time'])
+    if isinstance(updated['created_at'], str):
+        updated['created_at'] = datetime.fromisoformat(updated['created_at'])
+    
+    return updated
+
 @api_router.patch("/appointments/{appointment_id}/status")
 async def update_appointment_status(appointment_id: str, status: AppointmentStatus):
     """Update appointment status"""
