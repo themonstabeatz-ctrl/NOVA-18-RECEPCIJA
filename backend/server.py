@@ -153,7 +153,7 @@ class CoupleAppointmentCreateOld(BaseModel):
     client_last_name: str
     client_phone: str
     client_email: Optional[EmailStr] = None
-    therapist_id: str
+    therapist_id: Optional[str] = None  # CHANGED: Optional - assigned manually by receptionist
     start_time: datetime
     duration_type: int  # 60, 90, or 120 (base duration per person)
     person1_services: List[str]  # List of service IDs for person 1
