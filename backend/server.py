@@ -1176,10 +1176,11 @@ async def update_appointment(appointment_id: str, appointment: AppointmentCreate
     if not existing:
         raise HTTPException(status_code=404, detail="Appointment not found")
     
-    # Verify therapist exists
-    therapist = await db.therapists.find_one({"id": appointment.therapist_id})
-    if not therapist:
-        raise HTTPException(status_code=404, detail="Therapist not found")
+    # Verify therapist exists (only if provided)
+    if appointment.therapist_id:
+        therapist = await db.therapists.find_one({"id": appointment.therapist_id})
+        if not therapist:
+            raise HTTPException(status_code=404, detail="Therapist not found")
     
     # Verify service exists and get duration
     service = await db.services.find_one({"id": appointment.service_id})
