@@ -96,7 +96,7 @@ class AppointmentBase(BaseModel):
     client_last_name: str
     client_phone: str
     client_email: Optional[EmailStr] = None
-    therapist_id: str
+    therapist_id: Optional[str] = None  # CHANGED: Optional - assigned manually by receptionist
     service_id: str
     start_time: datetime
     status: AppointmentStatus = AppointmentStatus.SCHEDULED
