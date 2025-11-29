@@ -1193,21 +1193,22 @@ async def update_appointment(appointment_id: str, appointment: AppointmentCreate
     # Calculate end time based on service duration
     end_time = start_time + timedelta(minutes=service['duration'])
     
-    # Check for overlapping appointments (excluding current appointment)
-    overlapping = await db.appointments.find({
-        "id": {"$ne": appointment_id},
-        "therapist_id": appointment.therapist_id,
-        "status": AppointmentStatus.SCHEDULED,
-        "$or": [
-            {
-                "start_time": {"$lt": end_time.isoformat()},
-                "end_time": {"$gt": start_time.isoformat()}
-            }
-        ]
-    }).to_list(1)
-    
-    if overlapping:
-        raise HTTPException(status_code=400, detail="Therapist is not available at this time")
+    # Check for overlapping appointments (only if therapist is assigned)
+    if appointment.therapist_id:
+        overlapping = await db.appointments.find({
+            "id": {"$ne": appointment_id},
+            "therapist_id": appointment.therapist_id,
+            "status": AppointmentStatus.SCHEDULED,
+            "$or": [
+                {
+                    "start_time": {"$lt": end_time.isoformat()},
+                    "end_time": {"$gt": start_time.isoformat()}
+                }
+            ]
+        }).to_list(1)
+        
+        if overlapping:
+            raise HTTPException(status_code=400, detail="Therapist is not available at this time")
     
     update_data = appointment.model_dump()
     update_data['end_time'] = end_time.isoformat()
