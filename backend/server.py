@@ -137,7 +137,7 @@ class CoupleAppointmentCreate(BaseModel):
     client_last_name: str
     client_phone: str
     client_email: Optional[EmailStr] = None
-    therapist_id: str
+    therapist_id: Optional[str] = None  # CHANGED: Optional - assigned manually by receptionist
     start_time: datetime
     person1_massage: PersonMassage
     person2_massage: PersonMassage
