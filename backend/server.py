@@ -162,7 +162,7 @@ class CoupleAppointmentCreateOld(BaseModel):
     status: AppointmentStatus = AppointmentStatus.SCHEDULED
 
 
-# Website compatible model - therapist_id is optional, will be auto-assigned
+# Website compatible model - therapist_id is optional, assigned manually by receptionist later
 class CoupleAppointmentWebsite(BaseModel):
     client_first_name: str
     client_last_name: str
