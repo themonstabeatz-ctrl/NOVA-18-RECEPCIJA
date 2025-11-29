@@ -952,18 +952,14 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
 async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     """
     Website-compatible couple appointment endpoint
-    Automatically assigns first available therapist if not provided
+    Therapist is NOT assigned here - receptionist assigns manually later
     """
     logger.info(f"Website couple booking - duration_type: {couple.duration_type}, person1: {couple.person1_services}, person2: {couple.person2_services}")
     logger.info(f"🔍 DISCOUNT FROM WEBSITE: {couple.discount_couples_massage}%")
     
-    # Get first available therapist
-    therapists = await db.therapists.find({"is_active": True}, {"_id": 0}).to_list(10)
-    if not therapists:
-        raise HTTPException(status_code=500, detail="No therapists available")
-    
-    therapist_id = therapists[0]['id']
-    logger.info(f"Auto-assigned therapist: {therapist_id}")
+    # Therapist will be assigned manually by receptionist later
+    therapist_id = None
+    logger.info(f"Therapist NOT auto-assigned - will be set manually by receptionist")
     
     # Fetch all services for both persons
     all_service_ids = couple.person1_services + couple.person2_services
