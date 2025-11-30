@@ -58,6 +58,11 @@ const Services = () => {
         ...formData,
         price: parseFloat(formData.price),
         duration: parseInt(formData.duration),
+        // Add required fields for backend
+        category: activeCategory,
+        service_code: formData.name, // Use service name as service_code
+        is_couple: activeCategory === 'Kartica Masaza za parove',
+        discount_percentage: formData.discount_percentage || 0,
       };
 
       if (editingService) {
