@@ -482,6 +482,11 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
     
     services = await db.services.find(query, {"_id": 0}).to_list(1000)
     
+    # DEBUG: Log Aroma sa toplim biljnim kompresama services
+    for svc in services:
+        if svc and "Aroma sa toplim biljnim kompresama" in svc.get("name", ""):
+            logger.info(f"[DEBUG] Aroma backend service BEFORE processing: {svc.get('name')} | duration={svc.get('duration')} | price={svc.get('price')} | discount={svc.get('discount_percentage')} | service_code={svc.get('service_code')} | metadata={svc.get('metadata')}")
+    
     for service in services:
         # Safety check - skip None or invalid services
         if service is None or not isinstance(service, dict):
