@@ -519,6 +519,11 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
                 logger.warning(f"Error calculating fallback price for service {service.get('name', 'unknown')}: {e}")
                 service['final_price'] = service.get('price', 0)
     
+    # DEBUG: Log Aroma sa toplim biljnim kompresama services AFTER processing
+    for svc in services:
+        if svc and "Aroma sa toplim biljnim kompresama" in svc.get("name", ""):
+            logger.info(f"[DEBUG] Aroma backend service AFTER processing: {svc.get('name')} | duration={svc.get('duration')} | price={svc.get('price')} | final_price={svc.get('final_price')} | discount={svc.get('discount_percentage')} | service_code={svc.get('service_code')}")
+    
     return services
 
 @api_router.get("/services/couples/list", response_model=List[Service])
