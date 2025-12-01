@@ -1066,24 +1066,18 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
             logger.error(f"❌ {error_msg}")
             raise HTTPException(status_code=404, detail=error_msg)
     
-    # PRIORITY 1: Check if websajt sent complete pricing snapshot (Varijanta 1)
-    # This prevents double calculation - discount is calculated only once in GET /api/services
-    if couple.final_price is not None and couple.original_price is not None:
-        # Websajt sent complete pricing snapshot - use it directly
-        logger.info(f"📸 COUPLE: Using snapshot from websajt: original={couple.original_price}, final={couple.final_price}, discount={couple.discount_percentage}%")
-        original_price = couple.original_price
-        discounted_price = couple.final_price
-        discount_percentage = couple.discount_percentage if couple.discount_percentage is not None else 0.0
-        
-        # Still need service names for description
-        person1_service_names = []
-        person2_service_names = []
-        for service_id in couple.person1_services:
-            if service_id in service_map:
-                person1_service_names.append(service_map[service_id]['name'])
-        for service_id in couple.person2_services:
-            if service_id in service_map:
-                person2_service_names.append(service_map[service_id]['name'])
+    # Use snapshot values from website payload (NO recalculation)
+    logger.info(f"📸 COUPLE: Using snapshot from website payload")
+    original_price = couple.original_price
+    discounted_price = couple.final_price
+    discount_percentage = couple.discount_percentage
+    discount_amount = couple.discount_amount
+    
+    # If service names weren't extracted yet (old format), get them from DB
+    if not person1_service_names:
+        person1_service_names = [service_map[sid]['name'] for sid in person1_service_ids if sid in service_map]
+    if not person2_service_names:
+        person2_service_names = [service_map[sid]['name'] for sid in person2_service_ids if sid in service_map]
     else:
         # PRIORITY 2: Websajt sent only service_ids (backward compatibility)
         # Calculate discount here (this is the "double calculation" scenario we want to avoid)
