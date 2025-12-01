@@ -1116,7 +1116,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         "created_at": datetime.now().isoformat(),
         "category": category,  # Use category from website or default "couple"
         "discount_percentage": discount_percentage,
-        "discount_amount": couple.discount_amount if couple.discount_amount else (original_price - discounted_price),
+        "discount_amount": discount_amount,
         "has_discount": discount_percentage > 0,  # Flag for easier filtering
         "metadata": {
             "original_price": original_price,
