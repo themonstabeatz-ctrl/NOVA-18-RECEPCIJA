@@ -1003,34 +1003,68 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
 @api_router.post("/book-couple-appointment", response_model=Appointment)
 async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     """
-    🔒 DO NOT MODIFY — STABLE COUPLE BOOKING LOGIC (Bua Luang - BuaLuang-BACKEND-STABLE-01)
-    
     Website-compatible couple appointment endpoint
     Therapist is NOT assigned here - receptionist assigns manually later
     
-    🔒 STABLE PAYLOAD FIELDS - Do not remove or rename:
-    - client_first_name, client_last_name, client_phone, client_email
-    - start_time
-    - duration_type
-    - person1_services, person2_services
-    - discount_couples_massage
+    ACCEPTS NEW FORMAT:
+    - person1_services: [{ service_id, name, duration, original_price, final_price }]
+    - person2_services: [{ service_id, name, duration, original_price, final_price }]
+    - category, original_price, final_price, discount_percentage, discount_amount
+    - NO recalculation - uses snapshot values from payload
     """
-    logger.info(f"Website couple booking - duration_type: {couple.duration_type}, person1: {couple.person1_services}, person2: {couple.person2_services}")
-    logger.info(f"🔍 DISCOUNT FROM WEBSITE: {couple.discount_couples_massage}%")
+    
+    # DEBUG LOGGING - Log complete payload for troubleshooting
+    try:
+        logger.info(f"📥 COUPLE BOOKING REQUEST RECEIVED")
+        logger.info(f"   Client: {couple.client_first_name} {couple.client_last_name}")
+        logger.info(f"   Phone: {couple.client_phone}")
+        logger.info(f"   Category: {couple.category}")
+        logger.info(f"   Original Price: {couple.original_price} RSD")
+        logger.info(f"   Final Price: {couple.final_price} RSD")
+        logger.info(f"   Discount: {couple.discount_percentage}%")
+        logger.info(f"   Person1 Services: {couple.person1_services}")
+        logger.info(f"   Person2 Services: {couple.person2_services}")
+    except Exception as e:
+        logger.error(f"❌ Error logging request: {e}")
     
     # Therapist will be assigned manually by receptionist later
     therapist_id = None
-    logger.info(f"Therapist NOT auto-assigned - will be set manually by receptionist")
     
-    # Fetch all services for both persons
-    all_service_ids = couple.person1_services + couple.person2_services
-    services = await db.services.find({"id": {"$in": all_service_ids}}).to_list(100)
+    # Extract service IDs (handle both old format List[str] and new format List[CoupleServiceItem])
+    person1_service_ids = []
+    person2_service_ids = []
+    person1_service_names = []
+    person2_service_names = []
+    
+    # Check if services are objects (new format) or just IDs (old format)
+    if couple.person1_services and isinstance(couple.person1_services[0], CoupleServiceItem):
+        # NEW FORMAT: Extract from objects
+        person1_service_ids = [s.service_id for s in couple.person1_services]
+        person1_service_names = [s.name for s in couple.person1_services]
+    elif couple.person1_services and isinstance(couple.person1_services[0], str):
+        # OLD FORMAT: Just IDs
+        person1_service_ids = couple.person1_services
+    
+    if couple.person2_services and isinstance(couple.person2_services[0], CoupleServiceItem):
+        # NEW FORMAT
+        person2_service_ids = [s.service_id for s in couple.person2_services]
+        person2_service_names = [s.name for s in couple.person2_services]
+    elif couple.person2_services and isinstance(couple.person2_services[0], str):
+        # OLD FORMAT
+        person2_service_ids = couple.person2_services
+    
+    all_service_ids = person1_service_ids + person2_service_ids
+    
+    # Fetch services from DB (for validation and fallback)
+    services = await db.services.find({"id": {"$in": all_service_ids}}, {"_id": 0}).to_list(100)
     service_map = {s['id']: s for s in services}
     
     # Verify all services exist
     for service_id in all_service_ids:
         if service_id not in service_map:
-            raise HTTPException(status_code=404, detail=f"Service {service_id} not found")
+            error_msg = f"Service {service_id} not found in database"
+            logger.error(f"❌ {error_msg}")
+            raise HTTPException(status_code=404, detail=error_msg)
     
     # PRIORITY 1: Check if websajt sent complete pricing snapshot (Varijanta 1)
     # This prevents double calculation - discount is calculated only once in GET /api/services
