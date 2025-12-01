@@ -1111,6 +1111,10 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     # Create a dummy service entry for couple package
     # Store DISCOUNTED price in price field, and discount percentage in metadata
     couple_service_id = str(uuid.uuid4())
+    
+    # Use category from website payload if provided, otherwise default to "couple"
+    category = couple.category if couple.category else "couple"
+    
     couple_service = {
         "id": couple_service_id,
         "name": service_name,
@@ -1118,8 +1122,10 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         "price": discounted_price,  # STORE DISCOUNTED PRICE (what customer pays)
         "description": f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}",
         "created_at": datetime.now().isoformat(),
-        "category": "couple",
+        "category": category,  # Use category from website or default "couple"
         "discount_percentage": discount_percentage,
+        "discount_amount": couple.discount_amount if couple.discount_amount else (original_price - discounted_price),
+        "has_discount": discount_percentage > 0,  # Flag for easier filtering
         "metadata": {
             "original_price": original_price,
             "discount_applied": discount_percentage,
