@@ -202,6 +202,27 @@ class CoupleAppointmentWebsite(BaseModel):
 
 
 # ============================================
+# Helper Functions - Service Type Detection
+# ============================================
+def is_couple_service(service_name: str) -> bool:
+    """
+    Check if service is a couple service based on [PAROVI] prefix
+    This is the OFFICIAL identifier for couple services
+    """
+    return service_name.startswith("[PAROVI]") if service_name else False
+
+def get_service_category_display(service_name: str, category: str = None) -> str:
+    """
+    Get display category for service based on name prefix
+    [PAROVI] services → "Kartica Masaza za parove"
+    All others → use provided category or default to "Obicne masaze"
+    """
+    if is_couple_service(service_name):
+        return "Kartica Masaza za parove"
+    return category if category else "Obicne masaze"
+
+
+# ============================================
 # Models - Business Hours
 # ============================================
 class BusinessHours(BaseModel):
