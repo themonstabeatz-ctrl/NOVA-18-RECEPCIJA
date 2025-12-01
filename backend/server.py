@@ -1160,10 +1160,38 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     doc['end_time'] = doc['end_time'].isoformat()
     doc['created_at'] = doc['created_at'].isoformat()
     
-    await db.appointments.insert_one(doc)
-    
-    logger.info(f"✅ Couple appointment created successfully: {appointment_obj.id}")
-    return appointment_obj
+        await db.appointments.insert_one(doc)
+        
+        logger.info(f"✅ Couple appointment created successfully: {appointment_obj.id}")
+        logger.info(f"   Service ID: {couple_service_id}")
+        logger.info(f"   Category: {category}")
+        logger.info(f"   Snapshot: original={original_price}, final={discounted_price}, discount={discount_percentage}%")
+        return appointment_obj
+        
+    except HTTPException as http_ex:
+        # Re-raise HTTP exceptions (404, etc.)
+        logger.error(f"❌ HTTP Exception in couple booking: {http_ex.status_code} - {http_ex.detail}")
+        raise
+    except Exception as e:
+        # Catch all other exceptions and log detailed info
+        logger.error(f"❌ COUPLE BOOKING FAILED - Unexpected Error")
+        logger.error(f"   Error Type: {type(e).__name__}")
+        logger.error(f"   Error Message: {str(e)}")
+        logger.error(f"   Client: {couple.client_first_name} {couple.client_last_name}")
+        logger.error(f"   Phone: {couple.client_phone}")
+        
+        # Log full payload for debugging
+        try:
+            payload_dict = couple.model_dump()
+            logger.error(f"   Full Payload: {payload_dict}")
+        except:
+            logger.error(f"   Could not serialize payload")
+        
+        # Return user-friendly error
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create couple booking: {str(e)}"
+        )
 
 
 @api_router.get("/appointments", response_model=List[Appointment])
