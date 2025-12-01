@@ -1935,12 +1935,9 @@ async def get_detailed_analytics(
         if not service:
             continue
         
-        category = service.get('category', 'Obicne masaze')
-        
-        # Map "couple" category to "Kartica Masaza za parove"
-        # Accept both "couple" and "Kartica masaza za parove" (normalize to display name)
-        if category in ['couple', 'Kartica masaza za parove', 'Kartica Masaza za parove']:
-            category = 'Kartica Masaza za parove'
+        # Determine category using official [PAROVI] prefix logic
+        service_name = service.get('name', '')
+        category = get_service_category_display(service_name, service.get('category'))
         
         # PRIORITY: Use snapshot price from appointment if available (prevents retroactive price changes)
         if 'snapshot_price' in apt:
