@@ -1097,13 +1097,8 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     start_time = couple.start_time.replace(tzinfo=None) if couple.start_time.tzinfo else couple.start_time
     end_time = start_time + timedelta(minutes=total_duration)
     
-    # Create service name description (WITHOUT discount in name)
-    if couple.duration_type == 60:
-        service_name = f"Masaža za parove - 120 min (2x60 min)"
-    elif couple.duration_type == 90:
-        service_name = f"Masaža za parove - 180 min (2x90 min)"
-    else:  # 120
-        service_name = f"Masaža za parove - 240 min (2x120 min)"
+    # Create service name description based on total duration
+    service_name = f"Masaža za parove - {total_duration*2} min (2x{total_duration} min)"
     
     # Create a dummy service entry for couple package
     # Store DISCOUNTED price in price field, and discount percentage in metadata
