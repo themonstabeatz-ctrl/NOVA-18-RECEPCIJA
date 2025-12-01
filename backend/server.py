@@ -1023,10 +1023,14 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         logger.info(f"   Original Price: {couple.original_price} RSD")
         logger.info(f"   Final Price: {couple.final_price} RSD")
         logger.info(f"   Discount: {couple.discount_percentage}%")
-        logger.info(f"   Person1 Services: {couple.person1_services}")
-        logger.info(f"   Person2 Services: {couple.person2_services}")
+        logger.info(f"   Discount Amount: {couple.discount_amount} RSD")
+        logger.info(f"   Person1 Services Count: {len(couple.person1_services) if couple.person1_services else 0}")
+        logger.info(f"   Person2 Services Count: {len(couple.person2_services) if couple.person2_services else 0}")
     except Exception as e:
         logger.error(f"❌ Error logging request: {e}")
+    
+    # Wrap entire endpoint in try-except for detailed error reporting
+    try:
     
     # Therapist will be assigned manually by receptionist later
     therapist_id = None
