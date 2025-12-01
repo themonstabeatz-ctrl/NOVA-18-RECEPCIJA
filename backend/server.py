@@ -982,8 +982,17 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
 @api_router.post("/book-couple-appointment", response_model=Appointment)
 async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     """
+    🔒 DO NOT MODIFY — STABLE COUPLE BOOKING LOGIC (Bua Luang - BuaLuang-BACKEND-STABLE-01)
+    
     Website-compatible couple appointment endpoint
     Therapist is NOT assigned here - receptionist assigns manually later
+    
+    🔒 STABLE PAYLOAD FIELDS - Do not remove or rename:
+    - client_first_name, client_last_name, client_phone, client_email
+    - start_time
+    - duration_type
+    - person1_services, person2_services
+    - discount_couples_massage
     """
     logger.info(f"Website couple booking - duration_type: {couple.duration_type}, person1: {couple.person1_services}, person2: {couple.person2_services}")
     logger.info(f"🔍 DISCOUNT FROM WEBSITE: {couple.discount_couples_massage}%")
