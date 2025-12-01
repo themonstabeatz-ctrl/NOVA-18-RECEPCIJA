@@ -1078,69 +1078,20 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         person1_service_names = [service_map[sid]['name'] for sid in person1_service_ids if sid in service_map]
     if not person2_service_names:
         person2_service_names = [service_map[sid]['name'] for sid in person2_service_ids if sid in service_map]
-    else:
-        # PRIORITY 2: Websajt sent only service_ids (backward compatibility)
-        # Calculate discount here (this is the "double calculation" scenario we want to avoid)
-        logger.info(f"⚙️ COUPLE: Websajt didn't send snapshot - calculating discount from service_code")
-        
-        total_original_price = 0
-        person1_service_names = []
-        person2_service_names = []
-        all_best_discounts = []  # Track all best discounts to find the maximum
-        
-        # Process person 1 services
-        for service_id in couple.person1_services:
-            service = service_map[service_id]
-            service_code = service.get('service_code')
-            
-            # Get original price
-            original_price_single = service.get('metadata', {}).get('original_price', service.get('price', 0))
-            total_original_price += original_price_single
-            person1_service_names.append(service['name'])
-            
-            # Find best discount for this service_code
-            if service_code:
-                discount_info = await get_best_discount_for_service_code(service_code)
-                best_discount = discount_info['best_discount_percentage']
-                all_best_discounts.append(best_discount)
-                logger.info(f"Person 1 - {service['name']}: service_code={service_code}, best_discount={best_discount}%")
-            else:
-                all_best_discounts.append(service.get('discount_percentage', 0))
-        
-        # Process person 2 services
-        for service_id in couple.person2_services:
-            service = service_map[service_id]
-            service_code = service.get('service_code')
-            
-            # Get original price
-            original_price_single = service.get('metadata', {}).get('original_price', service.get('price', 0))
-            total_original_price += original_price_single
-            person2_service_names.append(service['name'])
-            
-            # Find best discount for this service_code
-            if service_code:
-                discount_info = await get_best_discount_for_service_code(service_code)
-                best_discount = discount_info['best_discount_percentage']
-                all_best_discounts.append(best_discount)
-                logger.info(f"Person 2 - {service['name']}: service_code={service_code}, best_discount={best_discount}%")
-            else:
-                all_best_discounts.append(service.get('discount_percentage', 0))
-        
-        # CRITICAL: Apply ONLY the highest discount from all available discounts
-        # This includes discounts from individual services AND the couple discount from website
-        all_best_discounts.append(couple.discount_couples_massage if couple.discount_couples_massage else 0.0)
-        
-        # Find the maximum discount
-        discount_percentage = max(all_best_discounts) if all_best_discounts else 0.0
-        
-        logger.info(f"💰 Price Calculation: original={total_original_price}, all_discounts={all_best_discounts}, APPLYING_BEST={discount_percentage}%")
-        
-        # Calculate final price with SINGLE best discount
-        original_price = total_original_price
-        discounted_price = original_price * (1 - discount_percentage / 100)
     
-    # Calculate total duration (both persons are serviced simultaneously - together at the same time)
-    total_duration = couple.duration_type  # 60, 90, or 120 minutes (they go together, not one after another)
+    # Calculate total duration from person1_services (NEW FORMAT has duration in each service)
+    if couple.person1_services and isinstance(couple.person1_services[0], CoupleServiceItem):
+        # Sum durations from service objects
+        total_duration = sum(s.duration for s in couple.person1_services)
+        logger.info(f"⏱️ Total duration calculated from services: {total_duration} min")
+    elif couple.duration_type:
+        # Fallback to old format duration_type
+        total_duration = couple.duration_type
+        logger.info(f"⏱️ Total duration from duration_type: {total_duration} min")
+    else:
+        # Default to 60 minutes if nothing provided
+        total_duration = 60
+        logger.warning(f"⚠️ No duration info - defaulting to 60 min")
     
     # Remove timezone info if present
     start_time = couple.start_time.replace(tzinfo=None) if couple.start_time.tzinfo else couple.start_time
