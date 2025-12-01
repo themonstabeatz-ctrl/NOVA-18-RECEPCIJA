@@ -463,6 +463,8 @@ async def create_service(service: ServiceCreate):
 @api_router.get("/services", response_model=List[Service])
 async def get_services(service_type: Optional[str] = Query(None, description="Filter by type: 'single' or 'couple'")):
     """
+    🔒 DO NOT MODIFY — STABLE SERVICE CALCULATION LOGIC (Bua Luang - BuaLuang-BACKEND-STABLE-01)
+    
     Get all services with calculated final_price based on best available discount.
     For each service, the system finds all services with the same service_code
     and applies the highest discount percentage.
@@ -472,6 +474,8 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
       - 'single': Returns only single services (is_couple=False) - for "Obične masaže"
       - 'couple': Returns only couple services (is_couple=True) - for "Kartica Masaza za parove"
       - None: Returns all services
+    
+    🔒 STABLE ZONE: Ne menjati metadata.original_price/final_price logiku bez dozvole!
     """
     # Build query based on filter
     query = {}
