@@ -500,6 +500,7 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
         if isinstance(service.get('created_at'), str):
             service['created_at'] = datetime.fromisoformat(service['created_at'])
         
+        # 🔒 DO NOT MODIFY — STABLE DISCOUNT CALCULATION LOGIC (Bua Luang)
         # Calculate final_price using best discount logic
         service_code = service.get('service_code')
         if service_code:
@@ -513,6 +514,7 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
             
             service['final_price'] = round(final_price, 2)
             service['discount_percentage'] = best_discount
+        # 🔒 END STABLE ZONE
         else:
             # Fallback if service_code doesn't exist (shouldn't happen after migration)
             try:
