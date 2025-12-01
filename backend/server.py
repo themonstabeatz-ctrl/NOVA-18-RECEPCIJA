@@ -1141,10 +1141,11 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         "status": AppointmentStatus.SCHEDULED,
         "body_map_gender": None,
         "body_map_points": [],
-        # CRITICAL: Add snapshot fields to appointment object
+        # CRITICAL: Add snapshot fields to appointment object (from website payload)
         "snapshot_price": discounted_price,
         "snapshot_original_price": original_price,
-        "snapshot_discount_percentage": discount_percentage
+        "snapshot_discount_percentage": discount_percentage,
+        "snapshot_discount_amount": discount_amount
     }
     
     appointment_obj = Appointment(**appointment_dict)
