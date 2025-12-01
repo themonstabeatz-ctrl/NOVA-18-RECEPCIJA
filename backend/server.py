@@ -173,10 +173,13 @@ class CoupleAppointmentWebsite(BaseModel):
     person1_services: List[str]  # List of service IDs for person 1
     person2_services: List[str]  # List of service IDs for person 2
     discount_couples_massage: float = 0.0  # No default discount - only if explicitly set
-    # Optional snapshot fields - if provided by websajt, use them directly
+    # Optional snapshot fields - if provided by website, use them directly (no recalculation)
+    category: Optional[str] = None  # e.g. "Kartica masaza za parove"
     original_price: Optional[float] = None
-    discount_percentage: Optional[float] = None
     final_price: Optional[float] = None
+    discount_percentage: Optional[float] = None
+    discount_amount: Optional[float] = None
+    is_couples_booking: Optional[bool] = None
 
 
 # ============================================
