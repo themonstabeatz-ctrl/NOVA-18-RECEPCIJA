@@ -123,6 +123,7 @@ class Appointment(AppointmentBase):
     snapshot_price: Optional[float] = None
     snapshot_original_price: Optional[float] = None
     snapshot_discount_percentage: Optional[float] = None
+    snapshot_discount_amount: Optional[float] = None
 
 
 # ============================================
