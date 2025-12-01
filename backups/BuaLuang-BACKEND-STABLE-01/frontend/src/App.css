@@ -1,0 +1,149 @@
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
+body {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Fix for iFrame rendering */
+html, body {
+  min-width: 100%;
+  overflow-x: auto;
+}
+
+/* Ensure content doesn't shift in iFrame */
+#root {
+  width: 100%;
+  min-width: 100%;
+  overflow-x: auto;
+}
+
+.App {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  overflow-x: auto;
+  width: 100%;
+  position: relative;
+}
+
+/* Scroll container */
+.scroll-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Touch friendly elements */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Improved scrollbars for mobile */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d97706;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #92400e;
+}
+
+/* Zoom controls hint for mobile */
+@media (max-width: 768px) {
+  body {
+    font-size: 16px; /* Prevents auto-zoom on input focus in iOS */
+  }
+  
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  /* Better table handling on mobile */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* Ensure modals are scrollable on mobile */
+  .modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ensure cards stack nicely */
+  .responsive-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Android specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* iOS specific */
+  body {
+    cursor: pointer;
+  }
+}
+
+/* Touch friendly hit areas */
+@media (hover: none) and (pointer: coarse) {
+  /* Mobile touch devices */
+  button, a, .clickable {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px;
+  }
+}
+
+/* Landscape mode optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+  .min-h-screen {
+    min-height: auto;
+  }
+  
+  body {
+    min-height: 100vh;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
