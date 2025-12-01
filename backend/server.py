@@ -1159,13 +1159,13 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         doc['end_time'] = doc['end_time'].isoformat()
         doc['created_at'] = doc['created_at'].isoformat()
         
-            await db.appointments.insert_one(doc)
-            
-            logger.info(f"✅ Couple appointment created successfully: {appointment_obj.id}")
-            logger.info(f"   Service ID: {couple_service_id}")
-            logger.info(f"   Category: {category}")
-            logger.info(f"   Snapshot: original={original_price}, final={discounted_price}, discount={discount_percentage}%")
-            return appointment_obj
+        await db.appointments.insert_one(doc)
+        
+        logger.info(f"✅ Couple appointment created successfully: {appointment_obj.id}")
+        logger.info(f"   Service ID: {couple_service_id}")
+        logger.info(f"   Category: {category}")
+        logger.info(f"   Snapshot: original={original_price}, final={discounted_price}, discount={discount_percentage}%")
+        return appointment_obj
             
     except HTTPException as http_ex:
         # Re-raise HTTP exceptions (404, etc.)
