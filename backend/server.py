@@ -665,7 +665,22 @@ async def delete_service(service_id: str):
 # ============================================
 @api_router.post("/appointments", response_model=Appointment)
 async def create_appointment(appointment: AppointmentCreate):
-    """Create a new appointment"""
+    """
+    🔒 DO NOT MODIFY — STABLE BOOKING LOGIC (Bua Luang - BuaLuang-BACKEND-STABLE-01)
+    
+    Create a new appointment for single/couple massages
+    
+    🔒 STABLE PAYLOAD FIELDS - Do not remove or rename:
+    - client_first_name
+    - client_last_name
+    - client_phone
+    - client_email
+    - start_time
+    - service_id
+    - therapist_id (optional - assigned by receptionist)
+    - body_map_gender (optional)
+    - body_map_points (optional)
+    """
     # Verify therapist exists (only if provided)
     if appointment.therapist_id:
         therapist = await db.therapists.find_one({"id": appointment.therapist_id})
