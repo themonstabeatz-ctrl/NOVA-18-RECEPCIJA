@@ -1892,7 +1892,8 @@ async def get_detailed_analytics(
         category = service.get('category', 'Obicne masaze')
         
         # Map "couple" category to "Kartica Masaza za parove"
-        if category == 'couple':
+        # Accept both "couple" and "Kartica masaza za parove" (normalize to display name)
+        if category in ['couple', 'Kartica masaza za parove', 'Kartica Masaza za parove']:
             category = 'Kartica Masaza za parove'
         
         # PRIORITY: Use snapshot price from appointment if available (prevents retroactive price changes)
