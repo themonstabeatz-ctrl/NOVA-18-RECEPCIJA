@@ -1976,7 +1976,10 @@ async def get_detailed_analytics(
         categories[category]["original_revenue"] += original_price
         categories[category]["discount_given"] += discount_amount
         
-        if discount_percentage > 0:
+        # Check if appointment has discount (either by percentage or amount)
+        has_discount = discount_percentage > 0 or discount_amount > 0
+        
+        if has_discount:
             categories[category]["with_discount"] += 1
             
             # Add to appointments with discount list
