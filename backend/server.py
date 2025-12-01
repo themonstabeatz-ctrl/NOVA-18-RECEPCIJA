@@ -164,24 +164,40 @@ class CoupleAppointmentCreateOld(BaseModel):
     status: AppointmentStatus = AppointmentStatus.SCHEDULED
 
 
+# Service item for person1/person2 arrays in couple booking
+class CoupleServiceItem(BaseModel):
+    service_id: str
+    name: str
+    duration: int
+    original_price: float
+    final_price: float
+
 # Website compatible model - therapist_id is optional, assigned manually by receptionist later
 class CoupleAppointmentWebsite(BaseModel):
     client_first_name: str
     client_last_name: str
     client_phone: str
     client_email: Optional[EmailStr] = None
+    appointment_date: Optional[str] = None  # "2025-12-31" format
     start_time: datetime
-    duration_type: int  # 60, 90, or 120 (base duration per person)
-    person1_services: List[str]  # List of service IDs for person 1
-    person2_services: List[str]  # List of service IDs for person 2
-    discount_couples_massage: float = 0.0  # No default discount - only if explicitly set
-    # Optional snapshot fields - if provided by website, use them directly (no recalculation)
-    category: Optional[str] = None  # e.g. "Kartica masaza za parove"
-    original_price: Optional[float] = None
-    final_price: Optional[float] = None
-    discount_percentage: Optional[float] = None
-    discount_amount: Optional[float] = None
-    is_couples_booking: Optional[bool] = None
+    notes: Optional[str] = None
+    
+    # NEW FORMAT: person1/person2_services are now arrays of objects (not just IDs)
+    # Support BOTH old format (List[str]) and new format (List[CoupleServiceItem])
+    person1_services: Union[List[str], List[CoupleServiceItem]]
+    person2_services: Union[List[str], List[CoupleServiceItem]]
+    
+    # Category and pricing snapshot (provided by website)
+    category: str = "Kartica masaza za parove"
+    original_price: float
+    final_price: float
+    discount_percentage: float
+    discount_amount: float
+    is_couples_booking: bool = True
+    
+    # Old fields for backward compatibility (optional)
+    duration_type: Optional[int] = None
+    discount_couples_massage: Optional[float] = None
 
 
 # ============================================
