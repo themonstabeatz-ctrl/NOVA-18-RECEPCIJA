@@ -1031,9 +1031,8 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     
     # Wrap entire endpoint in try-except for detailed error reporting
     try:
-    
-    # Therapist will be assigned manually by receptionist later
-    therapist_id = None
+        # Therapist will be assigned manually by receptionist later
+        therapist_id = None
     
     # Extract service IDs (handle both old format List[str] and new format List[CoupleServiceItem])
     person1_service_ids = []
