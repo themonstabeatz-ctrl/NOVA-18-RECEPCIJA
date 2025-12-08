@@ -23,15 +23,20 @@ const Services = () => {
   ];
 
   const durationOptions = [
+    { value: 15, label: '15 minuta' },
     { value: 30, label: '30 minuta' },
     { value: 45, label: '45 minuta' },
     { value: 60, label: '60 minuta (1h)' },
     { value: 90, label: '90 minuta (1.5h)' },
     { value: 120, label: '120 minuta (2h)' },
     { value: 150, label: '150 minuta (2.5h)' },
+    { value: 165, label: '165 minuta (2h 45min)' },
     { value: 180, label: '180 minuta (3h)' },
+    { value: 195, label: '195 minuta (3h 15min)' },
     { value: 210, label: '210 minuta (3.5h)' },
+    { value: 225, label: '225 minuta (3h 45min)' },
     { value: 240, label: '240 minuta (4h)' },
+    { value: 255, label: '255 minuta (4h 15min)' },
     { value: 300, label: '300 minuta (5h)' },
     { value: 360, label: '360 minuta (6h)' },
     { value: 420, label: '420 minuta (7h)' },
