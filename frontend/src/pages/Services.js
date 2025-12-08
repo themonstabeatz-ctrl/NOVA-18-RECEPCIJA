@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { serviceService } from '../services/api';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 
+// Updated with new duration options: 15, 165, 195, 225, 255
 const Services = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
