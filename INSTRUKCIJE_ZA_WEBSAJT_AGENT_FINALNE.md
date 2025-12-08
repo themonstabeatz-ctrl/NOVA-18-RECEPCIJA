@@ -383,12 +383,12 @@ Ako imaš bilo kakvih pitanja ili probleme:
 
 **Booking sistem Backend URL:**
 ```
-https://therapist-scheduler.preview.emergentagent.com/api
+https://therapy-booking-21.preview.emergentagent.com/api
 ```
 
 **Dashboard URL:**
 ```
-https://therapist-scheduler.preview.emergentagent.com/
+https://therapy-booking-21.preview.emergentagent.com/
 Lozinka: studio149
 ```
 

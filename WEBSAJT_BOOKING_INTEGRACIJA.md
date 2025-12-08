@@ -20,7 +20,7 @@ POST https://spabooking.emergent.host/api/book-couple-appointment
 
 **ILI (za preview):**
 ```
-POST https://therapist-scheduler.preview.emergentagent.com/api/book-couple-appointment
+POST https://therapy-booking-21.preview.emergentagent.com/api/book-couple-appointment
 ```
 
 ---

@@ -211,8 +211,8 @@ Frontend errors (ako postoje):
 ✅ Dashboard prikazuje tačne cene  
 
 ### Preview URLs:
-✅ Backend API: `https://therapist-scheduler.preview.emergentagent.com/api`  
-✅ Recepcija: `https://therapist-scheduler.preview.emergentagent.com`  
+✅ Backend API: `https://therapy-booking-21.preview.emergentagent.com/api`  
+✅ Recepcija: `https://therapy-booking-21.preview.emergentagent.com`  
 ✅ Website povezan sa backend-om (čekamo website team fix)  
 
 ---
