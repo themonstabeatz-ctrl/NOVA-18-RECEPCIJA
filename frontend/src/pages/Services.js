@@ -38,7 +38,11 @@ const Services = () => {
     { value: 225, label: '225 minuta (3h 45min)' },
     { value: 240, label: '240 minuta (4h)' },
     { value: 255, label: '255 minuta (4h 15min)' },
+    { value: 270, label: '270 minuta (4h 30min)' },
+    { value: 285, label: '285 minuta (4h 45min)' },
     { value: 300, label: '300 minuta (5h)' },
+    { value: 315, label: '315 minuta (5h 15min)' },
+    { value: 330, label: '330 minuta (5h 30min)' },
     { value: 360, label: '360 minuta (6h)' },
     { value: 420, label: '420 minuta (7h)' },
   ];
