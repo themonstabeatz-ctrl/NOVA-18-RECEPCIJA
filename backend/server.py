@@ -2300,6 +2300,7 @@ Bua Luang Thai Spa
     except Exception as e:
         # Catch all errors to prevent blocking booking
         logger.error(f"❌ Email sending failed (non-blocking): {str(e)}")
+# 🔒🔒🔒 LOCKED ZONE END - EMAIL NOTIFICATION 🔒🔒🔒
 
 
 @app.on_event("shutdown")
