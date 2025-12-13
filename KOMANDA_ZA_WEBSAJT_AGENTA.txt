@@ -1,7 +1,7 @@
 ZADATAK: Integracija Websajta sa Booking Sistemom - Prikaz Popusta
 
 CILJ:
-Povezati websajt https://therapy-booking-21.preview.emergentagent.com/ sa booking sistemom da automatski prikazuje cene i popuste.
+Povezati websajt https://massage-booking-fix.preview.emergentagent.com/ sa booking sistemom da automatski prikazuje cene i popuste.
 
 ==========================================
 KORAK 1: PREUZMI SLIKE ZA POPUSTE
@@ -21,7 +21,7 @@ Kreiraj fajl: /src/services/bookingApi.js
 
 Sadržaj:
 
-const BOOKING_API = 'https://therapy-booking-21.preview.emergentagent.com/api';
+const BOOKING_API = 'https://massage-booking-fix.preview.emergentagent.com/api';
 
 export async function fetchServices() {
   const response = await fetch(`${BOOKING_API}/services`);
@@ -155,7 +155,7 @@ TESTIRANJE
 
 Kada završiš implementaciju:
 
-1. Idi na booking sistem: https://therapy-booking-21.preview.emergentagent.com/services
+1. Idi na booking sistem: https://massage-booking-fix.preview.emergentagent.com/services
 2. Klikni na kategoriju "Kartica Masaza za parove"
 3. Klikni na sliku za -15% popust
 4. Potvrdi
@@ -170,7 +170,7 @@ KATEGORIJE KOJE TREBA POKRITI
 2. "Kartica Masaza za parove" - za sekciju MASAŽA ZA PAROVE  
 3. "SPA" - za sekciju SPA (ako postoji)
 
-API ENDPOINT: https://therapy-booking-21.preview.emergentagent.com/api/services
+API ENDPOINT: https://massage-booking-fix.preview.emergentagent.com/api/services
 
 Koristi filterByCategory() funkciju da izdvojiš odgovarajuću kategoriju.
 
