@@ -1117,6 +1117,14 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         discount_percentage = couple.discount_percentage
         discount_amount = couple.discount_amount
         
+        # CRITICAL FIX: If discount_percentage is 0, ensure no discount is applied
+        # This fixes the "fake -15% discount" issue when website doesn't want discount
+        if discount_percentage == 0 or discount_percentage is None:
+            logger.info(f"🔒 NO DISCOUNT requested - setting final price = original price")
+            discounted_price = original_price
+            discount_amount = 0
+            discount_percentage = 0
+        
         # If service names weren't extracted yet (old format), get them from DB
         if not person1_service_names:
             person1_service_names = [service_map[sid]['name'] for sid in person1_service_ids if sid in service_map]
