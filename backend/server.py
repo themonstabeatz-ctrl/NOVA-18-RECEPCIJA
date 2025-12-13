@@ -806,6 +806,22 @@ async def create_appointment(appointment: AppointmentCreate):
     doc['created_at'] = doc['created_at'].isoformat()
     
     await db.appointments.insert_one(doc)
+    
+    # Send email notifications (non-blocking)
+    try:
+        email_data = {
+            'client_first_name': appointment_obj.client_first_name,
+            'client_last_name': appointment_obj.client_last_name,
+            'client_phone': appointment_obj.client_phone,
+            'client_email': appointment_obj.client_email,
+            'start_time': appointment_obj.start_time,
+            'service_name': service.get('name', 'Unknown Service') if service else 'Unknown Service',
+            'notes': ''
+        }
+        await send_booking_emails(email_data)
+    except Exception as e:
+        logger.error(f"Email notification failed (non-blocking): {e}")
+    
     return appointment_obj
 
 # ============================================
