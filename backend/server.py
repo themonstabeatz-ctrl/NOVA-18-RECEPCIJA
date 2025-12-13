@@ -1412,6 +1412,33 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         await db.services.insert_one(couple_service)
         
         # Create appointment with couple service and snapshot data
+        # --- PREPARE DETAILED SERVICES SNAPSHOT FOR LISTING ---
+        # Store ALL services with details so listing can display everything
+        person1_services_snapshot = []
+        for sid in person1_service_ids:
+            if sid in service_map:
+                svc = service_map[sid]
+                person1_services_snapshot.append({
+                    "service_id": sid,
+                    "name": svc['name'],
+                    "duration": svc['duration'],
+                    "price": svc['price']
+                })
+        
+        person2_services_snapshot = []
+        for sid in person2_service_ids:
+            if sid in service_map:
+                svc = service_map[sid]
+                person2_services_snapshot.append({
+                    "service_id": sid,
+                    "name": svc['name'],
+                    "duration": svc['duration'],
+                    "price": svc['price']
+                })
+        
+        logger.info(f"📸 SNAPSHOT: Stored {len(person1_services_snapshot)} services for Person1")
+        logger.info(f"📸 SNAPSHOT: Stored {len(person2_services_snapshot)} services for Person2")
+        
         appointment_dict = {
             "client_first_name": couple.client_first_name,
             "client_last_name": couple.client_last_name,
@@ -1424,11 +1451,15 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
             "status": AppointmentStatus.SCHEDULED,
             "body_map_gender": None,
             "body_map_points": [],
-            # CRITICAL: Add snapshot fields to appointment object (from website payload)
+            # CRITICAL: Add snapshot fields to appointment object
             "snapshot_price": discounted_price,
             "snapshot_original_price": original_price,
             "snapshot_discount_percentage": discount_percentage,
-            "snapshot_discount_amount": discount_amount
+            "snapshot_discount_amount": discount_amount,
+            # COUPLES MULTI-SERVICE SNAPSHOT: Store ALL selected services
+            "person1_services_snapshot": person1_services_snapshot,
+            "person2_services_snapshot": person2_services_snapshot,
+            "pricing_breakdown": f"{person1_total} + {person2_total} = {original_price}"
         }
         
         appointment_obj = Appointment(**appointment_dict)
