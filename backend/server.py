@@ -1122,20 +1122,58 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
                 logger.error(f"❌ {error_msg}")
                 raise HTTPException(status_code=404, detail=error_msg)
         
-        # 🔒🔒🔒 CRITICAL LOCKED SECTION - DISCOUNT LOGIC 🔒🔒🔒
-        # Use snapshot values from website payload (NO recalculation)
-        logger.info(f"📸 COUPLE: Using snapshot from website payload")
+        # 🔒🔒🔒 CRITICAL LOCKED SECTION - DISCOUNT & PRICE LOGIC 🔒🔒🔒
+        
+        # --- CALCULATE PRICE FROM COMPONENTS (OSOBA1 + OSOBA2) ---
+        # COUPLES SERVICE MUST NOT HAVE HARDCODED PRICE
+        # Price is ALWAYS sum of individual services selected for each person
+        
+        logger.info(f"💰 CALCULATING COUPLES PRICE FROM COMPONENTS:")
+        
+        # Calculate from Person1 services
+        person1_total = 0.0
+        for sid in person1_service_ids:
+            if sid in service_map:
+                service_price = float(service_map[sid].get('price', 0))
+                person1_total += service_price
+                logger.info(f"   Person1: {service_map[sid]['name']} = {service_price} RSD")
+        
+        # Calculate from Person2 services
+        person2_total = 0.0
+        for sid in person2_service_ids:
+            if sid in service_map:
+                service_price = float(service_map[sid].get('price', 0))
+                person2_total += service_price
+                logger.info(f"   Person2: {service_map[sid]['name']} = {service_price} RSD")
+        
+        # TOTAL = Person1 + Person2 (NO addons, NO fees, NO magic)
+        calculated_total = person1_total + person2_total
+        logger.info(f"   CALCULATED TOTAL: {person1_total} + {person2_total} = {calculated_total} RSD")
+        
+        # --- DETERMINE PRICE SOURCE ---
+        # Priority 1: If website sends original_price, verify it matches calculation
+        if couple.original_price and float(couple.original_price) > 0:
+            website_price = float(couple.original_price)
+            if abs(website_price - calculated_total) > 1:  # Allow 1 RSD rounding difference
+                logger.warning(f"⚠️ PRICE MISMATCH: Website={website_price}, Calculated={calculated_total}")
+                logger.warning(f"⚠️ Using CALCULATED price (components) as source of truth")
+                snap_original = calculated_total
+            else:
+                snap_original = website_price
+                logger.info(f"✅ Website price matches calculation: {website_price} RSD")
+        else:
+            # Priority 2: Use calculated price if website doesn't send
+            snap_original = calculated_total
+            logger.info(f"✅ Using calculated price (website didn't send): {snap_original} RSD")
         
         # --- DETERMINE DISCOUNT INTENT FROM WEBSITE PAYLOAD ---
-        # PRIORITY 1: If request explicitly sends discount_percentage
-        discount_intent = couple.discount_percentage  # Could be None, 0, or >0
+        discount_intent = couple.discount_percentage
         
         logger.info(f"🔍 COUPLES DISCOUNT OVERRIDE: request_discount={discount_intent}")
         
-        # If website explicitly says 0 => FORCE NO DISCOUNT, ignore package default
+        # If website explicitly says 0 => FORCE NO DISCOUNT
         if discount_intent is not None and float(discount_intent) == 0:
             applied_discount = 0.0
-            snap_original = float(couple.original_price or 0)
             snap_final = snap_original  # FORCE equal - NO DISCOUNT
             snap_discount_amount = 0.0
             logger.info(f"🔒 EXPLICIT NO DISCOUNT: applied={applied_discount}, original={snap_original}, final={snap_final}")
@@ -1143,15 +1181,13 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         # If website explicitly sends discount > 0 => apply that discount
         elif discount_intent is not None and float(discount_intent) > 0:
             applied_discount = float(discount_intent)
-            snap_original = float(couple.original_price or 0)
-            snap_final = float(couple.final_price or snap_original)
+            snap_final = float(couple.final_price or snap_original * (1 - applied_discount / 100))
             snap_discount_amount = snap_original - snap_final
             logger.info(f"💰 EXPLICIT DISCOUNT: applied={applied_discount}%, original={snap_original}, final={snap_final}")
         
-        # If website doesn't specify discount => DEFAULT IS NO DISCOUNT (LOCKDOWN RULE)
+        # If website doesn't specify discount => DEFAULT IS NO DISCOUNT
         else:
             applied_discount = 0.0
-            snap_original = float(couple.original_price or 0)
             snap_final = snap_original  # FORCE equal - NO DISCOUNT
             snap_discount_amount = 0.0
             logger.info(f"🔒 DEFAULT NO DISCOUNT: applied={applied_discount}, original={snap_original}, final={snap_final}")
@@ -1163,6 +1199,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         discount_amount = snap_discount_amount
         
         logger.info(f"✅ FINAL SNAPSHOT: discount={discount_percentage}%, original={original_price}, final={discounted_price}")
+        logger.info(f"✅ BREAKDOWN: Person1({person1_total}) + Person2({person2_total}) = {original_price} RSD")
         # 🔒🔒🔒 END CRITICAL LOCKED SECTION 🔒🔒🔒
         
         # If service names weren't extracted yet (old format), get them from DB
