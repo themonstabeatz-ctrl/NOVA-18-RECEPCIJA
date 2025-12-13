@@ -1408,6 +1408,33 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         detailed_description = f"Osoba 1: {' + '.join(person1_desc_parts)} | Osoba 2: {' + '.join(person2_desc_parts)}"
         logger.info(f"📝 DESCRIPTION: {detailed_description}")
         
+        # --- PREPARE DETAILED SERVICES SNAPSHOT FOR LISTING ---
+        # Store ALL services with details so listing can display everything
+        person1_services_snapshot = []
+        for sid in person1_service_ids:
+            if sid in service_map:
+                svc = service_map[sid]
+                person1_services_snapshot.append({
+                    "service_id": sid,
+                    "name": svc['name'],
+                    "duration": svc['duration'],
+                    "price": svc['price']
+                })
+        
+        person2_services_snapshot = []
+        for sid in person2_service_ids:
+            if sid in service_map:
+                svc = service_map[sid]
+                person2_services_snapshot.append({
+                    "service_id": sid,
+                    "name": svc['name'],
+                    "duration": svc['duration'],
+                    "price": svc['price']
+                })
+        
+        logger.info(f"📸 SNAPSHOT: Stored {len(person1_services_snapshot)} services for Person1")
+        logger.info(f"📸 SNAPSHOT: Stored {len(person2_services_snapshot)} services for Person2")
+        
         couple_service = {
             "id": couple_service_id,
             "name": service_name,
