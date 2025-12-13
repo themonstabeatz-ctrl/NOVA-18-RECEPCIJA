@@ -1122,13 +1122,59 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
                 logger.error(f"❌ {error_msg}")
                 raise HTTPException(status_code=404, detail=error_msg)
         
-        # 🔒🔒🔒 CRITICAL LOCKED SECTION - DISCOUNT & PRICE LOGIC 🔒🔒🔒
+        # 🔒🔒🔒 CRITICAL LOCKED SECTION - STRICT PRICING RULES 🔒🔒🔒
         
-        # --- CALCULATE PRICE FROM COMPONENTS (OSOBA1 + OSOBA2) ---
+        # --- STRICT VALIDATION: [PAROVI] PREFIX REQUIRED ---
+        # All couples services MUST have [PAROVI] prefix
+        # If not, this is a DATA ERROR and booking must fail
+        
+        logger.info(f"🔍 STRICT VALIDATION - Checking [PAROVI] prefix:")
+        
+        validation_errors = []
+        
+        # Validate Person1 services
+        for sid in person1_service_ids:
+            if sid in service_map:
+                service_name = service_map[sid]['name']
+                if not service_name.startswith('[PAROVI]'):
+                    error_msg = f"Person1 service '{service_name}' does NOT have [PAROVI] prefix"
+                    validation_errors.append(error_msg)
+                    logger.error(f"❌ VALIDATION FAILED: {error_msg}")
+                else:
+                    logger.info(f"   ✅ Person1: {service_name} - [PAROVI] prefix OK")
+        
+        # Validate Person2 services
+        for sid in person2_service_ids:
+            if sid in service_map:
+                service_name = service_map[sid]['name']
+                if not service_name.startswith('[PAROVI]'):
+                    error_msg = f"Person2 service '{service_name}' does NOT have [PAROVI] prefix"
+                    validation_errors.append(error_msg)
+                    logger.error(f"❌ VALIDATION FAILED: {error_msg}")
+                else:
+                    logger.info(f"   ✅ Person2: {service_name} - [PAROVI] prefix OK")
+        
+        # HARD FAIL if validation errors
+        if validation_errors:
+            error_detail = f"COUPLES BOOKING VALIDATION FAILED: {'; '.join(validation_errors)}"
+            logger.error(f"🚨 {error_detail}")
+            logger.error(f"🚨 REFUSING TO CREATE APPOINTMENT - Data integrity violation")
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "COUPLES_BOOKING_VALIDATION_FAILED",
+                    "message": "All services for couples booking must have [PAROVI] prefix",
+                    "validation_errors": validation_errors
+                }
+            )
+        
+        logger.info(f"✅ PREFIX VALIDATION PASSED - All services have [PAROVI] prefix")
+        
+        # --- CALCULATE PRICE FROM [PAROVI] COMPONENTS ---
         # COUPLES SERVICE MUST NOT HAVE HARDCODED PRICE
-        # Price is ALWAYS sum of individual services selected for each person
+        # Price is ALWAYS sum of [PAROVI] services for each person
         
-        logger.info(f"💰 CALCULATING COUPLES PRICE FROM COMPONENTS:")
+        logger.info(f"💰 CALCULATING COUPLES PRICE FROM [PAROVI] COMPONENTS:")
         
         # Calculate from Person1 services
         person1_total = 0.0
