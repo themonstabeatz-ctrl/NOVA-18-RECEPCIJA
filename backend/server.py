@@ -1201,6 +1201,27 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         
         await db.appointments.insert_one(doc)
         
+        # Send email notifications (non-blocking)
+        try:
+            # Get service name from the couple service
+            couple_service_name = couple_service.get('name', 'Masaža za parove') if couple_service else 'Masaža za parove'
+            
+            # Include notes with person selections
+            notes_text = couple.notes or ''
+            
+            email_data = {
+                'client_first_name': couple.client_first_name,
+                'client_last_name': couple.client_last_name,
+                'client_phone': couple.client_phone,
+                'client_email': couple.client_email,
+                'start_time': appointment_obj.start_time,
+                'service_name': couple_service_name,
+                'notes': notes_text
+            }
+            await send_booking_emails(email_data)
+        except Exception as e:
+            logger.error(f"Email notification failed for couples booking (non-blocking): {e}")
+        
         logger.info(f"✅ Couple appointment created successfully: {appointment_obj.id}")
         logger.info(f"   Service ID: {couple_service_id}")
         logger.info(f"   Category: {category}")
