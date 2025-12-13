@@ -1390,12 +1390,29 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         # Use category from website payload if provided, otherwise default to "couple"
         category = couple.category if couple.category else "couple"
         
+        # --- BUILD DETAILED DESCRIPTION WITH ALL SERVICES ---
+        # Format: "Service1 - XXmin (YYY RSD) + Service2 - XXmin (YYY RSD)"
+        person1_desc_parts = []
+        for sid in person1_service_ids:
+            if sid in service_map:
+                svc = service_map[sid]
+                person1_desc_parts.append(f"{svc['name']} - {svc['duration']}min ({svc['price']} RSD)")
+        
+        person2_desc_parts = []
+        for sid in person2_service_ids:
+            if sid in service_map:
+                svc = service_map[sid]
+                person2_desc_parts.append(f"{svc['name']} - {svc['duration']}min ({svc['price']} RSD)")
+        
+        detailed_description = f"Osoba 1: {' + '.join(person1_desc_parts)} | Osoba 2: {' + '.join(person2_desc_parts)}"
+        logger.info(f"📝 DESCRIPTION: {detailed_description}")
+        
         couple_service = {
             "id": couple_service_id,
             "name": service_name,
             "duration": total_duration,
             "price": discounted_price,  # STORE DISCOUNTED PRICE (what customer pays)
-            "description": f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}",
+            "description": detailed_description,
             "created_at": datetime.now().isoformat(),
             "category": category,  # Use category from website or default "couple"
             "discount_percentage": discount_percentage,
@@ -1404,7 +1421,9 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
             "metadata": {
                 "original_price": original_price,
                 "discount_applied": discount_percentage,
-                "final_price": discounted_price
+                "final_price": discounted_price,
+                "person1_services": person1_services_snapshot,
+                "person2_services": person2_services_snapshot
             }
         }
         
