@@ -1303,24 +1303,25 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         discount_percentage = applied_discount
         discount_amount = snap_discount_amount
         
-        # --- STRICT VALIDATION: NO DISCOUNT FOR COUPLES ---
-        # Couples bookings currently do NOT support discounts
-        # discount_percentage MUST be 0
+        # --- DISCOUNT VALIDATION FOR TESTING ---
+        # Allow discounts for testing/campaigns (0 or positive percentage)
         
-        if discount_percentage != 0:
-            error_msg = f"Couples booking has discount {discount_percentage}% but discounts are NOT currently supported"
+        if discount_percentage < 0:
+            error_msg = f"Discount percentage cannot be negative: {discount_percentage}%"
             logger.error(f"❌ DISCOUNT VALIDATION FAILED: {error_msg}")
-            logger.error(f"🚨 REFUSING TO CREATE APPOINTMENT - Discount policy violation")
             raise HTTPException(
                 status_code=400,
                 detail={
-                    "error": "COUPLES_DISCOUNT_NOT_SUPPORTED",
-                    "message": "Couples bookings currently do not support discounts",
+                    "error": "INVALID_DISCOUNT",
+                    "message": "Discount percentage cannot be negative",
                     "received_discount": discount_percentage
                 }
             )
         
-        logger.info(f"✅ DISCOUNT VALIDATION PASSED - No discount applied (discount = 0)")
+        if discount_percentage == 0:
+            logger.info(f"✅ NO DISCOUNT: discount = 0%")
+        else:
+            logger.info(f"💰 DISCOUNT APPLIED: discount = {discount_percentage}%")
         
         # --- DEBUG LOG: COMPLETE BOOKING BREAKDOWN ---
         logger.info(f"")
