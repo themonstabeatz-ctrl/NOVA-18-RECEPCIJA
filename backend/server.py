@@ -709,6 +709,11 @@ async def delete_service(service_id: str):
 # ============================================
 # Routes - Appointments
 # ============================================
+
+# 🔒🔒🔒 LOCKED ZONE START - SINGLE APPOINTMENT BOOKING 🔒🔒🔒
+# DO NOT MODIFY WITHOUT EXPLICIT OWNER APPROVAL
+# See: /app/LOCKDOWN_RULES.md
+# Backend is the ONLY source of truth for prices and discounts
 @api_router.post("/appointments", response_model=Appointment)
 async def create_appointment(appointment: AppointmentCreate):
     """
