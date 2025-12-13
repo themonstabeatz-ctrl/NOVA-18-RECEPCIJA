@@ -828,6 +828,8 @@ async def create_appointment(appointment: AppointmentCreate):
         logger.error(f"Email notification failed (non-blocking): {e}")
     
     return appointment_obj
+# 🔒🔒🔒 LOCKED ZONE END - SINGLE APPOINTMENT BOOKING 🔒🔒🔒
+
 
 # ============================================
 # Couple Settings Endpoints
