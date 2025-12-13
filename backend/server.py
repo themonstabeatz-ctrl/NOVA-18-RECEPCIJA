@@ -1125,21 +1125,44 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         # 🔒🔒🔒 CRITICAL LOCKED SECTION - DISCOUNT LOGIC 🔒🔒🔒
         # Use snapshot values from website payload (NO recalculation)
         logger.info(f"📸 COUPLE: Using snapshot from website payload")
-        original_price = couple.original_price
-        discounted_price = couple.final_price
-        discount_percentage = couple.discount_percentage
-        discount_amount = couple.discount_amount
         
-        # 🔒 CRITICAL FIX: If discount_percentage is 0, ensure NO DISCOUNT is applied
-        # This fixes the "fake -15% discount" issue when website doesn't want discount
-        # COUPLES BOOKING WITHOUT DISCOUNT MUST HAVE:
-        # - discount_percentage = 0
-        # - final_price = original_price
-        if discount_percentage == 0 or discount_percentage is None:
-            logger.info(f"🔒 NO DISCOUNT requested - setting final price = original price")
-            discounted_price = original_price
-            discount_amount = 0
-            discount_percentage = 0
+        # --- DETERMINE DISCOUNT INTENT FROM WEBSITE PAYLOAD ---
+        # PRIORITY 1: If request explicitly sends discount_percentage
+        discount_intent = couple.discount_percentage  # Could be None, 0, or >0
+        
+        logger.info(f"🔍 COUPLES DISCOUNT OVERRIDE: request_discount={discount_intent}")
+        
+        # If website explicitly says 0 => FORCE NO DISCOUNT, ignore package default
+        if discount_intent is not None and float(discount_intent) == 0:
+            applied_discount = 0.0
+            snap_original = float(couple.original_price or 0)
+            snap_final = snap_original  # FORCE equal - NO DISCOUNT
+            snap_discount_amount = 0.0
+            logger.info(f"🔒 EXPLICIT NO DISCOUNT: applied={applied_discount}, original={snap_original}, final={snap_final}")
+        
+        # If website explicitly sends discount > 0 => apply that discount
+        elif discount_intent is not None and float(discount_intent) > 0:
+            applied_discount = float(discount_intent)
+            snap_original = float(couple.original_price or 0)
+            snap_final = float(couple.final_price or snap_original)
+            snap_discount_amount = snap_original - snap_final
+            logger.info(f"💰 EXPLICIT DISCOUNT: applied={applied_discount}%, original={snap_original}, final={snap_final}")
+        
+        # If website doesn't specify discount => DEFAULT IS NO DISCOUNT (LOCKDOWN RULE)
+        else:
+            applied_discount = 0.0
+            snap_original = float(couple.original_price or 0)
+            snap_final = snap_original  # FORCE equal - NO DISCOUNT
+            snap_discount_amount = 0.0
+            logger.info(f"🔒 DEFAULT NO DISCOUNT: applied={applied_discount}, original={snap_original}, final={snap_final}")
+        
+        # Assign final values
+        original_price = snap_original
+        discounted_price = snap_final
+        discount_percentage = applied_discount
+        discount_amount = snap_discount_amount
+        
+        logger.info(f"✅ FINAL SNAPSHOT: discount={discount_percentage}%, original={original_price}, final={discounted_price}")
         # 🔒🔒🔒 END CRITICAL LOCKED SECTION 🔒🔒🔒
         
         # If service names weren't extracted yet (old format), get them from DB
