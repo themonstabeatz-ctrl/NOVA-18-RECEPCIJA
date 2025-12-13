@@ -2177,9 +2177,12 @@ logger = logging.getLogger(__name__)
 # ============================================
 # Email Notification Helper
 # ============================================
+# 🔒🔒🔒 LOCKED ZONE START - EMAIL NOTIFICATION 🔒🔒🔒
+# DO NOT MODIFY WITHOUT EXPLICIT OWNER APPROVAL
+# See: /app/LOCKDOWN_RULES.md
 async def send_booking_emails(appointment_data: dict):
     """
-    Send booking confirmation emails to client and owner.
+    🔒 LOCKED - Send booking confirmation emails to client and owner.
     
     Args:
         appointment_data: Dictionary containing appointment details
