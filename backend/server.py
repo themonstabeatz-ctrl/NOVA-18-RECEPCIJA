@@ -1272,6 +1272,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
             status_code=500,
             detail=f"Failed to create couple booking: {str(e)}"
         )
+# 🔒🔒🔒 LOCKED ZONE END - COUPLES APPOINTMENT BOOKING 🔒🔒🔒
 
 
 @api_router.get("/appointments", response_model=List[Appointment])
