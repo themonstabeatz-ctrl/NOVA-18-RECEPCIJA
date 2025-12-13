@@ -2115,6 +2115,132 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+# ============================================
+# Email Notification Helper
+# ============================================
+async def send_booking_emails(appointment_data: dict):
+    """
+    Send booking confirmation emails to client and owner.
+    
+    Args:
+        appointment_data: Dictionary containing appointment details
+        
+    Note: This function will NOT raise exceptions to prevent blocking booking creation.
+    """
+    try:
+        # Get SMTP settings from environment
+        smtp_host = os.environ.get('SMTP_HOST')
+        smtp_port = int(os.environ.get('SMTP_PORT', 587))
+        smtp_user = os.environ.get('SMTP_USER')
+        smtp_password = os.environ.get('SMTP_PASSWORD')
+        smtp_from = os.environ.get('SMTP_FROM', smtp_user)
+        smtp_to_owner = os.environ.get('SMTP_TO_OWNER')
+        
+        # Check if SMTP is configured
+        if not smtp_host or not smtp_user or smtp_password == 'PLACEHOLDER_APP_PASSWORD':
+            logger.warning("⚠️ Email not sent - SMTP not configured (PLACEHOLDER password detected)")
+            return
+        
+        # Extract appointment details
+        client_name = f"{appointment_data.get('client_first_name', '')} {appointment_data.get('client_last_name', '')}"
+        client_phone = appointment_data.get('client_phone', 'N/A')
+        client_email = appointment_data.get('client_email')
+        start_time = appointment_data.get('start_time')
+        service_name = appointment_data.get('service_name', 'N/A')
+        notes = appointment_data.get('notes', '')
+        
+        # Format datetime
+        if isinstance(start_time, str):
+            try:
+                start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+                formatted_time = start_dt.strftime('%d.%m.%Y u %H:%M')
+            except:
+                formatted_time = start_time
+        else:
+            formatted_time = start_time.strftime('%d.%m.%Y u %H:%M') if start_time else 'N/A'
+        
+        # Prepare email content
+        email_body = f"""
+Poštovani,
+
+Uspešno ste rezervisali tretman u Bua Luang Thai Spa.
+
+📋 Detalji rezervacije:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 Ime: {client_name}
+📞 Telefon: {client_phone}
+📧 Email: {client_email or 'Nije naveden'}
+📅 Datum i vreme: {formatted_time}
+💆 Usluga: {service_name}
+"""
+        
+        if notes:
+            email_body += f"📝 Napomena: {notes}\n"
+        
+        email_body += """
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Radujemo se Vašoj poseti!
+
+S poštovanjem,
+Bua Luang Thai Spa
+📍 Beograd
+📞 +381 XX XXX XXXX
+🌐 www.bualuang.rs
+"""
+        
+        # Email to owner (ALWAYS send)
+        owner_subject = f"Nova rezervacija — {formatted_time} — {service_name}"
+        owner_msg = MIMEMultipart()
+        owner_msg['From'] = smtp_from
+        owner_msg['To'] = smtp_to_owner
+        owner_msg['Subject'] = owner_subject
+        owner_msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
+        
+        # Send to owner
+        try:
+            await aiosmtplib.send(
+                owner_msg,
+                hostname=smtp_host,
+                port=smtp_port,
+                username=smtp_user,
+                password=smtp_password,
+                start_tls=True
+            )
+            logger.info(f"✅ Email sent to owner: {smtp_to_owner}")
+        except Exception as e:
+            logger.error(f"❌ Failed to send email to owner: {str(e)}")
+        
+        # Email to client (only if email provided)
+        if client_email:
+            client_subject = "Potvrda rezervacije — Bua Luang Thai Spa"
+            client_msg = MIMEMultipart()
+            client_msg['From'] = smtp_from
+            client_msg['To'] = client_email
+            client_msg['Subject'] = client_subject
+            client_msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
+            
+            try:
+                await aiosmtplib.send(
+                    client_msg,
+                    hostname=smtp_host,
+                    port=smtp_port,
+                    username=smtp_user,
+                    password=smtp_password,
+                    start_tls=True
+                )
+                logger.info(f"✅ Email sent to client: {client_email}")
+            except Exception as e:
+                logger.error(f"❌ Failed to send email to client: {str(e)}")
+        else:
+            logger.info("ℹ️ Client email not provided, skipping client notification")
+            
+    except Exception as e:
+        # Catch all errors to prevent blocking booking
+        logger.error(f"❌ Email sending failed (non-blocking): {str(e)}")
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
