@@ -127,6 +127,10 @@ class Appointment(AppointmentBase):
     snapshot_original_price: Optional[float] = None
     snapshot_discount_percentage: Optional[float] = None
     snapshot_discount_amount: Optional[float] = None
+    # Couples multi-service snapshot (for listing display)
+    person1_services_snapshot: Optional[List[Dict[str, Any]]] = None
+    person2_services_snapshot: Optional[List[Dict[str, Any]]] = None
+    pricing_breakdown: Optional[str] = None
 
 
 # ============================================
