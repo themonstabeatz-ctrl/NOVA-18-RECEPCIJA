@@ -1122,6 +1122,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
                 logger.error(f"❌ {error_msg}")
                 raise HTTPException(status_code=404, detail=error_msg)
         
+        # 🔒🔒🔒 CRITICAL LOCKED SECTION - DISCOUNT LOGIC 🔒🔒🔒
         # Use snapshot values from website payload (NO recalculation)
         logger.info(f"📸 COUPLE: Using snapshot from website payload")
         original_price = couple.original_price
@@ -1129,13 +1130,17 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         discount_percentage = couple.discount_percentage
         discount_amount = couple.discount_amount
         
-        # CRITICAL FIX: If discount_percentage is 0, ensure no discount is applied
+        # 🔒 CRITICAL FIX: If discount_percentage is 0, ensure NO DISCOUNT is applied
         # This fixes the "fake -15% discount" issue when website doesn't want discount
+        # COUPLES BOOKING WITHOUT DISCOUNT MUST HAVE:
+        # - discount_percentage = 0
+        # - final_price = original_price
         if discount_percentage == 0 or discount_percentage is None:
             logger.info(f"🔒 NO DISCOUNT requested - setting final price = original price")
             discounted_price = original_price
             discount_amount = 0
             discount_percentage = 0
+        # 🔒🔒🔒 END CRITICAL LOCKED SECTION 🔒🔒🔒
         
         # If service names weren't extracted yet (old format), get them from DB
         if not person1_service_names:
