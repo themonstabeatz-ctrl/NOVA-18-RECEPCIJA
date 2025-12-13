@@ -1048,10 +1048,15 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     return appointment_obj
 
 
+# 🔒🔒🔒 LOCKED ZONE START - COUPLES APPOINTMENT BOOKING 🔒🔒🔒
+# DO NOT MODIFY WITHOUT EXPLICIT OWNER APPROVAL
+# See: /app/LOCKDOWN_RULES.md
+# Backend is the ONLY source of truth for prices and discounts
+# Couples booking WITHOUT discount MUST have: discount_percentage = 0, final_price = original_price
 @api_router.post("/book-couple-appointment", response_model=Appointment)
 async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     """
-    Website-compatible couple appointment endpoint
+    🔒 LOCKED - Website-compatible couple appointment endpoint
     Therapist is NOT assigned here - receptionist assigns manually later
     
     ACCEPTS NEW FORMAT:
