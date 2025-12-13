@@ -1196,9 +1196,10 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         calculated_total = person1_total + person2_total
         logger.info(f"   CALCULATED TOTAL: {person1_total} + {person2_total} = {calculated_total} RSD")
         
-        # --- STRICT VALIDATION: ROUND PRICES ONLY (must end with 00) ---
-        # All our prices are round: 4400, 5600, 6800, etc.
-        # If price doesn't end with 00, it's a data error or mixing issue
+        # --- STRICT VALIDATION: ROUND PRICES (must end with 0) ---
+        # Our prices are round numbers: 4400, 5600, 6800, 3960, 6120, etc.
+        # They must end with 0 (divisible by 10)
+        # If price has decimals other than .0, it's a data error
         
         logger.info(f"🔍 STRICT VALIDATION - Checking round prices:")
         
@@ -1208,8 +1209,8 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         for sid in person1_service_ids:
             if sid in service_map:
                 price = float(service_map[sid].get('price', 0))
-                if price % 100 != 0:
-                    error_msg = f"Person1 service '{service_map[sid]['name']}' has non-round price: {price} RSD (must end with 00)"
+                if price % 10 != 0:
+                    error_msg = f"Person1 service '{service_map[sid]['name']}' has non-round price: {price} RSD (must end with 0)"
                     price_validation_errors.append(error_msg)
                     logger.error(f"❌ PRICE VALIDATION FAILED: {error_msg}")
                 else:
@@ -1219,16 +1220,16 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         for sid in person2_service_ids:
             if sid in service_map:
                 price = float(service_map[sid].get('price', 0))
-                if price % 100 != 0:
-                    error_msg = f"Person2 service '{service_map[sid]['name']}' has non-round price: {price} RSD (must end with 00)"
+                if price % 10 != 0:
+                    error_msg = f"Person2 service '{service_map[sid]['name']}' has non-round price: {price} RSD (must end with 0)"
                     price_validation_errors.append(error_msg)
                     logger.error(f"❌ PRICE VALIDATION FAILED: {error_msg}")
                 else:
                     logger.info(f"   ✅ Person2: {price} RSD - Round price OK")
         
         # Check calculated total
-        if calculated_total % 100 != 0:
-            error_msg = f"Calculated total {calculated_total} RSD does NOT end with 00 - Data mixing or error!"
+        if calculated_total % 10 != 0:
+            error_msg = f"Calculated total {calculated_total} RSD does NOT end with 0 - Data mixing or error!"
             price_validation_errors.append(error_msg)
             logger.error(f"❌ TOTAL PRICE VALIDATION FAILED: {error_msg}")
         else:
@@ -1243,12 +1244,12 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
                 status_code=400,
                 detail={
                     "error": "COUPLES_PRICING_VALIDATION_FAILED",
-                    "message": "All prices must be round (ending with 00). Non-round prices indicate data mixing or errors.",
+                    "message": "All prices must be round (ending with 0). Non-round prices indicate data mixing or errors.",
                     "validation_errors": price_validation_errors
                 }
             )
         
-        logger.info(f"✅ PRICE VALIDATION PASSED - All prices are round (end with 00)")
+        logger.info(f"✅ PRICE VALIDATION PASSED - All prices are round (end with 0)")
         
         # --- DETERMINE PRICE SOURCE ---
         # Priority 1: If website sends original_price, verify it matches calculation
