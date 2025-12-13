@@ -191,12 +191,12 @@ class CoupleAppointmentWebsite(BaseModel):
     person1_services: Union[List[str], List[CoupleServiceItem]]
     person2_services: Union[List[str], List[CoupleServiceItem]]
     
-    # Category and pricing snapshot (provided by website)
+    # Category and pricing snapshot (optional - backend can calculate from components)
     category: str = "Kartica masaza za parove"
-    original_price: float
-    final_price: float
-    discount_percentage: float
-    discount_amount: float
+    original_price: Optional[float] = None  # If not provided, backend calculates from components
+    final_price: Optional[float] = None  # If not provided, backend calculates from components
+    discount_percentage: Optional[float] = 0  # Default 0 if not provided
+    discount_amount: Optional[float] = 0  # Default 0 if not provided
     is_couples_booking: bool = True
     
     # Old fields for backward compatibility (optional)
