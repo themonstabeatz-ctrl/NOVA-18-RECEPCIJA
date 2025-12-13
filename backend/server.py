@@ -173,8 +173,8 @@ class CoupleServiceItem(BaseModel):
     service_id: str
     name: str
     duration: int
-    original_price: float
-    final_price: float
+    original_price: Optional[float] = None  # Optional - backend can fetch from DB
+    final_price: Optional[float] = None  # Optional - backend can calculate
 
 # Website compatible model - therapist_id is optional, assigned manually by receptionist later
 class CoupleAppointmentWebsite(BaseModel):
