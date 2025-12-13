@@ -1298,9 +1298,63 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         discount_percentage = applied_discount
         discount_amount = snap_discount_amount
         
-        logger.info(f"✅ FINAL SNAPSHOT: discount={discount_percentage}%, original={original_price}, final={discounted_price}")
-        logger.info(f"✅ BREAKDOWN: Person1({person1_total}) + Person2({person2_total}) = {original_price} RSD")
-        # 🔒🔒🔒 END CRITICAL LOCKED SECTION 🔒🔒🔒
+        # --- STRICT VALIDATION: NO DISCOUNT FOR COUPLES ---
+        # Couples bookings currently do NOT support discounts
+        # discount_percentage MUST be 0
+        
+        if discount_percentage != 0:
+            error_msg = f"Couples booking has discount {discount_percentage}% but discounts are NOT currently supported"
+            logger.error(f"❌ DISCOUNT VALIDATION FAILED: {error_msg}")
+            logger.error(f"🚨 REFUSING TO CREATE APPOINTMENT - Discount policy violation")
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "COUPLES_DISCOUNT_NOT_SUPPORTED",
+                    "message": "Couples bookings currently do not support discounts",
+                    "received_discount": discount_percentage
+                }
+            )
+        
+        logger.info(f"✅ DISCOUNT VALIDATION PASSED - No discount applied (discount = 0)")
+        
+        # --- DEBUG LOG: COMPLETE BOOKING BREAKDOWN ---
+        logger.info(f"")
+        logger.info(f"📋 ===== COUPLES BOOKING COMPLETE BREAKDOWN =====")
+        logger.info(f"   Appointment Type: COUPLES / MASAŽA ZA PAROVE")
+        logger.info(f"   ")
+        logger.info(f"   Person1 Services:")
+        for sid in person1_service_ids:
+            if sid in service_map:
+                svc = service_map[sid]
+                logger.info(f"     - ID: {sid}")
+                logger.info(f"       Name: {svc['name']}")
+                logger.info(f"       Price: {svc['price']} RSD")
+                logger.info(f"       [PAROVI] prefix: ✅")
+        logger.info(f"   Person1 Subtotal: {person1_total} RSD")
+        logger.info(f"   ")
+        logger.info(f"   Person2 Services:")
+        for sid in person2_service_ids:
+            if sid in service_map:
+                svc = service_map[sid]
+                logger.info(f"     - ID: {sid}")
+                logger.info(f"       Name: {svc['name']}")
+                logger.info(f"       Price: {svc['price']} RSD")
+                logger.info(f"       [PAROVI] prefix: ✅")
+        logger.info(f"   Person2 Subtotal: {person2_total} RSD")
+        logger.info(f"   ")
+        logger.info(f"   FINAL FORMULA: {person1_total} + {person2_total} = {original_price} RSD")
+        logger.info(f"   Discount: {discount_percentage}% (0 - NO DISCOUNT)")
+        logger.info(f"   Final Price: {discounted_price} RSD")
+        logger.info(f"   ")
+        logger.info(f"   ✅ All validations passed:")
+        logger.info(f"      ✅ [PAROVI] prefix on all services")
+        logger.info(f"      ✅ Round prices (ending with 00)")
+        logger.info(f"      ✅ No discount applied")
+        logger.info(f"      ✅ Price calculated from components")
+        logger.info(f"📋 ===============================================")
+        logger.info(f"")
+        
+        # 🔒🔒🔒 END CRITICAL LOCKED SECTION - STRICT PRICING RULES 🔒🔒🔒
         
         # If service names weren't extracted yet (old format), get them from DB
         if not person1_service_names:
