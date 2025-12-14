@@ -239,9 +239,40 @@ const Navbar = () => {
                         <div className="mt-3 space-y-2 bg-amber-50 p-3 rounded-lg">
                           <div className="flex items-start gap-2">
                             <span className="text-amber-700 font-semibold">💆‍♀️ Usluga:</span>
-                            <span className="font-medium text-gray-800 flex-1">
-                              {notification.service_name || 'N/A'}
-                            </span>
+                            <div className="font-medium text-gray-800 flex-1">
+                              {/* COUPLES BOOKING: Show all services from snapshot */}
+                              {notification.is_couples_booking && (notification.person1_services_snapshot || notification.person2_services_snapshot) ? (
+                                <div className="space-y-2">
+                                  {notification.person1_services_snapshot && notification.person1_services_snapshot.length > 0 && (
+                                    <div>
+                                      <span className="text-xs text-amber-600 font-semibold">Osoba 1:</span>
+                                      <ul className="list-disc list-inside text-sm">
+                                        {notification.person1_services_snapshot.map((svc, idx) => (
+                                          <li key={`p1-${idx}`}>{svc.name} - {svc.duration}min ({svc.price?.toLocaleString()} RSD)</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  {notification.person2_services_snapshot && notification.person2_services_snapshot.length > 0 && (
+                                    <div>
+                                      <span className="text-xs text-amber-600 font-semibold">Osoba 2:</span>
+                                      <ul className="list-disc list-inside text-sm">
+                                        {notification.person2_services_snapshot.map((svc, idx) => (
+                                          <li key={`p2-${idx}`}>{svc.name} - {svc.duration}min ({svc.price?.toLocaleString()} RSD)</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  {notification.pricing_breakdown && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      Breakdown: {notification.pricing_breakdown}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span>{notification.service_name || 'N/A'}</span>
+                              )}
+                            </div>
                           </div>
                           
                           <div className="flex items-center gap-2">
