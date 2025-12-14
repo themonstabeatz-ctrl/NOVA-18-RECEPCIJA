@@ -1805,7 +1805,7 @@ async def get_unviewed_appointments():
         therapist = therapist_map.get(apt.get('therapist_id'))
         therapist_name = therapist.get('name') if therapist else None
         
-        # Build clean response object
+        # Build clean response object with couples snapshot data
         result.append({
             'id': apt.get('id'),
             'client_first_name': apt.get('client_first_name'),
@@ -1825,7 +1825,13 @@ async def get_unviewed_appointments():
             'end_time': end_time.isoformat() if end_time else None,
             'created_at': created_at.isoformat() if created_at else None,
             'status': apt.get('status'),
-            'is_viewed': apt.get('is_viewed', False)
+            'is_viewed': apt.get('is_viewed', False),
+            # Couples booking snapshot data - CRITICAL for multi-service display
+            'is_couples_booking': apt.get('is_couples_booking', False),
+            'person1_services_snapshot': apt.get('person1_services_snapshot'),
+            'person2_services_snapshot': apt.get('person2_services_snapshot'),
+            'pricing_breakdown': apt.get('pricing_breakdown'),
+            'snapshot_discount_amount': apt.get('snapshot_discount_amount', 0)
         })
     
     return result
