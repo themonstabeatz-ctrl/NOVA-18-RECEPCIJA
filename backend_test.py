@@ -1689,78 +1689,106 @@ def check_frontend_build_and_deployment():
     return True
 
 if __name__ == "__main__":
-    print("🎯 SERBIAN REVIEW REQUEST - REGULAR MASSAGE BOOKING TEST")
-    print("PROBLEM: 'ZAKAZITE' dugme na običnim masažama NE RADI UOPŠTE")
-    print("Testing backend APIs and investigating frontend integration...")
+    print("🎯 COUPLES MULTI-SERVICE BOOKING AND DISCOUNT DISPLAY FIXES TEST")
+    print("REVIEW REQUEST: Test couples booking with 4 services, 3 services, and discount analytics")
+    print("Testing backend APIs for couples multi-service functionality...")
     print()
     
-    # Test regular massage booking API
-    regular_booking_success = test_regular_massage_booking_api()
+    # Test Scenario 1: Couples booking with 4 services (no therapist)
+    test1_success = test_couples_4_services_no_therapist()
     print()
     
-    # Test contact form integration
-    contact_form_success = test_contact_form_integration()
+    # Test Scenario 2: Couples booking with 3 services (mixed durations)
+    test2_success = test_couples_3_services_mixed_durations()
     print()
     
-    # Check frontend build and deployment
-    frontend_check_success = check_frontend_build_and_deployment()
+    # Test Scenario 3: Analytics verification for discounts
+    test3_success = test_analytics_detailed_discounts()
     print()
     
-    # Check backend logs
-    logs_success = test_backend_logs_check()
+    # Additional comprehensive tests
+    print("=" * 80)
+    print("ADDITIONAL COMPREHENSIVE TESTS")
+    print("=" * 80)
+    
+    # Test couple appointment endpoint (existing test)
+    couple_endpoint_success = test_couple_appointment_endpoint()
+    print()
+    
+    # Test analytics revenue with discounts
+    analytics_success = test_analytics_revenue_with_discounts()
+    print()
+    
+    # Test services discount endpoint
+    services_success = test_services_discount_endpoint()
+    print()
     
     print("\n" + "=" * 100)
-    print("🎯 SERBIAN REVIEW REQUEST - OVERALL TEST RESULTS")
+    print("🎯 COUPLES MULTI-SERVICE BOOKING - OVERALL TEST RESULTS")
     print("=" * 100)
     
-    if regular_booking_success:
-        print("✅ Regular Massage Booking API: WORKING")
+    if test1_success:
+        print("✅ Test 1 - Couples 4 Services (No Therapist): PASSED")
     else:
-        print("❌ Regular Massage Booking API: FAILED")
+        print("❌ Test 1 - Couples 4 Services (No Therapist): FAILED")
     
-    if contact_form_success:
-        print("✅ Contact Form Integration Check: COMPLETED")
+    if test2_success:
+        print("✅ Test 2 - Couples 3 Services (Mixed Durations): PASSED")
     else:
-        print("❌ Contact Form Integration Check: FAILED")
+        print("❌ Test 2 - Couples 3 Services (Mixed Durations): FAILED")
     
-    if frontend_check_success:
-        print("✅ Frontend Build/Deployment Check: COMPLETED")
+    if test3_success:
+        print("✅ Test 3 - Analytics Discount Verification: PASSED")
     else:
-        print("❌ Frontend Build/Deployment Check: FAILED")
+        print("❌ Test 3 - Analytics Discount Verification: FAILED")
     
-    if logs_success:
-        print("✅ Backend Logs Check: COMPLETED")
+    if couple_endpoint_success:
+        print("✅ Additional - Couple Endpoint Tests: PASSED")
     else:
-        print("❌ Backend Logs Check: FAILED")
+        print("❌ Additional - Couple Endpoint Tests: FAILED")
+    
+    if analytics_success:
+        print("✅ Additional - Analytics Revenue Tests: PASSED")
+    else:
+        print("❌ Additional - Analytics Revenue Tests: FAILED")
+    
+    if services_success:
+        print("✅ Additional - Services Discount Tests: PASSED")
+    else:
+        print("❌ Additional - Services Discount Tests: FAILED")
     
     print("=" * 100)
     
-    # Provide specific diagnosis and recommendations
-    print("\n🔧 DIAGNOSIS AND RECOMMENDATIONS:")
+    # Count critical vs additional test results
+    critical_tests_passed = sum([test1_success, test2_success, test3_success])
+    additional_tests_passed = sum([couple_endpoint_success, analytics_success, services_success])
     
-    if regular_booking_success:
-        print("✅ BACKEND APIs are working correctly:")
-        print("   - GET /api/services/single/list returns regular massage services")
-        print("   - GET /api/therapists returns available therapists")
-        print("   - POST /api/appointments successfully creates appointments")
-        print("   - Snapshot mechanism preserves pricing data")
+    print(f"\n📊 TEST SUMMARY:")
+    print(f"   Critical Tests: {critical_tests_passed}/3 passed")
+    print(f"   Additional Tests: {additional_tests_passed}/3 passed")
+    print(f"   Overall Success Rate: {(critical_tests_passed + additional_tests_passed)}/6 ({((critical_tests_passed + additional_tests_passed)/6)*100:.1f}%)")
+    
+    if critical_tests_passed == 3:
+        print("\n🎉 ALL CRITICAL TESTS PASSED!")
+        print("✅ Couples multi-service booking functionality is working correctly")
+        print("✅ Discount display and analytics are functioning properly")
+        print("✅ Backend APIs handle couples bookings with multiple services")
     else:
-        print("❌ BACKEND API issues detected - need to fix backend first")
-    
-    print("\n💡 LIKELY ROOT CAUSE:")
-    print("   Based on the issue description 'ZAKAZITE dugme ne reaguje', the problem is likely:")
-    print("   1. Contact form is not properly integrated with backend API")
-    print("   2. Frontend JavaScript is not sending POST requests to /api/appointments")
-    print("   3. Button click handler is missing or broken")
-    print("   4. Frontend build is outdated and doesn't include latest Contact.js changes")
+        print(f"\n❌ {3 - critical_tests_passed} CRITICAL TESTS FAILED!")
+        print("🔧 Issues detected in couples multi-service booking functionality")
     
     print("\n🔍 NEXT STEPS FOR MAIN AGENT:")
-    print("   1. ✅ Backend APIs are confirmed working")
-    print("   2. 🔧 Check Contact.js form submission - ensure it calls POST /api/appointments")
-    print("   3. 🔧 Verify ZAKAZITE button click handlers are properly connected")
-    print("   4. 🔧 Test frontend build and deployment process")
-    print("   5. 🔧 Check browser console for JavaScript errors on button click")
+    if critical_tests_passed == 3:
+        print("   1. ✅ Backend couples multi-service booking is working correctly")
+        print("   2. ✅ Discount calculations and analytics are functional")
+        print("   3. 🔧 Proceed with frontend verification (screenshot testing)")
+        print("   4. 🔧 Test complete end-to-end user flow")
+    else:
+        print("   1. 🔧 Fix failing backend API endpoints for couples booking")
+        print("   2. 🔧 Verify service ID mappings and database consistency")
+        print("   3. 🔧 Check discount calculation logic")
+        print("   4. 🔧 Review analytics endpoint implementation")
     
-    # Exit with appropriate code
-    all_success = regular_booking_success and contact_form_success and frontend_check_success
-    sys.exit(0 if all_success else 1)
+    # Exit with appropriate code - prioritize critical tests
+    all_critical_success = critical_tests_passed == 3
+    sys.exit(0 if all_critical_success else 1)
