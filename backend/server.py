@@ -1477,6 +1477,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
             "status": AppointmentStatus.SCHEDULED,
             "body_map_gender": None,
             "body_map_points": [],
+            "is_couples_booking": True,  # CRITICAL: Flag for couples booking
             # CRITICAL: Add snapshot fields to appointment object
             "snapshot_price": discounted_price,
             "snapshot_original_price": original_price,
