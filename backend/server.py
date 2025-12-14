@@ -1027,6 +1027,31 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     # Store couple service details
     await db.services.insert_one(couple_service)
     
+    # Build person services snapshot
+    person1_services_snapshot = []
+    for service_id in couple.person1_services:
+        svc = service_map[service_id]
+        person1_services_snapshot.append({
+            "id": service_id,
+            "name": svc['name'],
+            "duration": svc.get('duration', couple.duration_type),
+            "price": svc['price']
+        })
+    
+    person2_services_snapshot = []
+    for service_id in couple.person2_services:
+        svc = service_map[service_id]
+        person2_services_snapshot.append({
+            "id": service_id,
+            "name": svc['name'],
+            "duration": svc.get('duration', couple.duration_type),
+            "price": svc['price']
+        })
+    
+    # Calculate person totals for breakdown
+    person1_total = sum(service_map[sid]['price'] for sid in couple.person1_services)
+    person2_total = sum(service_map[sid]['price'] for sid in couple.person2_services)
+    
     # Create appointment with couple service and snapshot data
     appointment_dict = {
         "client_first_name": couple.client_first_name,
@@ -1040,10 +1065,16 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
         "status": couple.status,
         "body_map_gender": None,
         "body_map_points": [],
+        "is_couples_booking": True,  # CRITICAL: Flag for couples booking
         # CRITICAL: Add snapshot fields to appointment object
         "snapshot_price": discounted_price,
         "snapshot_original_price": original_price,
-        "snapshot_discount_percentage": discount_percentage
+        "snapshot_discount_percentage": discount_percentage,
+        "snapshot_discount_amount": original_price - discounted_price if discount_percentage > 0 else 0,
+        # COUPLES MULTI-SERVICE SNAPSHOT: Store ALL selected services
+        "person1_services_snapshot": person1_services_snapshot,
+        "person2_services_snapshot": person2_services_snapshot,
+        "pricing_breakdown": f"{person1_total} + {person2_total} = {original_price}"
     }
     
     appointment_obj = Appointment(**appointment_dict)
