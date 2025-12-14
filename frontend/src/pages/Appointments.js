@@ -687,13 +687,42 @@ const Appointments = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <div>
-                            <div className="text-sm text-gray-900">
-                              {getServiceName(appointment.service_id)}
-                            </div>
-                            {getServiceDescription(appointment.service_id) && (
-                              <div className="text-xs text-gray-600 mt-1">
-                                {getServiceDescription(appointment.service_id)}
+                          <div className="flex-1">
+                            {/* COUPLES BOOKING: Show all services from snapshot */}
+                            {appointment.is_couples_booking && (appointment.person1_services_snapshot || appointment.person2_services_snapshot) ? (
+                              <div className="space-y-1">
+                                {appointment.person1_services_snapshot && appointment.person1_services_snapshot.length > 0 && (
+                                  <div>
+                                    <span className="text-xs text-amber-600 font-semibold">Osoba 1: </span>
+                                    <span className="text-sm text-gray-900">
+                                      {appointment.person1_services_snapshot.map(s => `${s.name}`).join(' + ')}
+                                    </span>
+                                  </div>
+                                )}
+                                {appointment.person2_services_snapshot && appointment.person2_services_snapshot.length > 0 && (
+                                  <div>
+                                    <span className="text-xs text-amber-600 font-semibold">Osoba 2: </span>
+                                    <span className="text-sm text-gray-900">
+                                      {appointment.person2_services_snapshot.map(s => `${s.name}`).join(' + ')}
+                                    </span>
+                                  </div>
+                                )}
+                                {appointment.pricing_breakdown && (
+                                  <div className="text-xs text-gray-500">
+                                    ({appointment.pricing_breakdown})
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="text-sm text-gray-900">
+                                  {getServiceName(appointment.service_id)}
+                                </div>
+                                {getServiceDescription(appointment.service_id) && (
+                                  <div className="text-xs text-gray-600 mt-1">
+                                    {getServiceDescription(appointment.service_id)}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
