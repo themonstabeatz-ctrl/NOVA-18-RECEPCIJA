@@ -949,10 +949,12 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     logger.info(f"Couple appointment request - duration_type: {couple.duration_type}, person1_services: {couple.person1_services}, person2_services: {couple.person2_services}")
     logger.info(f"🔍 OLD ENDPOINT - DISCOUNT FROM WEBSITE: {couple.discount_couples_massage}%")
     
-    # Verify therapist exists
-    therapist = await db.therapists.find_one({"id": couple.therapist_id})
-    if not therapist:
-        raise HTTPException(status_code=404, detail="Therapist not found")
+    # Verify therapist exists ONLY if provided (therapist_id is OPTIONAL for online booking)
+    therapist = None
+    if couple.therapist_id:
+        therapist = await db.therapists.find_one({"id": couple.therapist_id})
+        if not therapist:
+            raise HTTPException(status_code=404, detail="Therapist not found")
     
     # Fetch all services for both persons
     all_service_ids = couple.person1_services + couple.person2_services
