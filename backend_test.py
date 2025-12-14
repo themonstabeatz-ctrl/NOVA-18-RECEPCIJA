@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Spa & Massage Booking System
-Testing regular massage booking functionality - SERBIAN REVIEW REQUEST
-ISSUE: "ZAKAZITE" button on regular massages not working on production website
+Testing couples multi-service booking and discount display fixes
+REVIEW REQUEST: Test couples booking with 4 services, 3 services, and discount analytics
 """
 
 import requests
