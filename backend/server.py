@@ -738,6 +738,42 @@ async def create_appointment(appointment: AppointmentCreate):
     - body_map_gender (optional)
     - body_map_points (optional)
     """
+    # 🛡️ COUPLES PROTECTION: Block couples bookings on this endpoint
+    # Couples MUST use /api/appointments/couple to get proper snapshot data
+    raw_data = appointment.model_dump()
+    
+    # Check for couples indicators in payload
+    is_couples_attempt = False
+    couples_indicators = []
+    
+    if raw_data.get('booking_type') == 'COUPLES':
+        is_couples_attempt = True
+        couples_indicators.append('booking_type=COUPLES')
+    
+    if raw_data.get('person1_services') or raw_data.get('person2_services'):
+        is_couples_attempt = True
+        couples_indicators.append('person1/person2_services present')
+    
+    if raw_data.get('is_couples_booking') == True:
+        is_couples_attempt = True
+        couples_indicators.append('is_couples_booking=True')
+    
+    # Also check if selected service is a couples service
+    service_check = await db.services.find_one({"id": appointment.service_id})
+    if service_check:
+        service_name = service_check.get('name', '').lower()
+        service_category = service_check.get('category', '').lower()
+        if 'parovi' in service_name or 'couple' in service_category or service_check.get('is_couple') == True:
+            is_couples_attempt = True
+            couples_indicators.append(f'service is couples: {service_check.get("name")}')
+    
+    if is_couples_attempt:
+        logger.warning(f"🛡️ BLOCKED: Couples booking attempted on /api/appointments. Indicators: {couples_indicators}")
+        raise HTTPException(
+            status_code=400,
+            detail="COUPLES bookings must use /api/appointments/couple endpoint to ensure proper snapshot data (person1_services_snapshot, person2_services_snapshot, pricing_breakdown)"
+        )
+    
     # Verify therapist exists (only if provided)
     if appointment.therapist_id:
         therapist = await db.therapists.find_one({"id": appointment.therapist_id})
