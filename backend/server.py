@@ -122,6 +122,7 @@ class Appointment(AppointmentBase):
     end_time: datetime
     created_at: datetime = Field(default_factory=lambda: datetime.now())
     is_viewed: bool = False  # Flag for notifications
+    is_couples_booking: bool = False  # Flag for couples multi-service bookings
     # Snapshot fields for price history (prevents retroactive price changes)
     snapshot_price: Optional[float] = None
     snapshot_original_price: Optional[float] = None
