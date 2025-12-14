@@ -864,10 +864,12 @@ async def update_couple_discount(settings: CoupleSettingsUpdate):
 @api_router.post("/appointments/couple/v2", response_model=Appointment)
 async def create_couple_appointment_v2(couple: CoupleAppointmentCreate):
     """Create a couple appointment with detailed person data and custom discount"""
-    # Verify therapist exists
-    therapist = await db.therapists.find_one({"id": couple.therapist_id})
-    if not therapist:
-        raise HTTPException(status_code=404, detail="Therapist not found")
+    # Verify therapist exists ONLY if provided (therapist_id is OPTIONAL for online booking)
+    therapist = None
+    if couple.therapist_id:
+        therapist = await db.therapists.find_one({"id": couple.therapist_id})
+        if not therapist:
+            raise HTTPException(status_code=404, detail="Therapist not found")
     
     # Remove timezone info if present
     start_time = couple.start_time.replace(tzinfo=None) if couple.start_time.tzinfo else couple.start_time
