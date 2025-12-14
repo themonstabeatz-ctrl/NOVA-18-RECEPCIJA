@@ -1022,41 +1022,23 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     discount_percentage = couple.discount_couples_massage if couple.discount_couples_massage else 0.0
     original_price = total_price
     
-    # 🔒 LOCK: Validate prices are rounded (end in 00)
+    # 🔒 LOCK: Validate SERVICE prices are rounded (end in 00)
+    # Original price (sum of services) MUST end in 00
     if original_price % 100 != 0:
         logger.error(f"🔒 LOCK VIOLATION: original_price {original_price} not rounded to 00")
         raise HTTPException(
             status_code=400,
-            detail=f"PRICE LOCK: Original price {original_price} RSD must end in 00. All prices must be rounded to hundreds."
+            detail=f"PRICE LOCK: Original price {original_price} RSD must end in 00. Check service prices."
         )
     
     # Calculate discounted price
     if discount_percentage > 0:
         discounted_price = total_price * (1 - discount_percentage / 100)
-        # Round to nearest 100 if discount creates non-round number
-        # BUT only if it's very close to a round number (within 1 RSD)
-        # Otherwise, discount percentages that don't produce round numbers are invalid
-        if discounted_price % 100 != 0:
-            # Check if it's a valid discount (produces round number)
-            rounded = round(discounted_price / 100) * 100
-            if abs(discounted_price - rounded) < 1:
-                discounted_price = rounded
-            else:
-                logger.error(f"🔒 LOCK VIOLATION: discount {discount_percentage}% produces non-round final price {discounted_price}")
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"PRICE LOCK: Discount {discount_percentage}% produces non-round final price {discounted_price} RSD. Final price must end in 00."
-                )
     else:
         discounted_price = total_price
     
-    # Final validation
-    if discounted_price % 100 != 0:
-        logger.error(f"🔒 LOCK VIOLATION: final price {discounted_price} not rounded to 00")
-        raise HTTPException(
-            status_code=400,
-            detail=f"PRICE LOCK: Final price {discounted_price} RSD must end in 00."
-        )
+    # Note: Final price after discount may not end in 00 (e.g., 8800 * 0.9 = 7920)
+    # This is acceptable as long as original price ends in 00
     
     # Calculate total duration (both persons are serviced simultaneously - together at the same time)
     total_duration = couple.duration_type  # 60, 90, or 120 minutes (they go together, not one after another)
