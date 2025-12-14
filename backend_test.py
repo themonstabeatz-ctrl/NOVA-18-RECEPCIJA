@@ -16,6 +16,256 @@ BACKEND_URL = "https://massage-booking-fix.preview.emergentagent.com/api"
 PRODUCTION_BACKEND_URL = "https://thai-spa-booking.emergent.host/api"
 WEBSITE_URL = "https://massage-booking-fix.preview.emergentagent.com"
 
+def test_couples_4_services_no_therapist():
+    """
+    Test Scenario 1: Couples booking with 4 services (no therapist)
+    POST /api/appointments/couple with Person1: 2 services, Person2: 2 services
+    Expected: HTTP 200, therapist_id: null, is_couples_booking: true, all services in snapshot
+    """
+    
+    print("=" * 80)
+    print("TEST SCENARIO 1: COUPLES BOOKING WITH 4 SERVICES (NO THERAPIST)")
+    print("=" * 80)
+    
+    # Test data from review request
+    request_data = {
+        "client_first_name": "TEST",
+        "client_last_name": "4SERVICES",
+        "client_phone": "+381601234567",
+        "client_email": "test@4services.com",
+        "start_time": "2025-12-16T10:00:00",
+        "duration_type": 60,
+        "person1_services": ["fa7890e9-fa1d-4cf5-a18a-086eb7d98c55", "df52cf25-beb8-45e9-9590-6c59b488b8c9"],
+        "person2_services": ["fa7890e9-fa1d-4cf5-a18a-086eb7d98c55", "df52cf25-beb8-45e9-9590-6c59b488b8c9"],
+        "discount_couples_massage": 10
+    }
+    
+    print(f"Request Data:")
+    print(json.dumps(request_data, indent=2))
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/appointments/couple",
+            json=request_data,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        print(f"\nResponse Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        appointment_data = response.json()
+        print(f"✅ SUCCESS: Appointment created")
+        
+        # Verify expected response fields
+        expected_checks = [
+            ("therapist_id", None, "therapist_id should be null"),
+            ("is_couples_booking", True, "is_couples_booking should be true"),
+            ("snapshot_discount_percentage", 10.0, "discount should be 10%")
+        ]
+        
+        all_checks_passed = True
+        
+        for field, expected_value, description in expected_checks:
+            actual_value = appointment_data.get(field)
+            if actual_value == expected_value:
+                print(f"✅ {description}: {actual_value}")
+            else:
+                print(f"❌ {description}: Expected {expected_value}, got {actual_value}")
+                all_checks_passed = False
+        
+        # Check person1_services_snapshot
+        person1_snapshot = appointment_data.get('person1_services_snapshot', [])
+        if len(person1_snapshot) == 2:
+            print(f"✅ person1_services_snapshot contains 2 services")
+            for i, service in enumerate(person1_snapshot):
+                print(f"   Service {i+1}: {service.get('name')} (ID: {service.get('id')})")
+        else:
+            print(f"❌ person1_services_snapshot should contain 2 services, got {len(person1_snapshot)}")
+            all_checks_passed = False
+        
+        # Check person2_services_snapshot
+        person2_snapshot = appointment_data.get('person2_services_snapshot', [])
+        if len(person2_snapshot) == 2:
+            print(f"✅ person2_services_snapshot contains 2 services")
+            for i, service in enumerate(person2_snapshot):
+                print(f"   Service {i+1}: {service.get('name')} (ID: {service.get('id')})")
+        else:
+            print(f"❌ person2_services_snapshot should contain 2 services, got {len(person2_snapshot)}")
+            all_checks_passed = False
+        
+        # Check pricing_breakdown is not null
+        pricing_breakdown = appointment_data.get('pricing_breakdown')
+        if pricing_breakdown is not None:
+            print(f"✅ pricing_breakdown is present: {pricing_breakdown}")
+        else:
+            print(f"❌ pricing_breakdown should not be null")
+            all_checks_passed = False
+        
+        return all_checks_passed
+        
+    except Exception as e:
+        print(f"❌ ERROR during test: {e}")
+        return False
+
+def test_couples_3_services_mixed_durations():
+    """
+    Test Scenario 2: Couples booking with 3 services (mixed durations)
+    POST /api/appointments/couple with Person1: 1 service (120min), Person2: 2 services (60min each)
+    Expected: HTTP 200, correct service counts, no discount
+    """
+    
+    print("=" * 80)
+    print("TEST SCENARIO 2: COUPLES BOOKING WITH 3 SERVICES (MIXED DURATIONS)")
+    print("=" * 80)
+    
+    # Test data from review request
+    request_data = {
+        "client_first_name": "TEST",
+        "client_last_name": "3SERVICES",
+        "client_phone": "+381607777777",
+        "client_email": "test@3services.com",
+        "start_time": "2025-12-16T12:00:00",
+        "duration_type": 60,
+        "person1_services": ["ae297569-07a8-4cd3-b414-f403abc137e2"],
+        "person2_services": ["fa7890e9-fa1d-4cf5-a18a-086eb7d98c55", "df52cf25-beb8-45e9-9590-6c59b488b8c9"],
+        "discount_couples_massage": 0
+    }
+    
+    print(f"Request Data:")
+    print(json.dumps(request_data, indent=2))
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/appointments/couple",
+            json=request_data,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        print(f"\nResponse Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        appointment_data = response.json()
+        print(f"✅ SUCCESS: Appointment created")
+        
+        all_checks_passed = True
+        
+        # Check person1_services_snapshot (should have 1 service - 120min)
+        person1_snapshot = appointment_data.get('person1_services_snapshot', [])
+        if len(person1_snapshot) == 1:
+            print(f"✅ person1_services_snapshot contains 1 service (120min)")
+            service = person1_snapshot[0]
+            print(f"   Service: {service.get('name')} (Duration: {service.get('duration')}min)")
+        else:
+            print(f"❌ person1_services_snapshot should contain 1 service, got {len(person1_snapshot)}")
+            all_checks_passed = False
+        
+        # Check person2_services_snapshot (should have 2 services - 60min each)
+        person2_snapshot = appointment_data.get('person2_services_snapshot', [])
+        if len(person2_snapshot) == 2:
+            print(f"✅ person2_services_snapshot contains 2 services (60min each)")
+            for i, service in enumerate(person2_snapshot):
+                print(f"   Service {i+1}: {service.get('name')} (Duration: {service.get('duration')}min)")
+        else:
+            print(f"❌ person2_services_snapshot should contain 2 services, got {len(person2_snapshot)}")
+            all_checks_passed = False
+        
+        # Check no discount applied
+        discount_percentage = appointment_data.get('snapshot_discount_percentage', 0)
+        if discount_percentage == 0.0:
+            print(f"✅ No discount applied: {discount_percentage}%")
+        else:
+            print(f"❌ Expected no discount (0%), got {discount_percentage}%")
+            all_checks_passed = False
+        
+        return all_checks_passed
+        
+    except Exception as e:
+        print(f"❌ ERROR during test: {e}")
+        return False
+
+def test_analytics_detailed_discounts():
+    """
+    Test Scenario 3: Verify analytics include discounts
+    GET /api/analytics/detailed?period=month
+    Expected: total_discount_given > 0, appointments_with_discount array, by_category.couple.with_discount > 0
+    """
+    
+    print("=" * 80)
+    print("TEST SCENARIO 3: VERIFY ANALYTICS INCLUDE DISCOUNTS")
+    print("=" * 80)
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/analytics/detailed?period=month")
+        
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        analytics_data = response.json()
+        print(f"✅ SUCCESS: Analytics data retrieved")
+        
+        all_checks_passed = True
+        
+        # Check summary.total_discount_given > 0
+        summary = analytics_data.get('summary', {})
+        total_discount_given = summary.get('total_discount_given', 0)
+        
+        if total_discount_given > 0:
+            print(f"✅ total_discount_given > 0: {total_discount_given}")
+        else:
+            print(f"❌ total_discount_given should be > 0, got {total_discount_given}")
+            all_checks_passed = False
+        
+        # Check appointments_with_discount array has entries
+        appointments_with_discount = analytics_data.get('appointments_with_discount', [])
+        
+        if len(appointments_with_discount) > 0:
+            print(f"✅ appointments_with_discount has {len(appointments_with_discount)} entries")
+            # Show first few entries
+            for i, apt in enumerate(appointments_with_discount[:3]):
+                client_name = f"{apt.get('client_first_name', '')} {apt.get('client_last_name', '')}"
+                discount = apt.get('discount_percentage', 0)
+                print(f"   {i+1}. {client_name}: {discount}% discount")
+        else:
+            print(f"❌ appointments_with_discount should have entries, got {len(appointments_with_discount)}")
+            all_checks_passed = False
+        
+        # Check by_category.couple.with_discount > 0
+        by_category = analytics_data.get('by_category', {})
+        couple_category = by_category.get('couple', {})
+        couple_with_discount = couple_category.get('with_discount', 0)
+        
+        if couple_with_discount > 0:
+            print(f"✅ by_category.couple.with_discount > 0: {couple_with_discount}")
+        else:
+            print(f"❌ by_category.couple.with_discount should be > 0, got {couple_with_discount}")
+            all_checks_passed = False
+        
+        # Print full analytics summary for debugging
+        print(f"\nAnalytics Summary:")
+        print(f"  Total Revenue: {summary.get('total_revenue', 0)}")
+        print(f"  Total Appointments: {summary.get('total_appointments', 0)}")
+        print(f"  Total Discount Given: {summary.get('total_discount_given', 0)}")
+        print(f"  Couple Appointments: {couple_category.get('count', 0)}")
+        print(f"  Couple with Discount: {couple_category.get('with_discount', 0)}")
+        
+        return all_checks_passed
+        
+    except Exception as e:
+        print(f"❌ ERROR during analytics test: {e}")
+        return False
+
 def test_couple_appointment_endpoint():
     """Test the couple massage booking endpoint for all duration types"""
     
