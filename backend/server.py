@@ -1134,6 +1134,23 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     doc['created_at'] = doc['created_at'].isoformat()
     
     await db.appointments.insert_one(doc)
+    
+    # Send email notification (non-blocking)
+    try:
+        notes_text = f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}"
+        email_data = {
+            'client_first_name': couple.client_first_name,
+            'client_last_name': couple.client_last_name,
+            'client_phone': couple.client_phone,
+            'client_email': couple.client_email,
+            'start_time': appointment_obj.start_time,
+            'service_name': service_name,
+            'notes': notes_text
+        }
+        await send_booking_emails(email_data)
+    except Exception as e:
+        logger.error(f"Email notification failed for couples booking (non-blocking): {e}")
+    
     return appointment_obj
 
 
