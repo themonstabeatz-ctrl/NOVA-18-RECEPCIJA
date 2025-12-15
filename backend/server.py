@@ -2556,6 +2556,7 @@ async def send_booking_emails(appointment_data: dict):
         
     Note: This function will NOT raise exceptions to prevent blocking booking creation.
     """
+    logger.info(f"📧 EMAIL FUNCTION CALLED for: {appointment_data.get('client_email')}")
     try:
         # Get SMTP settings from environment
         smtp_host = os.environ.get('SMTP_HOST')
@@ -2564,6 +2565,8 @@ async def send_booking_emails(appointment_data: dict):
         smtp_password = os.environ.get('SMTP_PASSWORD')
         smtp_from = os.environ.get('SMTP_FROM', smtp_user)
         smtp_to_owner = os.environ.get('SMTP_TO_OWNER')
+        
+        logger.info(f"📧 SMTP Config: host={smtp_host}, port={smtp_port}, user={smtp_user}, password={'SET' if smtp_password else 'EMPTY'}")
         
         # Check if SMTP is configured
         if not smtp_host or not smtp_user or smtp_password == 'PLACEHOLDER_APP_PASSWORD':
