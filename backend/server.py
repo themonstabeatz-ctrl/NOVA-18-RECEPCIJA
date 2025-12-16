@@ -1634,7 +1634,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
                 logger.info(f"       [PAROVI] prefix: ✅")
         logger.info(f"   Person2 Subtotal: {person2_total} RSD")
         logger.info(f"   ")
-        logger.info(f"   FINAL FORMULA: {person1_total} + {person2_total} = {original_price} RSD")
+        logger.info(f"   FINAL FORMULA: {person1_total} + {person2_total} = {original_total} RSD")
         logger.info(f"   Discount: {discount_percentage}% (0 - NO DISCOUNT)")
         logger.info(f"   Final Price: {discounted_price} RSD")
         logger.info(f"   ")
