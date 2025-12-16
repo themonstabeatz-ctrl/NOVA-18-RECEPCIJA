@@ -2718,6 +2718,11 @@ async def send_booking_emails(appointment_data: dict):
                             <p style="color: #c9a227; margin: 0 0 10px 0; font-size: 14px;">
                                 📞 +381 62 625 500 | 📍 Abebe Bikile 10A
                             </p>
+                            <p style="margin: 15px 0 10px 0;">
+                                <a href="https://www.bualuangthaispa.rs" style="display: inline-block; background-color: #c9a227; color: #0d0d0d; text-decoration: none; padding: 10px 25px; border-radius: 5px; font-size: 14px; font-weight: bold;">
+                                    🌐 www.bualuangthaispa.rs
+                                </a>
+                            </p>
                             <p style="color: #ff69b4; margin: 10px 0 0 0; font-size: 18px;">
                                 🌸
                             </p>
