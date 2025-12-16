@@ -1145,13 +1145,8 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     start_time = couple.start_time.replace(tzinfo=None) if couple.start_time.tzinfo else couple.start_time
     end_time = start_time + timedelta(minutes=total_duration)
     
-    # Create service name description
-    if couple.duration_type == 60:
-        service_name = f"Masaža za parove - 120 min (2x60 min)"
-    elif couple.duration_type == 90:
-        service_name = f"Masaža za parove - 180 min (2x90 min)"
-    else:  # 120
-        service_name = f"Masaža za parove - 240 min (2x120 min)"
+    # Create service name description - duration_type IS the total appointment duration
+    service_name = f"Masaža za parove - {couple.duration_type} min"
     
     # Create a dummy service entry for couple package
     couple_service_id = str(uuid.uuid4())
