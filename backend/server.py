@@ -1807,7 +1807,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         logger.info(f"✅ Couple appointment created successfully: {appointment_obj.id}")
         logger.info(f"   Service ID: {couple_service_id}")
         logger.info(f"   Category: {category}")
-        logger.info(f"   Snapshot: original={original_price}, final={discounted_price}, discount={discount_percentage}%")
+        logger.info(f"   Snapshot: original={original_total}, final={discounted_price}, discount={discount_percentage}%")
         return appointment_obj
             
     except HTTPException as http_ex:
