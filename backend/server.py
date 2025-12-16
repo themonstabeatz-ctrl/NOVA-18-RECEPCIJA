@@ -1765,7 +1765,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
             "is_couples_booking": True,  # CRITICAL: Flag for couples booking
             # CRITICAL: Add snapshot fields to appointment object
             "snapshot_price": discounted_price,
-            "snapshot_original_price": original_price,
+            "snapshot_original_price": original_total,
             "snapshot_discount_percentage": discount_percentage,
             "snapshot_discount_amount": discount_amount,
             # COUPLES MULTI-SERVICE SNAPSHOT: Store ALL selected services
