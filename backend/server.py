@@ -911,11 +911,12 @@ async def create_couple_appointment_v2(couple: CoupleAppointmentCreate):
     # Remove timezone info if present
     start_time = couple.start_time.replace(tzinfo=None) if couple.start_time.tzinfo else couple.start_time
     
-    # Calculate total duration
-    total_duration = couple.person1_massage.duration + couple.person2_massage.duration
+    # Calculate total duration - both persons are serviced simultaneously (parallel)
+    # Duration is the MAX of the two (they finish when the longer one ends)
+    total_duration = max(couple.person1_massage.duration, couple.person2_massage.duration)
     end_time = start_time + timedelta(minutes=total_duration)
     
-    # Create service name description
+    # Create service name description - total_duration IS the appointment duration
     service_name = f"Masaža za parove - {total_duration} min"
     service_description = f"Osoba 1: {couple.person1_massage.massage_name} ({couple.person1_massage.duration} min) | Osoba 2: {couple.person2_massage.massage_name} ({couple.person2_massage.duration} min)"
     
