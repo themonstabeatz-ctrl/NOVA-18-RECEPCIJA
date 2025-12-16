@@ -2730,13 +2730,14 @@ Bua Luang Thai Spa
 🌐 {public_site}
 """
         
-        # Email to owner (ALWAYS send)
-        owner_subject = f"Nova rezervacija — {formatted_time} — {service_name}"
-        owner_msg = MIMEMultipart()
+        # Email to owner (ALWAYS send) - Plain text for quick reading
+        owner_subject = f"🔔 Nova rezervacija — {formatted_time} — {service_name}"
+        owner_msg = MIMEMultipart('alternative')
         owner_msg['From'] = smtp_from
         owner_msg['To'] = smtp_to_owner
         owner_msg['Subject'] = owner_subject
         owner_msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
+        owner_msg.attach(MIMEText(email_html, 'html', 'utf-8'))
         
         # Send to owner
         try:
@@ -2752,14 +2753,15 @@ Bua Luang Thai Spa
         except Exception as e:
             logger.error(f"❌ Failed to send email to owner: {str(e)}")
         
-        # Email to client (only if email provided)
+        # Email to client (only if email provided) - Beautiful HTML
         if client_email:
-            client_subject = "Potvrda rezervacije — Bua Luang Thai Spa"
-            client_msg = MIMEMultipart()
+            client_subject = "✨ Potvrda rezervacije — Bua Luang Thai Spa"
+            client_msg = MIMEMultipart('alternative')
             client_msg['From'] = smtp_from
             client_msg['To'] = client_email
             client_msg['Subject'] = client_subject
             client_msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
+            client_msg.attach(MIMEText(email_html, 'html', 'utf-8'))
             
             try:
                 await aiosmtplib.send(
