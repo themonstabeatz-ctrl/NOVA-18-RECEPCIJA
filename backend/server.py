@@ -2602,16 +2602,19 @@ async def send_booking_emails(appointment_data: dict):
         if isinstance(start_time, str):
             try:
                 start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
-                formatted_time = start_dt.strftime('%d.%m.%Y u %H:%M')
+                formatted_date = start_dt.strftime('%d.%m.%Y')
+                formatted_time_only = start_dt.strftime('%H:%M')
             except:
-                formatted_time = start_time
+                formatted_date = start_time
+                formatted_time_only = ""
         else:
-            formatted_time = start_time.strftime('%d.%m.%Y u %H:%M') if start_time else 'N/A'
+            formatted_date = start_time.strftime('%d.%m.%Y') if start_time else 'N/A'
+            formatted_time_only = start_time.strftime('%H:%M') if start_time else ''
         
         # Get public website URL from env
         public_site = os.environ.get('PUBLIC_WEBSITE_URL', 'https://www.bualuangthaispa.rs')
         
-        # Prepare HTML email content - Luxury Gold/Black Theme
+        # Prepare HTML email content - EXACT REPLICA of original Bua Luang design
         email_html = f"""
 <!DOCTYPE html>
 <html>
@@ -2619,88 +2622,108 @@ async def send_booking_emails(appointment_data: dict):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Georgia', serif; background-color: #1a1a1a;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #1a1a1a; padding: 20px 0;">
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #1a1a1a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #1a1a1a;">
         <tr>
-            <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #0d0d0d; border: 2px solid #c9a227; border-radius: 8px; overflow: hidden;">
-                    <!-- Header -->
+            <td align="center" style="padding: 10px;">
+                <table width="400" cellpadding="0" cellspacing="0" style="background-color: #0d0d0d; border-radius: 10px; overflow: hidden;">
+                    
+                    <!-- Header with Logo and Mandala Pattern -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 30px; text-align: center; border-bottom: 3px solid #c9a227;">
-                            <h1 style="color: #c9a227; margin: 0; font-size: 28px; font-weight: normal; letter-spacing: 3px;">BUA LUANG</h1>
-                            <p style="color: #d4af37; margin: 5px 0 0 0; font-size: 14px; letter-spacing: 2px;">THAI SPA</p>
+                        <td style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2517 50%, #1a1a1a 100%); padding: 25px; text-align: center; position: relative;">
+                            <div style="position: relative;">
+                                <!-- Decorative mandala circles -->
+                                <div style="font-size: 12px; color: #c9a227; letter-spacing: 2px; margin-bottom: 5px;">✦ ✦ ✦</div>
+                                <div style="font-family: 'Times New Roman', serif; font-style: italic; color: #c9a227; font-size: 14px; margin-bottom: 2px;">Bua Luang</div>
+                                <div style="font-family: 'Times New Roman', serif; font-style: italic; color: #c9a227; font-size: 11px; margin-bottom: 8px;">Thai Spa</div>
+                                <div style="color: #c9a227; font-size: 18px; font-weight: bold; letter-spacing: 2px;">Bua Luang Thai Spa</div>
+                            </div>
                         </td>
                     </tr>
                     
-                    <!-- Main Content -->
+                    <!-- Main Content - Dark with Gold Border -->
                     <tr>
-                        <td style="padding: 40px 30px; background-color: #0d0d0d;">
-                            <h2 style="color: #c9a227; margin: 0 0 20px 0; font-size: 22px; font-weight: normal; text-align: center;">
-                                ✨ Potvrda Rezervacije ✨
-                            </h2>
-                            
-                            <p style="color: #e8e8e8; font-size: 16px; line-height: 1.6; margin-bottom: 25px; text-align: center;">
-                                Poštovani <strong style="color: #c9a227;">{client_name}</strong>,<br>
-                                Vaša rezervacija je uspešno potvrđena.
-                            </p>
-                            
-                            <!-- Reservation Details Box -->
-                            <table width="100%" style="background-color: #1a1a1a; border: 1px solid #c9a227; border-radius: 8px; margin: 20px 0;">
+                        <td style="background-color: #1a1a1a; padding: 20px;">
+                            <table width="100%" style="background-color: #0d0d0d; border: 2px solid #c9a227; border-radius: 8px;">
                                 <tr>
-                                    <td style="padding: 25px;">
-                                        <table width="100%">
+                                    <td style="padding: 20px;">
+                                        <!-- Greeting -->
+                                        <p style="color: #c9a227; font-size: 16px; margin: 0 0 10px 0;">
+                                            Poštovani/a {client_name},
+                                        </p>
+                                        <p style="color: #4CAF50; font-size: 18px; font-weight: bold; margin: 0 0 20px 0;">
+                                            ✅ Uspešno zakazano!
+                                        </p>
+                                        
+                                        <!-- Appointment Details Box - White Background -->
+                                        <table width="100%" style="background-color: #ffffff; border-radius: 8px; margin-bottom: 15px;">
                                             <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #333;">
-                                                    <span style="color: #888; font-size: 14px;">📅 DATUM I VREME</span><br>
-                                                    <span style="color: #e8e8e8; font-size: 18px; font-weight: bold;">{formatted_time}</span>
+                                                <td style="padding: 15px;">
+                                                    <table width="100%">
+                                                        <tr>
+                                                            <td style="padding: 8px 0; color: #333; font-size: 14px;">
+                                                                <span style="color: #c9a227;">💆</span> <strong>Tretman:</strong>
+                                                                <span style="float: right; font-weight: normal;">{service_name}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 8px 0; color: #333; font-size: 14px; border-top: 1px solid #eee;">
+                                                                <span style="color: #c9a227;">📅</span> <strong>Datum:</strong>
+                                                                <span style="float: right; font-weight: normal;">{formatted_date}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 8px 0; color: #333; font-size: 14px; border-top: 1px solid #eee;">
+                                                                <span style="color: #c9a227;">🕐</span> <strong>Vreme:</strong>
+                                                                <span style="float: right; font-weight: normal;">{formatted_time_only}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 8px 0; color: #333; font-size: 14px; border-top: 1px solid #eee;">
+                                                                <span style="color: #c9a227;">👤</span> <strong>Ime:</strong>
+                                                                <span style="float: right; font-weight: normal;">{client_name}</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 8px 0; color: #333; font-size: 14px; border-top: 1px solid #eee;">
+                                                                <span style="color: #c9a227;">📞</span> <strong>Telefon:</strong>
+                                                                <span style="float: right; font-weight: normal;">{client_phone}</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
                                                 </td>
                                             </tr>
+                                        </table>
+                                        
+                                        <!-- Important Note - Yellow Background -->
+                                        <table width="100%" style="background-color: #fffde7; border-radius: 5px; border-left: 4px solid #c9a227;">
                                             <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #333;">
-                                                    <span style="color: #888; font-size: 14px;">💆 USLUGA</span><br>
-                                                    <span style="color: #c9a227; font-size: 16px;">{service_name}</span>
+                                                <td style="padding: 12px; color: #5d4e37; font-size: 13px;">
+                                                    Stignite 10 min pre termina. Otkazivanje 4h unapred.
                                                 </td>
                                             </tr>
-                                            <tr>
-                                                <td style="padding: 10px 0; border-bottom: 1px solid #333;">
-                                                    <span style="color: #888; font-size: 14px;">📞 TELEFON</span><br>
-                                                    <span style="color: #e8e8e8; font-size: 16px;">{client_phone}</span>
-                                                </td>
-                                            </tr>
-                                            {"<tr><td style='padding: 10px 0;'><span style='color: #888; font-size: 14px;'>📝 NAPOMENA</span><br><span style='color: #e8e8e8; font-size: 14px;'>" + notes + "</span></td></tr>" if notes else ""}
                                         </table>
                                     </td>
                                 </tr>
                             </table>
-                            
-                            <!-- CTA Button -->
-                            <table width="100%" style="margin: 30px 0;">
-                                <tr>
-                                    <td align="center">
-                                        <a href="{public_site}" style="display: inline-block; background: linear-gradient(135deg, #c9a227 0%, #d4af37 100%); color: #0d0d0d; text-decoration: none; padding: 15px 40px; border-radius: 5px; font-size: 16px; font-weight: bold; letter-spacing: 1px;">
-                                            POSETITE NAŠ SAJT
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <p style="color: #888; font-size: 14px; text-align: center; margin-top: 30px;">
-                                Radujemo se Vašoj poseti! 🙏
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer - Contact Info -->
+                    <tr>
+                        <td style="background-color: #0d0d0d; padding: 20px; text-align: center; border-top: 1px solid #333;">
+                            <p style="color: #c9a227; margin: 0 0 10px 0; font-size: 14px;">
+                                📧 bualuangthailandspa@gmail.com
+                            </p>
+                            <p style="color: #c9a227; margin: 0 0 10px 0; font-size: 14px;">
+                                📞 +381 62 625 500 | 📍 Abebe Bikile 10A
+                            </p>
+                            <p style="color: #ff69b4; margin: 10px 0 0 0; font-size: 18px;">
+                                🌸
                             </p>
                         </td>
                     </tr>
                     
-                    <!-- Footer -->
-                    <tr>
-                        <td style="background-color: #1a1a1a; padding: 25px; text-align: center; border-top: 1px solid #333;">
-                            <p style="color: #c9a227; margin: 0 0 10px 0; font-size: 16px;">Bua Luang Thai Spa</p>
-                            <p style="color: #888; margin: 0; font-size: 13px;">
-                                📍 Beograd, Srbija<br>
-                                📞 +381 11 123 4567<br>
-                                🌐 <a href="{public_site}" style="color: #c9a227; text-decoration: none;">{public_site.replace('https://', '')}</a>
-                            </p>
-                        </td>
-                    </tr>
                 </table>
             </td>
         </tr>
@@ -2711,23 +2734,26 @@ async def send_booking_emails(appointment_data: dict):
         
         # Plain text fallback
         email_body = f"""
-Poštovani {client_name},
+Poštovani/a {client_name},
 
-Uspešno ste rezervisali tretman u Bua Luang Thai Spa.
+✅ Uspešno zakazano!
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📅 Datum i vreme: {formatted_time}
-💆 Usluga: {service_name}
+💆 Tretman: {service_name}
+📅 Datum: {formatted_date}
+🕐 Vreme: {formatted_time_only}
+👤 Ime: {client_name}
 📞 Telefon: {client_phone}
-{"📝 Napomena: " + notes if notes else ""}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Radujemo se Vašoj poseti!
+Stignite 10 min pre termina. Otkazivanje 4h unapred.
 
-S poštovanjem,
 Bua Luang Thai Spa
-📍 Beograd
-🌐 {public_site}
+📧 bualuangthailandspa@gmail.com
+📞 +381 62 625 500
+📍 Abebe Bikile 10A
+
+🌸
 """
         
         # Email to owner (ALWAYS send) - Plain text for quick reading
