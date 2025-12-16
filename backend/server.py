@@ -1584,7 +1584,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
             logger.info(f"🔒 DEFAULT NO DISCOUNT: applied={applied_discount}, original={snap_original}, final={snap_final}")
         
         # Assign final values
-        original_price = snap_original
+        original_total = snap_original
         discounted_price = snap_final
         discount_percentage = applied_discount
         discount_amount = snap_discount_amount
