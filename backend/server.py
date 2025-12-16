@@ -1159,16 +1159,16 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
         "id": couple_service_id,
         "name": service_name,
         "duration": total_duration,
-        "price": discounted_price,  # STORE DISCOUNTED PRICE
+        "price": final_total,  # STORE FINAL PRICE (after discount)
         "description": f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}",
         "created_at": datetime.now().isoformat(),
         "category": "couple",
-        "discount_percentage": discount_percentage,
+        "discount_percentage": discount_pct,
         "metadata": {
-            "original_price": original_price,
-            "discount_applied": discount_percentage,
-            "final_price": discounted_price
-        } if discount_percentage > 0 else None
+            "original_price": original_total,
+            "discount_applied": discount_pct,
+            "final_price": final_total
+        } if discount_pct > 0 else None
     }
     
     # Store couple service details
