@@ -1277,9 +1277,6 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     # 🔒 LOCKDOWN GUARD
     assert_not_locked()
     
-    """
-    """
-    
     # DEBUG LOGGING - Log complete payload for troubleshooting
     try:
         logger.info(f"📥 COUPLE BOOKING REQUEST RECEIVED")
