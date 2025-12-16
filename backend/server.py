@@ -2608,25 +2608,118 @@ async def send_booking_emails(appointment_data: dict):
         else:
             formatted_time = start_time.strftime('%d.%m.%Y u %H:%M') if start_time else 'N/A'
         
-        # Prepare email content
+        # Get public website URL from env
+        public_site = os.environ.get('PUBLIC_WEBSITE_URL', 'https://www.bualuangthaispa.rs')
+        
+        # Prepare HTML email content - Luxury Gold/Black Theme
+        email_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Georgia', serif; background-color: #1a1a1a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #1a1a1a; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #0d0d0d; border: 2px solid #c9a227; border-radius: 8px; overflow: hidden;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 30px; text-align: center; border-bottom: 3px solid #c9a227;">
+                            <h1 style="color: #c9a227; margin: 0; font-size: 28px; font-weight: normal; letter-spacing: 3px;">BUA LUANG</h1>
+                            <p style="color: #d4af37; margin: 5px 0 0 0; font-size: 14px; letter-spacing: 2px;">THAI SPA</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Main Content -->
+                    <tr>
+                        <td style="padding: 40px 30px; background-color: #0d0d0d;">
+                            <h2 style="color: #c9a227; margin: 0 0 20px 0; font-size: 22px; font-weight: normal; text-align: center;">
+                                ✨ Potvrda Rezervacije ✨
+                            </h2>
+                            
+                            <p style="color: #e8e8e8; font-size: 16px; line-height: 1.6; margin-bottom: 25px; text-align: center;">
+                                Poštovani <strong style="color: #c9a227;">{client_name}</strong>,<br>
+                                Vaša rezervacija je uspešno potvrđena.
+                            </p>
+                            
+                            <!-- Reservation Details Box -->
+                            <table width="100%" style="background-color: #1a1a1a; border: 1px solid #c9a227; border-radius: 8px; margin: 20px 0;">
+                                <tr>
+                                    <td style="padding: 25px;">
+                                        <table width="100%">
+                                            <tr>
+                                                <td style="padding: 10px 0; border-bottom: 1px solid #333;">
+                                                    <span style="color: #888; font-size: 14px;">📅 DATUM I VREME</span><br>
+                                                    <span style="color: #e8e8e8; font-size: 18px; font-weight: bold;">{formatted_time}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 10px 0; border-bottom: 1px solid #333;">
+                                                    <span style="color: #888; font-size: 14px;">💆 USLUGA</span><br>
+                                                    <span style="color: #c9a227; font-size: 16px;">{service_name}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 10px 0; border-bottom: 1px solid #333;">
+                                                    <span style="color: #888; font-size: 14px;">📞 TELEFON</span><br>
+                                                    <span style="color: #e8e8e8; font-size: 16px;">{client_phone}</span>
+                                                </td>
+                                            </tr>
+                                            {"<tr><td style='padding: 10px 0;'><span style='color: #888; font-size: 14px;'>📝 NAPOMENA</span><br><span style='color: #e8e8e8; font-size: 14px;'>" + notes + "</span></td></tr>" if notes else ""}
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- CTA Button -->
+                            <table width="100%" style="margin: 30px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{public_site}" style="display: inline-block; background: linear-gradient(135deg, #c9a227 0%, #d4af37 100%); color: #0d0d0d; text-decoration: none; padding: 15px 40px; border-radius: 5px; font-size: 16px; font-weight: bold; letter-spacing: 1px;">
+                                            POSETITE NAŠ SAJT
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="color: #888; font-size: 14px; text-align: center; margin-top: 30px;">
+                                Radujemo se Vašoj poseti! 🙏
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #1a1a1a; padding: 25px; text-align: center; border-top: 1px solid #333;">
+                            <p style="color: #c9a227; margin: 0 0 10px 0; font-size: 16px;">Bua Luang Thai Spa</p>
+                            <p style="color: #888; margin: 0; font-size: 13px;">
+                                📍 Beograd, Srbija<br>
+                                📞 +381 11 123 4567<br>
+                                🌐 <a href="{public_site}" style="color: #c9a227; text-decoration: none;">{public_site.replace('https://', '')}</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"""
+        
+        # Plain text fallback
         email_body = f"""
-Poštovani,
+Poštovani {client_name},
 
 Uspešno ste rezervisali tretman u Bua Luang Thai Spa.
 
-📋 Detalji rezervacije:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-👤 Ime: {client_name}
-📞 Telefon: {client_phone}
-📧 Email: {client_email or 'Nije naveden'}
 📅 Datum i vreme: {formatted_time}
 💆 Usluga: {service_name}
-"""
-        
-        if notes:
-            email_body += f"📝 Napomena: {notes}\n"
-        
-        email_body += """
+📞 Telefon: {client_phone}
+{"📝 Napomena: " + notes if notes else ""}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Radujemo se Vašoj poseti!
@@ -2634,8 +2727,7 @@ Radujemo se Vašoj poseti!
 S poštovanjem,
 Bua Luang Thai Spa
 📍 Beograd
-📞 +381 XX XXX XXXX
-🌐 www.bualuang.rs
+🌐 {public_site}
 """
         
         # Email to owner (ALWAYS send)
