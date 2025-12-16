@@ -1214,10 +1214,10 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
         "body_map_points": [],
         "is_couples_booking": True,  # CRITICAL: Flag for couples booking
         # CRITICAL: Add snapshot fields to appointment object
-        "snapshot_price": discounted_price,
-        "snapshot_original_price": original_price,
-        "snapshot_discount_percentage": discount_percentage,
-        "snapshot_discount_amount": original_price - discounted_price if discount_percentage > 0 else 0,
+        "snapshot_price": final_total,
+        "snapshot_original_price": original_total,
+        "snapshot_discount_percentage": discount_pct,
+        "snapshot_discount_amount": original_total - final_total if discount_pct > 0 else 0,
         # COUPLES MULTI-SERVICE SNAPSHOT: Store ALL selected services
         "person1_services_snapshot": person1_services_snapshot,
         "person2_services_snapshot": person2_services_snapshot,
