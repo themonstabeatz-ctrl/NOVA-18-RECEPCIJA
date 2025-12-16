@@ -904,6 +904,9 @@ async def update_couple_discount(settings: CoupleSettingsUpdate):
 @api_router.post("/appointments/couple/v2", response_model=Appointment)
 async def create_couple_appointment_v2(couple: CoupleAppointmentCreate):
     """Create a couple appointment with detailed person data and custom discount"""
+    # 🔒 LOCKDOWN GUARD
+    assert_not_locked()
+    
     # Verify therapist exists ONLY if provided (therapist_id is OPTIONAL for online booking)
     therapist = None
     if couple.therapist_id:
