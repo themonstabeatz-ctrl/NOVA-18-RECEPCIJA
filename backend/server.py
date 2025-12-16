@@ -1738,7 +1738,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
             "discount_amount": discount_amount,
             "has_discount": discount_percentage > 0,  # Flag for easier filtering
             "metadata": {
-                "original_price": original_price,
+                "original_price": original_total,
                 "discount_applied": discount_percentage,
                 "final_price": discounted_price,
                 "person1_services": person1_services_snapshot,
