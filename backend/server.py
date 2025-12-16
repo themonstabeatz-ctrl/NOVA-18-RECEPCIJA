@@ -1365,6 +1365,92 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         
         logger.info(f"✅ PREFIX VALIDATION PASSED - All services have [PAROVI] prefix")
         
+        # ============================================
+        # 🔒 DURATION VALIDATION - For couples booking
+        # ============================================
+        
+        # Calculate total duration per person
+        p1_total_duration = sum(service_map[sid].get('duration', 0) for sid in person1_service_ids if sid in service_map)
+        p2_total_duration = sum(service_map[sid].get('duration', 0) for sid in person2_service_ids if sid in service_map)
+        
+        # Debug log durations
+        p1_duration_info = [(sid, service_map[sid].get('name'), service_map[sid].get('duration')) for sid in person1_service_ids if sid in service_map]
+        p2_duration_info = [(sid, service_map[sid].get('name'), service_map[sid].get('duration')) for sid in person2_service_ids if sid in service_map]
+        
+        logger.info(f"🔍 DURATION VALIDATION:")
+        logger.info(f"   duration_type from request: {couple.duration_type}")
+        logger.info(f"   person1_services: {p1_duration_info}, total={p1_total_duration} min")
+        logger.info(f"   person2_services: {p2_duration_info}, total={p2_total_duration} min")
+        
+        # If duration_type is provided, validate it
+        if couple.duration_type is not None:
+            duration_type_int = int(couple.duration_type)
+            if duration_type_int not in [60, 90, 120]:
+                logger.error(f"🔒 INVALID_DURATION_TYPE: {duration_type_int}, must be 60/90/120")
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "INVALID_DURATION_TYPE",
+                        "duration_type": duration_type_int,
+                        "message": f"Invalid duration_type: {duration_type_int}. Must be 60, 90, or 120."
+                    }
+                )
+            
+            # Validate duration per person matches duration_type
+            # Special rule for 120: allow [120] or [60,60]
+            def is_valid_duration_website(total: int, durations: list, expected: int) -> bool:
+                if expected == 120:
+                    # Allow: single 120, or two 60s
+                    if total == 120:
+                        return True
+                    if len(durations) == 2 and all(d == 60 for d in durations):
+                        return True
+                    return False
+                else:
+                    # For 60 and 90: must match exactly
+                    return total == expected
+            
+            p1_durations = [service_map[sid].get('duration', 0) for sid in person1_service_ids if sid in service_map]
+            p2_durations = [service_map[sid].get('duration', 0) for sid in person2_service_ids if sid in service_map]
+            
+            if not is_valid_duration_website(p1_total_duration, p1_durations, duration_type_int):
+                logger.error(f"🔒 DURATION_MISMATCH person1: total={p1_total_duration}, expected={duration_type_int}, durations={p1_durations}")
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "DURATION_MISMATCH",
+                        "person": 1,
+                        "total_duration": p1_total_duration,
+                        "expected_duration": duration_type_int,
+                        "services": p1_duration_info,
+                        "message": f"Person 1 services total {p1_total_duration} min, but duration_type is {duration_type_int} min"
+                    }
+                )
+            
+            if not is_valid_duration_website(p2_total_duration, p2_durations, duration_type_int):
+                logger.error(f"🔒 DURATION_MISMATCH person2: total={p2_total_duration}, expected={duration_type_int}, durations={p2_durations}")
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "DURATION_MISMATCH",
+                        "person": 2,
+                        "total_duration": p2_total_duration,
+                        "expected_duration": duration_type_int,
+                        "services": p2_duration_info,
+                        "message": f"Person 2 services total {p2_total_duration} min, but duration_type is {duration_type_int} min"
+                    }
+                )
+            
+            logger.info(f"✅ DURATION VALIDATION PASSED: duration_type={duration_type_int}, p1={p1_total_duration} min, p2={p2_total_duration} min")
+        else:
+            # If duration_type not provided, just log the calculated durations
+            logger.info(f"⚠️ duration_type not provided - skipping duration validation")
+            logger.info(f"   Calculated: p1={p1_total_duration} min, p2={p2_total_duration} min")
+        
+        # ============================================
+        # 🔒 DURATION VALIDATION - END
+        # ============================================
+        
         # --- CALCULATE PRICE FROM [PAROVI] COMPONENTS ---
         # COUPLES SERVICE MUST NOT HAVE HARDCODED PRICE
         # Price is ALWAYS sum of [PAROVI] services for each person
