@@ -1274,6 +1274,11 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
     - category, original_price, final_price, discount_percentage, discount_amount
     - NO recalculation - uses snapshot values from payload
     """
+    # 🔒 LOCKDOWN GUARD
+    assert_not_locked()
+    
+    """
+    """
     
     # DEBUG LOGGING - Log complete payload for troubleshooting
     try:
