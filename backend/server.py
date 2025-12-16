@@ -1771,7 +1771,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
             # COUPLES MULTI-SERVICE SNAPSHOT: Store ALL selected services
             "person1_services_snapshot": person1_services_snapshot,
             "person2_services_snapshot": person2_services_snapshot,
-            "pricing_breakdown": f"{person1_total} + {person2_total} = {original_price}"
+            "pricing_breakdown": f"{person1_total} + {person2_total} = {original_total}"
         }
         
         appointment_obj = Appointment(**appointment_dict)
