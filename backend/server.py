@@ -2757,7 +2757,7 @@ Bua Luang Thai Spa
 """
         
         # Email to owner (ALWAYS send) - Plain text for quick reading
-        owner_subject = f"🔔 Nova rezervacija — {formatted_time} — {service_name}"
+        owner_subject = f"🔔 Nova rezervacija — {formatted_date} {formatted_time_only} — {service_name}"
         owner_msg = MIMEMultipart('alternative')
         owner_msg['From'] = smtp_from
         owner_msg['To'] = smtp_to_owner
