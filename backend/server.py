@@ -1092,42 +1092,51 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     # 🔒 COUPLES VALIDATION - END
     # ============================================
     
-    # Calculate total price
-    total_price = 0
+    # Calculate total price - use ORIGINAL prices from metadata if available
+    # [PAROVI] services may have pre-discounted prices stored, so we need to get original_price from metadata
+    original_total = 0
     person1_service_names = []
     person2_service_names = []
     
     for service_id in couple.person1_services:
         service = service_map[service_id]
-        total_price += service['price']
+        # Try to get original_price from metadata, otherwise use price field
+        metadata = service.get('metadata') or {}
+        svc_original_price = metadata.get('original_price', service['price'])
+        original_total += svc_original_price
         person1_service_names.append(service['name'])
     
     for service_id in couple.person2_services:
         service = service_map[service_id]
-        total_price += service['price']
+        # Try to get original_price from metadata, otherwise use price field
+        metadata = service.get('metadata') or {}
+        svc_original_price = metadata.get('original_price', service['price'])
+        original_total += svc_original_price
         person2_service_names.append(service['name'])
     
-    # Apply couple discount if provided
-    discount_percentage = couple.discount_couples_massage if couple.discount_couples_massage else 0.0
-    original_price = total_price
+    # Round to integer RSD
+    original_total = int(round(original_total))
     
-    # 🔒 LOCK: Validate SERVICE prices are rounded (end in 00)
-    # Original price (sum of services) MUST end in 00
-    if original_price % 100 != 0:
-        logger.error(f"🔒 LOCK VIOLATION: original_price {original_price} not rounded to 00")
+    # Apply couple discount if provided (from request, not from service)
+    discount_pct = couple.discount_couples_massage if couple.discount_couples_massage else 0.0
+    
+    # 🔒 PRICE LOCK: Validate ONLY original_total (before discount) ends in 00
+    # Final price after discount does NOT need to end in 00
+    if original_total % 100 != 0:
+        logger.error(f"🔒 PRICE LOCK FAILED: original_total={original_total}, discount_pct={discount_pct}")
         raise HTTPException(
             status_code=400,
-            detail=f"PRICE LOCK: Original price {original_price} RSD must end in 00. Check service prices."
+            detail=f"PRICE LOCK: Original total {original_total} RSD must end in 00. Check service prices."
         )
     
-    # Calculate discounted price
-    if discount_percentage > 0:
-        discounted_price = total_price * (1 - discount_percentage / 100)
-    else:
-        discounted_price = total_price
+    # Calculate final price after discount
+    final_total = int(round(original_total * (100 - discount_pct) / 100))
     
-    # Note: Final price after discount may not end in 00 (e.g., 8800 * 0.9 = 7920)
-    # This is acceptable as long as original price ends in 00
+    # Debug log for price calculation
+    logger.info(f"💰 COUPLES_PRICE_DEBUG: original_total={original_total}, discount_pct={discount_pct}, final_total={final_total}")
+    
+    # Note: final_total may not end in 00 (e.g., 11600 * 0.85 = 9860)
+    # This is acceptable - only original_total must end in 00
     
     # Calculate total duration (both persons are serviced simultaneously - together at the same time)
     total_duration = couple.duration_type  # 60, 90, or 120 minutes (they go together, not one after another)
