@@ -2,7 +2,7 @@
 
 ## 🎯 ŠTA TREBA DA URADIŠ (Websajt Agent)
 
-Povezi websajt `https://massage-booking-fix.preview.emergentagent.com/` sa booking sistemom.
+Povezi websajt `https://massage-scheduler-4.preview.emergentagent.com/` sa booking sistemom.
 
 ---
 
@@ -23,7 +23,7 @@ curl -o discount-15.png "https://customer-assets.emergentagent.com/job_spabookin
 Napravi novi fajl `/src/services/bookingApi.js`:
 
 ```javascript
-const BOOKING_API = 'https://massage-booking-fix.preview.emergentagent.com/api';
+const BOOKING_API = 'https://massage-scheduler-4.preview.emergentagent.com/api';
 
 // Preuzmi sve usluge
 export async function fetchServices() {
@@ -300,7 +300,7 @@ Sada websajt:
 - ✅ Radi za "Obične masaže", "SPA", i "Masaža za parove"
 
 **Testiranje:**
-1. Idi u booking sistem na `https://massage-booking-fix.preview.emergentagent.com/services`
+1. Idi u booking sistem na `https://massage-scheduler-4.preview.emergentagent.com/services`
 2. Klikni na "Kartica Masaza za parove"
 3. Postavi 15% popust
 4. Refresh websajt - trebao bi da vidiš popuste!

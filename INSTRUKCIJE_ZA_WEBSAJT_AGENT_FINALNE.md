@@ -383,12 +383,12 @@ Ako imaš bilo kakvih pitanja ili probleme:
 
 **Booking sistem Backend URL:**
 ```
-https://massage-booking-fix.preview.emergentagent.com/api
+https://massage-scheduler-4.preview.emergentagent.com/api
 ```
 
 **Dashboard URL:**
 ```
-https://massage-booking-fix.preview.emergentagent.com/
+https://massage-scheduler-4.preview.emergentagent.com/
 Lozinka: studio149
 ```
 

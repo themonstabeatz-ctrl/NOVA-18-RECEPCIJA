@@ -70,7 +70,7 @@ export default function CoupleBookingForm() {
 
   // Učitaj sve regularne usluge iz API-ja
   useEffect(() => {
-    fetch('https://massage-booking-fix.preview.emergentagent.com/api/services')
+    fetch('https://massage-scheduler-4.preview.emergentagent.com/api/services')
       .then(res => res.json())
       .then(data => {
         // Filtriraj da ne prikazuješ "parove" usluge (ne bi trebalo da ih ima)
@@ -101,7 +101,7 @@ export default function CoupleBookingForm() {
 
     try {
       const response = await fetch(
-        'https://massage-booking-fix.preview.emergentagent.com/api/appointments/couple',
+        'https://massage-scheduler-4.preview.emergentagent.com/api/appointments/couple',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

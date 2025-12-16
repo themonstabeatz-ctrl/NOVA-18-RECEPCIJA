@@ -1,59 +1,37 @@
 <analysis>**original_problem_statement:**
-Korisnik je zatražio višestruke ispravke i poboljšanja u aplikaciji za zakazivanje masaža. Zahtevi su evoluirali kroz sesiju i uključivali su:
-1.  **Logika dodele terapeuta**: Promeniti sistem tako da klijent ne bira terapeuta, već recepcionar.
-2.  **Čišćenje baze podataka**: Ukloniti duplirane i netačne usluge.
-3.  **Problem duplog popusta**: Rešiti problem gde je backend ponovo primenjivao popust.
-4.  **Dodavanje novih trajanja usluga**: Proširiti opcije trajanja za SPA rituale.
-5.  **CORS Konfiguracija**: Konstantno ažurirati CORS listu za nove frontend preview domene.
-6.  **Email Notifikacije**: Implementirati slanje email potvrda za klijenta i vlasnika nakon svakog zakazivanja.
-7.  **Logika cena za Couple masaže**: Ispraviti višestruke kritične greške:
-    *   Ukloniti podrazumevani popust od 15% koji se automatski primenjivao.
-    *   Sprečiti dodavanje fantomskih +2,000 RSD na cenu. Cena se mora računati kao zbir izabranih komponenti.
-    *   Implementirati stroga pravila:  servisi se ne smeju mešati sa regularnim, cene moraju biti zaokružene, a popusti se primenjuju samo eksplicitno.
-8.  **Prikaz Couple multi-servisa**: Osigurati da kada klijent izabere više usluga po osobi (npr. 60+60 min), notifikacije i listing prikazuju sve izabrane usluge, a ne samo prvu.
-9.  **Statistika popusta**: Osigurati da se popusti ispravno beleže u snapshot termina i prikazuju u CEO dashboard-u.
+Korisnik je zatražio višestruke kritične ispravke i poboljšanja u aplikaciji za zakazivanje masaža, sa prioritetima koji su se menjali tokom sesije:
+
+1.  **Povezivanje sa sajtom (HITNO):** Inicijalni hitan zadatak bio je da se novi backend () poveže sa korisničkim sajtom (, a kasnije ) isključivo putem CORS konfiguracije, bez izmena logike.
+2.  **Prikaz Couple termina i popusta:** Rešiti kritičan bug gde frontend (admin panel) za couple multi-servis termine (npr. 2 masaže po osobi) prikazuje samo prvu uslugu. Takođe, popusti se nisu prikazivali u listingu i notifikacijama, niti su se beležili u statistici na CEO dashboard-u.
+3.  **Opcioni Terapeut:** Ukloniti obavezu odabira terapeuta prilikom online zakazivanja.  mora biti opciono polje, a termini se kreiraju bez njega.
+4.  **Zabrana pogrešnog endpoint-a:** Onemogućiti kreiranje couple termina preko regularnog  endpoint-a, koji ne generiše potreban  podataka.
+5.  **Problem duplog popusta:** Istražiti i rešiti problem gde je admin panel navodno primenjivao popust dvaput.
+6.  **Okrugle cene (LOCKDOWN):** Osigurati da sve  usluge u bazi imaju cene koje se završavaju na 00. Implementirati backend zaštitu koja sprečava kreiranje couple termina ako originalne cene komponenti nisu okrugle.
+7.  **Email Notifikacije:** Aktivirati slanje email notifikacija unosom ispravnih SMTP kredencijala i implementirati specifičan HTML dizajn emaila sa logom i pozadinom po zahtevu korisnika.
 
 **User's preferred language**: srpski (Serbian)
 
 **what currently exists?**
-Aplikacija se sastoji od React admin panela (Recepcija) i FastAPI backend-a. Backend logika je značajno unapređena i zaključana kako bi se sprečile buduće greške.
--   **Backend**: Implementirana su stroga pravila za obračun cena (Strict Pricing Rules). Logika za Couple masaže sada ispravno sabira cene pojedinačnih usluga izabranih za svaku osobu i ignoriše fiksne cene glavnih paketa. Backend takođe kreira detaljan snapshot termin (, , ) koji sadrži sve izabrane usluge, cene i popuste. Implementirana je i funkcija za slanje email notifikacija, koja čeka na unos ispravnih SMTP kredencijala.
--   **Frontend (Admin Panel)**: UI trenutno **NE KORISTI** detaljan snapshot sa backend-a. Zbog toga, kod Couple masaža sa više usluga (npr. 60+60 min), prikazuje samo prvu uslugu. Takođe, popusti se ne prikazuju ispravno u listingu i ne ulaze u statistiku na CEO dashboard-u.
+Aplikacija se sastoji od React admin panela (Recepcija) i FastAPI backend-a. Svi prijavljeni kritični bugovi su rešeni.
+-   **Backend**: Logika je zaključana. Endpoint  ispravno generiše detaljan  sa svim uslugama, cenama i popustima. Endpoint  sada blokira couple termine (vraća 400).  je opcion. Cene za  usluge su ispravljene u bazi i postoji validacija za okrugle cene. CORS je ispravno konfigurisan za kanonični frontend URL. Funkcija za slanje emailova je aktivirana sa ispravnim kredencijalima i šalje email sa custom HTML dizajnom.
+-   **Frontend (Admin Panel)**: Komponente (, , ) su ažurirane da **koriste** detaljan  sa backend-a. Sada ispravno prikazuju sve usluge za couple termine, kao i popuste (precrtana originalna cena i finalna cena). CEO dashboard ispravno računa statistiku na osnovu  podataka.
 
 **Last working item**:
--   **Last item agent was working**: Agent je rešavao kritičan problem gde frontend (Admin Panel) ne prikazuje sve detalje za couple multi-service rezervacije i ne prikazuje popuste, iako backend sada šalje sve potrebne podatke u snapshot-u termina. Agent je potvrdio da backend ispravno kreira i čuva sve podatke, i identifikovao da je problem isključivo u frontend logici prikaza.
--   **Status**: BLOCKED (Backend deo je završen, ali frontend nije ni započet, što blokira kompletnu funkcionalnost).
--   **Agent Testing Done**: Y (Samo za backend. Agent je potvrdio da backend ispravno generiše snapshot.)
--   **Which testing method agent to use?**: Frontend testing agent. Agent treba da implementira izmene na frontendu, a zatim da pozove frontend testing agenta da proveri sledeće scenarije:
-    1.  Kreiranje couple termina sa više usluga (npr. Osoba1: 60+60, Osoba2: 120). Proveriti da li notifikacija i listing rezervacija prikazuju **sve 3 usluge**.
-    2.  Kreiranje termina sa popustom. Proveriti da li notifikacija i listing prikazuju originalnu cenu, finalnu cenu i procenat popusta.
-    3.  Proveriti da li se na CEO dashboardu ispravno ažurira statistika za termine sa popustom.
+-   **Last item agent was working**: Agent je završavao implementaciju finalnog dizajna za email notifikacije. To je uključivalo postavljanje specifične pozadinske slike, loga na vrhu u sredini, i dodavanje klikabilnog linka ka sajtu korisnika ().
+-   **Status**: COMPLETED
+-   **Agent Testing Done**: Y
+-   **Which testing method agent to use?**: NA
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Popraviti prikaz Couple multi-servisa i popusta u Admin Panelu (P0)**
-    -   **Description**: Admin panel (Recepcija) ne koristi detaljan snapshot (, , , , etc.) koji backend šalje za termine. Zbog toga, UI netačno prikazuje couple termine (prikazuje samo prvu od više izabranih usluga) i ne prikazuje popuste, niti ih broji u statistici.
-    -   **Attempted fixes**: Nema. Agent je samo dijagnostikovao da je problem na frontendu.
-    -   **Next debug checklist**:
-        1.  Pronaći fajlove u  koji su odgovorni za renderovanje termina:
-            *   Notifikacije (verovatno unutar  ili slično).
-            *   Lista termina (verovatno ).
-            *   CEO Dashboard (verovatno ).
-        2.  U ovim fajlovima, izmeniti logiku tako da, ako je termin , umesto  čita i prikazuje podatke iz  i .
-        3.  Implementirati logiku za prikaz popusta: ako je , prikazati precrtanu  i  uz procenat popusta.
-        4.  U , prepraviti logiku za statistiku popusta da sabira  iz svih termina.
-    -   **Why fix this issue and what will be achieved with the fix?**: Ovo je kritično za operativnu upotrebljivost. Recepcija mora da vidi tačno koje su usluge zakazane za svakog klijenta u couple terminu. Takođe, statistika poslovanja mora biti tačna.
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: frontend
-    -   **Blocked on other issue**: -
+Nema. Svi prijavljeni problemi su rešeni.
 
 **In progress Task List**:
 Nema.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P1) Aktivacija slanja email-a**: Agent je implementirao svu backend logiku za slanje email notifikacija. Potrebno je od korisnika dobiti  i uneti ga u  umesto . Nakon toga, restartovati backend i testirati da li emailovi stižu klijentu i vlasniku.
+    -   **(P0) Verifikacija od strane korisnika**: Korisnik treba da testira kompletan tok zakazivanja, prikaz u admin panelu i primljene email notifikacije da potvrdi da su sve ispravke uspešne.
 -   **Future Tasks**:
     -   E2E testiranje kompletnog booking flow-a.
     -   Integracija sa POS/kasa i terminalom za kartice.
@@ -61,82 +39,80 @@ Nema.
     -   Loyalty program.
 
 **Completed work in this session**
--   **Ispravljena logika cena za Couple masaže**: Backend sada ispravno računa cenu kao zbir izabranih komponenti, ignorišući fiksnu cenu master paketa.
--   **Implementirana Strict Pricing Rules**: Backend sada forsira stroga pravila za couple booking (moraju se koristiti  usluge, cene moraju biti okrugle, popusti se ne primenjuju podrazumevano).
--   **Proširen Snapshot za Couple termine**: Backend sada u  objekat upisuje detaljan spisak svih izabranih usluga () i detalje o ceni ().
--   **Implementirana Email funkcionalnost (čeka kredencijale)**: Dodata je  biblioteka i  funkcija koja se poziva pri svakom zakazivanju.
--   **Kreirana dokumentacija o pravilima**: Kreirani su fajlovi ,  i  koji definišu pravila za dalji rad.
--   **Višestruke ispravke CORS-a**: Ažurirana je CORS lista da podrži različite frontend preview domene.
--   **Dodata nova trajanja usluga**: U admin panel su dodate opcije trajanja: 15, 165, 195, 225, 255, 270, 285, 315, 330 minuta.
+-   **Povezivanje sa sajtom**: Uspešno konfigurisana CORS pravila u  da dozvole zahteve sa više korisničkih frontend domena.
+-   **Ispravljen prikaz Couple termina i popusta**: Ažuriran frontend (, , ) da koristi  podatke sa backend-a, rešavajući problem prikaza.
+-   **Terapeut postao opcion**: Izmenjena logika u backend-u () da  više nije obavezno polje za online rezervacije.
+-   **Zaključan pogrešan endpoint**: Implementirana zaštita u  koja vraća HTTP 400 ako se pokuša zakazivanje couple termina.
+-   **Ispravljene cene i uveden LOCKDOWN**: Očišćena baza podataka tako da sve  usluge imaju okrugle cene. Dodata backend validacija koja osigurava da originalne cene moraju biti okrugle.
+-   **Aktivirane i dizajnirane Email notifikacije**:
+    -   Uneta ispravna  u .
+    -   Ispravljen bug gde se email funkcija nije pozivala na jednom od endpointa.
+    -   Implementiran kompletan HTML dizajn emaila prema specifikaciji i slikama korisnika ().
+    -   Dodata  env varijabla za dinamičko generisanje linkova.
 
 **Earlier issues found/mentioned but not fixed**
 -   Nema.
 
 **Known issue recurrence from previous fork**
--   **Konfuzija oko okruženja (Preview vs. Production)**: Korisnik i agenti su se često suočavali sa problemima zbog neusklađenosti između različitih  frontend-a i backend-a. Uspostavljen je stabilan flow gde svi koriste jedan  backend, ali je potreban oprez.
+-   **Konfuzija oko okruženja**: Tokom sesije, korisnik je menjao frontend URL više puta (, ), što je izazivalo ponovljene CORS provere. Agent je uspešno dijagnostikovao i da je frontend u jednom trenutku gađao pogrešan backend URL. Kanonični linkovi su sada definisani, ali je potreban oprez.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend kao Jedini Izvor Istine**: Frontend ne sme da računa cene ili popuste. Sva logika je na backendu.
--   **Appointment Snapshot**: Frontend mora da čita i prikazuje detaljne podatke iz snapshot polja u  objektu (, ,  itd.), a ne da se oslanja na  ili da računa bilo šta.
--   **LOCKED Zone Koda**: Kritični delovi backend logike u  su označeni sa  i ne smeju se menjati.
+-   **Backend kao Jedini Izvor Istine (Snapshot Pattern)**: Frontend ne računa cene, već samo prikazuje podatke iz  polja (, , etc.) koje backend generiše.
+-   **Stroga Validacija na Backendu**: Uvedene su LOCKDOWN provere koje osiguravaju integritet podataka (npr. blokiranje pogrešnih endpointa, validacija okruglih cena).
+-   **Non-blocking Email Notifikacije**: Slanje emaila je unutar  bloka, osiguravajući da neuspeh slanja emaila ne prekida proces zakazivanja termina.
+-   **Konfiguracija preko Environment Varijabli**: Kritične vrednosti (CORS, DB, SMTP, URL sajta) se kontrolišu preko  fajla.
 
 **key DB schema**
--   **appointments**: uid=0(root) gid=0(root) groups=0(root), , , , , , , , **** (list[dict]), **** (list[dict]), **** (str).
+-   **appointments**: uid=0(root) gid=0(root) groups=0(root), , ,  (sada se ispravno postavlja na ),  (sada može biti ), , , , , , , . (Sva snapshot polja se sada pouzdano popunjavaju za couple termine).
 
 **changes in tech stack**
--   Dodata  biblioteka za slanje email-ova.
+-   Nema.
 
 **All files of reference**
--   : Centralni fajl sa svom logikom.
+-   : Centralni fajl sa svom logikom, značajno izmenjen.
 -   : Sadrži DB i SMTP konfiguraciju.
--   : Potrebno izmeniti za ispravan prikaz termina.
--   : Potrebno izmeniti za ispravnu statistiku.
--   : Potrebno izmeniti za ispravan prikaz notifikacija.
--   : Dokument sa uputstvima za ispravku UI.
+-   : Izmenjen za ispravan prikaz termina.
+-   : Izmenjen za ispravnu statistiku.
+-   : Izmenjen za ispravan prikaz notifikacija.
 
 **Critical Info for New Agent**
--   **Prioritet #1 je ispravka Frontend UI-a**. Backend je spreman i šalje sve potrebne podatke. Tvoj zadatak je da nateraš Admin Panel (Recepciju) da te podatke ispravno prikaže. Ne diraj backend logiku!
--   **Pročitaj **. Tamo su detaljna uputstva za ispravku.
--   **Email funkcionalnost čeka na lozinku**. Budi spreman da, kada korisnik pošalje , ažuriraš  i testiraš slanje emaila.
--   **Poštuj  pravila**. Backend logika za cene i zakazivanje je zaključana i ne sme se menjati.
+-   **Sistem je sada stabilan i zaključan.** Svi prijavljeni kritični bugovi su rešeni. Ne treba se vraćati na ispravke prikaza, cena ili emaila osim ako korisnik ne prijavi novi, specifičan bug.
+-   **Backend je jedini izvor istine.** Frontend samo prikazuje podatke iz  polja. Bilo kakve buduće izmene u logici cena ili popusta moraju se raditi isključivo na backendu.
+-   **Kanonični URL-ovi su definisani:**
+    *   **FRONTEND:** 
+    *   **BACKEND:** 
+-   **BEZBEDNOSNI RIZIK:** Korisnik je podelio  u chatu. Preporučiti korisniku da generiše novi Gmail App Password i da ga agent zameni u  fajlu.
 
 **documents created in this job**
--   
--   
--   
--   
--   
+-   Nema novih dokumenata. Postojeći markdown fajlovi iz prethodne sesije su i dalje relevantni kao smernice.
 
 **Last 10 User Messages and any pending user messages**
--   Korisnik je prijavio kritičan bug gde se cena za couple masaže pogrešno uvećava za 2,000 RSD.
--   Agent je istražio i utvrdio da backend koristi fiksnu cenu iz master paketa umesto da sabira cene komponenti.
--   Korisnik je zahtevao da se cena uvek računa kao zbir komponenti.
--   Agent je ispravio backend logiku da računa cenu iz komponenti.
--   Korisnik je uveo Strict Pricing Rules (validacija  prefiksa, okrugle cene).
--   Agent je implementirao stroga pravila u backend.
--   Korisnik je prijavio da kod multi-servisa (60+60) backend računa samo prvu stavku.
--   Agent je ispravio backend da sabira sve stavke i čuva detaljan snapshot.
--   **Poslednji zahtev (nerešen)**: Korisnik je prijavio da UI (notifikacije, listing, CEO dashboard) i dalje ne prikazuje sve usluge iz multi-servis termina i ne prikazuje popuste, iako backend sada šalje sve podatke. Ovo je trenutni prioritetni zadatak.
+-   Korisnik je zatražio da se vrati originalni HTML dizajn emaila. **(Rešeno)**
+-   Korisnik je poslao sliku željenog dizajna. **(Rešeno)**
+-   Agent je replicirao dizajn. **(Rešeno)**
+-   Korisnik je poslao logo i pozadinsku sliku za email i zatražio da se doda link ka sajtu. **(Rešeno)**
+-   Agent je implementirao finalni dizajn sa slikama i linkom. **(Rešeno)**
+-   Nema pendientes poruka.
 
 **Project Health Check:**
--   **Broken**: Frontend prikaz za couple termine i popuste je funkcionalno pokvaren. Ne prikazuje tačne informacije, što čini sistem operativno neupotrebljivim za recepciju.
+-   **Broken**: Ništa. Svi prijavljeni slomljeni delovi (prikaz termina, statistika) su popravljeni.
 -   **Mocked**: Nema.
 
 **3rd Party Integrations**
--   **aiosmtplib**: Integrisan za slanje emailova preko SMTP-a. Trenutno neaktivan, čeka na validne kredencijale.
+-   **aiosmtplib (Gmail SMTP)**: Uspešno integrisan i aktivan. Koristi se za slanje email potvrda klijentu i vlasniku nakon svake rezervacije.
 
 **Testing status**
--   **Testing agent used after significant changes**: NO
--   **Troubleshoot agent used after agent stuck in loop**: YES (rešio problem sa frontend hot-reload kešom)
--   **Test files created**: Nema.
+-   **Testing agent used after significant changes**: YES (jednom, rano u sesiji)
+-   **Troubleshoot agent used after agent stuck in loop**: NO
+-   **Test files created**:  (kreiran od strane agenta za testiranje, ali nije deo finalnog koda)
 -   **Known regressions**: Nema.
 
 **Credentials to test flow:**
 -   **Dashboard lozinka**: 
--   **SMTP lozinka**: Korisnik treba da obezbedi  i unese ga u  fajl.
+-   **SMTP lozinka**:  (prisutna u , ali je **procurila u chatu i treba je promeniti**).
 
 **What agent forgot to execute**
-Agent je uspešno implementirao sve backend zahteve, uključujući i kreiranje detaljnog snapshot-a. Međutim, nije nastavio sa implementacijom neophodnih izmena na **frontendu** kako bi se taj snapshot iskoristio i ispravno prikazao. Ovo je zadatak koji je ostao za sledećeg agenta.</analysis>
+-   Agent nije zaboravio da izvrši nijedan od zahteva korisnika. Sve prijavljene greške i tražene funkcionalnosti su implementirane.</analysis>
