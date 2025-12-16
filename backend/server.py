@@ -989,6 +989,9 @@ async def create_couple_appointment_v2(couple: CoupleAppointmentCreate):
 @api_router.post("/appointments/couple", response_model=Appointment)
 async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     """Create a couple appointment (OLD VERSION - backward compatibility, NOW WITH DISCOUNT SUPPORT)"""
+    # 🔒 LOCKDOWN GUARD
+    assert_not_locked()
+    
     # Log incoming request for debugging
     logger.info(f"Couple appointment request - duration_type: {couple.duration_type}, person1_services: {couple.person1_services}, person2_services: {couple.person2_services}")
     logger.info(f"🔍 OLD ENDPOINT - DISCOUNT FROM WEBSITE: {couple.discount_couples_massage}%")
