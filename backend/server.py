@@ -2614,7 +2614,11 @@ async def send_booking_emails(appointment_data: dict):
         # Get public website URL from env
         public_site = os.environ.get('PUBLIC_WEBSITE_URL', 'https://www.bualuangthaispa.rs')
         
-        # Prepare HTML email content - EXACT REPLICA of original Bua Luang design
+        # Image URLs
+        logo_url = "https://customer-assets.emergentagent.com/job_massage-booking-fix/artifacts/2m8jgqjv_Bua%20luang%20logo%20crna%20senka.png"
+        background_url = "https://customer-assets.emergentagent.com/job_massage-booking-fix/artifacts/pfz1db04_podloga%20prazna.jpg"
+        
+        # Prepare HTML email content - Bua Luang design with real logo and background
         email_html = f"""
 <!DOCTYPE html>
 <html>
@@ -2626,18 +2630,14 @@ async def send_booking_emails(appointment_data: dict):
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #1a1a1a;">
         <tr>
             <td align="center" style="padding: 10px;">
-                <table width="400" cellpadding="0" cellspacing="0" style="background-color: #0d0d0d; border-radius: 10px; overflow: hidden;">
+                <table width="450" cellpadding="0" cellspacing="0" style="background-color: #0d0d0d; border-radius: 10px; overflow: hidden; border: 1px solid #c9a227;">
                     
-                    <!-- Header with Logo and Mandala Pattern -->
+                    <!-- Header with Logo and Background Image -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2517 50%, #1a1a1a 100%); padding: 25px; text-align: center; position: relative;">
-                            <div style="position: relative;">
-                                <!-- Decorative mandala circles -->
-                                <div style="font-size: 12px; color: #c9a227; letter-spacing: 2px; margin-bottom: 5px;">✦ ✦ ✦</div>
-                                <div style="font-family: 'Times New Roman', serif; font-style: italic; color: #c9a227; font-size: 14px; margin-bottom: 2px;">Bua Luang</div>
-                                <div style="font-family: 'Times New Roman', serif; font-style: italic; color: #c9a227; font-size: 11px; margin-bottom: 8px;">Thai Spa</div>
-                                <div style="color: #c9a227; font-size: 18px; font-weight: bold; letter-spacing: 2px;">Bua Luang Thai Spa</div>
-                            </div>
+                        <td style="background-image: url('{background_url}'); background-size: cover; background-position: center; padding: 30px; text-align: center;">
+                            <a href="https://www.bualuangthaispa.rs" style="text-decoration: none;">
+                                <img src="{logo_url}" alt="Bua Luang Thai Spa" style="width: 180px; height: auto; display: block; margin: 0 auto;" />
+                            </a>
                         </td>
                     </tr>
                     
