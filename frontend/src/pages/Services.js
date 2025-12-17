@@ -360,13 +360,20 @@ const Services = () => {
                     // CRITICAL: Always show ORIGINAL price in "Cena" column
                     const originalPrice = service.metadata?.original_price || service.price;
                     const discountedPrice = originalPrice * (1 - discount / 100);
+                    const isPozovite = service.booking_type === 'POZOVITE';
                     
                     return (
-                      <tr key={service.id} data-testid={`service-row-${service.id}`}>
+                      <tr key={service.id} data-testid={`service-row-${service.id}`} className={isPozovite ? 'bg-yellow-50' : ''}>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{service.name}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {service.name}
+                            {isPozovite && <span className="ml-2 px-2 py-1 text-xs bg-yellow-200 text-yellow-800 rounded">POZOVITE</span>}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
+                          {isPozovite ? (
+                            <span className="text-sm text-gray-500">N/A</span>
+                          ) : (
                           <select
                             value={discount}
                             onChange={(e) => handleDiscountChange(service.id, parseFloat(e.target.value))}
