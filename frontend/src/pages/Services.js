@@ -53,6 +53,7 @@ const Services = () => {
 
   useEffect(() => {
     fetchServices();
+    fetchSpaServices(); // Also load SPA services
   }, []);
 
   const fetchServices = async () => {
@@ -64,6 +65,19 @@ const Services = () => {
       console.error('Error fetching services:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch SPA services from separate endpoint
+  const fetchSpaServices = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/spa/services`, { credentials: 'include' });
+      if (!res.ok) throw new Error(`SPA services load failed: ${res.status}`);
+      const data = await res.json();
+      setSpaServices(data);
+      console.log('SPA services loaded:', data.length);
+    } catch (error) {
+      console.error('Error fetching SPA services:', error);
     }
   };
 
