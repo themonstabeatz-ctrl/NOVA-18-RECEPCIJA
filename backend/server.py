@@ -1799,6 +1799,11 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
             "snapshot_original_price": original_total,
             "snapshot_discount_percentage": discount_percentage,
             "snapshot_discount_amount": discount_amount,
+            # ALIAS FIELDS for frontend compatibility
+            "final_total": discounted_price,
+            "original_total": original_total,
+            "discount_percentage_value": discount_percentage,
+            "discount_amount_value": discount_amount,
             # COUPLES MULTI-SERVICE SNAPSHOT: Store ALL selected services
             "person1_services_snapshot": person1_services_snapshot,
             "person2_services_snapshot": person2_services_snapshot,
