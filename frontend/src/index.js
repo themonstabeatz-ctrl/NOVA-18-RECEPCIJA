@@ -4,7 +4,7 @@ import "@/index.css";
 import App from "@/App";
 
 // 🔐 HARD FAIL GUARD - Ensure correct backend URL
-if (!process.env.REACT_APP_BACKEND_URL?.includes("massage-scheduler-4")) {
+if (!process.env.REACT_APP_BACKEND_URL?.includes("spa-dashboard-2")) {
   throw new Error("FATAL: Invalid backend URL. Check REACT_APP_BACKEND_URL.");
 }
 
