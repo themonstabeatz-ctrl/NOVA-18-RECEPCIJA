@@ -709,6 +709,37 @@ async def get_spa_appointments():
     return appointments
 
 # ============================================
+# SPA DELETE ENDPOINTS
+# ============================================
+@spa_router.delete("/appointments/{appointment_id}")
+async def delete_spa_appointment(appointment_id: str):
+    """Delete a single SPA appointment by ID"""
+    result = await db.spa_appointments.delete_one({"id": appointment_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail=f"SPA appointment {appointment_id} not found")
+    logger.info(f"🗑️ SPA appointment deleted: {appointment_id}")
+    return {"message": "SPA appointment deleted", "id": appointment_id}
+
+@spa_router.delete("/appointments/bulk")
+async def delete_spa_appointments_bulk(
+    from_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
+    to_date: Optional[str] = Query(None, description="End date YYYY-MM-DD")
+):
+    """Delete multiple SPA appointments within a date range"""
+    query = {}
+    if from_date:
+        query["start_time"] = {"$gte": from_date}
+    if to_date:
+        if "start_time" in query:
+            query["start_time"]["$lte"] = to_date + "T23:59:59"
+        else:
+            query["start_time"] = {"$lte": to_date + "T23:59:59"}
+    
+    result = await db.spa_appointments.delete_many(query)
+    logger.info(f"🗑️ Bulk SPA delete: {result.deleted_count} appointments deleted")
+    return {"message": f"Deleted {result.deleted_count} SPA appointments", "count": result.deleted_count}
+
+# ============================================
 # EMAIL SENDING FOR SPA BOOKINGS
 # ============================================
 async def send_spa_booking_email(appointment_data: dict):
