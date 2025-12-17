@@ -146,6 +146,17 @@ SPA_DEFAULT_SERVICES = [
     {"name": "Romantični paket za parove", "category": "spa_special", "duration": 180, "price": 22000, "booking_type": "ZAKAZITE", "description": "Savršen romantični doživljaj za dvoje"},
     {"name": "Romantični piling paket za parove", "category": "spa_special", "duration": 150, "price": 19000, "booking_type": "ZAKAZITE", "description": "Piling tretman za parove"},
     {"name": "Devojačko veče & Lady Party", "category": "spa_special", "duration": 240, "price": 0, "booking_type": "POZOVITE", "description": "Za grupne rezervacije pozovite nas direktno"},
+    
+    # ============================================
+    # SPA ADD-ONS (doplate uz ritual) - NOVE STAVKE
+    # ============================================
+    {"name": "Face Massage (ADD-ON)", "category": "spa_addon", "duration": 0, "price": 3000, "booking_type": "ZAKAZITE", "addon_group": "face", "applicable_to": ["spa_ritual"]},
+    {"name": "Sauna +15 min (ADD-ON)", "category": "spa_addon", "duration": 15, "price": 800, "booking_type": "ZAKAZITE", "addon_group": "sauna", "applicable_to": ["spa_ritual"]},
+    {"name": "Sauna +30 min (ADD-ON)", "category": "spa_addon", "duration": 30, "price": 1400, "booking_type": "ZAKAZITE", "addon_group": "sauna", "applicable_to": ["spa_ritual"]},
+    {"name": "Parno kupatilo +15 min (ADD-ON)", "category": "spa_addon", "duration": 15, "price": 800, "booking_type": "ZAKAZITE", "addon_group": "steam", "applicable_to": ["spa_ritual"]},
+    {"name": "Parno kupatilo +30 min (ADD-ON)", "category": "spa_addon", "duration": 30, "price": 1400, "booking_type": "ZAKAZITE", "addon_group": "steam", "applicable_to": ["spa_ritual"]},
+    {"name": "Jacuzzi +30 min (ADD-ON)", "category": "spa_addon", "duration": 30, "price": 1400, "booking_type": "ZAKAZITE", "addon_group": "jacuzzi", "applicable_to": ["spa_ritual"]},
+    {"name": "Jacuzzi +60 min (ADD-ON)", "category": "spa_addon", "duration": 60, "price": 2800, "booking_type": "ZAKAZITE", "addon_group": "jacuzzi", "applicable_to": ["spa_ritual"]},
 ]
 
 # ============================================
