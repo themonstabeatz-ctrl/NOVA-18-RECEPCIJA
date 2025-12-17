@@ -919,6 +919,9 @@ const DashboardNew = () => {
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b w-16">
                                       #
                                     </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b w-20">
+                                      Tip
+                                    </th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">
                                       Vreme
                                     </th>
