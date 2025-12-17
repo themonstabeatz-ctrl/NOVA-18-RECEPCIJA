@@ -129,8 +129,31 @@ const DashboardNew = () => {
     });
   };
 
-  // Group appointments by date (day)
+  // Group appointments by date (day) - now uses UNIFIED listing (massage + SPA)
   const groupAppointmentsByDay = () => {
+    // Use unified listing if available
+    if (unifiedListing?.items) {
+      const grouped = {};
+      unifiedListing.items.forEach(apt => {
+        const date = new Date(apt.start_time);
+        const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+        
+        if (!grouped[dateKey]) {
+          grouped[dateKey] = [];
+        }
+        
+        grouped[dateKey].push(apt);
+      });
+      
+      // Sort appointments within each day by start_time
+      Object.keys(grouped).forEach(dateKey => {
+        grouped[dateKey].sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+      });
+      
+      return grouped;
+    }
+    
+    // Fallback to old method if unified listing not available
     if (!detailedData?.appointments_by_service) return {};
     
     const grouped = {};
