@@ -218,7 +218,122 @@ async def get_spa_quote(request: SpaQuoteRequest):
     """Calculate SPA quote with optional discount and add-ons"""
     
     # ============================================
-    # NEW: Package + Addons mode
+    # SPA_ZONE MODE: Standalone zone booking
+    # ============================================
+    if request.spa_category == "spa_zone" and request.selected_zones:
+        # Fetch selected zones
+        zones = await db.spa_services.find(
+            {"id": {"$in": request.selected_zones}, "category": "spa_zone"},
+            {"_id": 0}
+        ).to_list(100)
+        
+        if not zones:
+            raise HTTPException(status_code=404, detail="No SPA zones found")
+        
+        # Validate: max 1 per type (sauna, steam, jacuzzi)
+        zone_types_used = {}
+        for zone in zones:
+            zone_name = zone["name"].lower()
+            if "sauna" in zone_name:
+                zone_type = "sauna"
+            elif "parno" in zone_name:
+                zone_type = "steam"
+            elif "jacuzzi" in zone_name:
+                zone_type = "jacuzzi"
+            else:
+                zone_type = "other"
+            
+            if zone_type != "other" and zone_type in zone_types_used:
+                raise HTTPException(status_code=400, detail={
+                    "error": "DUPLICATE_ZONE_TYPE",
+                    "zone_type": zone_type,
+                    "existing": zone_types_used[zone_type],
+                    "duplicate": zone["name"],
+                    "message": f"Možete izabrati samo jednu opciju za '{zone_type}'."
+                })
+            zone_types_used[zone_type] = zone["name"]
+        
+        # Calculate totals
+        original_total = sum(z["price"] for z in zones)
+        total_duration = sum(z["duration"] for z in zones)
+        
+        # Apply discount
+        discount_pct = min(request.discount_percentage or 0, 15)
+        discount_amount, final_total, applied_discount = apply_spa_discount(original_total, discount_pct)
+        
+        # Build breakdown
+        zone_names = [f"{z['name']} ({z['price']} RSD)" for z in zones]
+        breakdown = " + ".join(zone_names) + f" = {original_total} RSD"
+        if applied_discount > 0:
+            breakdown += f" - {applied_discount}% = {final_total} RSD"
+        
+        # Build message
+        message = "SPA ZONA: " + ", ".join([z["name"] for z in zones])
+        
+        logger.info(f"💰 SPA_QUOTE (ZONE): zones={[z['name'] for z in zones]}, total={original_total}, duration={total_duration}")
+        
+        return SpaQuoteResponse(
+            services=[{"id": z["id"], "name": z["name"], "price": z["price"], "duration": z["duration"]} for z in zones],
+            original_total=original_total,
+            discount_percentage=applied_discount,
+            discount_amount=discount_amount,
+            final_total=final_total,
+            breakdown=breakdown,
+            total_duration=total_duration,
+            base_price=original_total,
+            addon_price=0,
+            addons=[]
+        )
+    
+    # ============================================
+    # HERBAL MODE: Included SPA zone (no extra charge)
+    # ============================================
+    if request.spa_package_id and request.included_spa_zone and request.included_spa_zone != "none":
+        # Fetch main package (herbal)
+        package = await db.spa_services.find_one({"id": request.spa_package_id}, {"_id": 0})
+        if not package:
+            raise HTTPException(status_code=404, detail=f"SPA package {request.spa_package_id} not found")
+        
+        # Determine included zone name
+        included_zone_name = ""
+        if request.included_spa_zone == "SAUNA_15":
+            included_zone_name = "Sauna 15 min"
+        elif request.included_spa_zone == "STEAM_15":
+            included_zone_name = "Parno kupatilo 15 min"
+        
+        base_price = package["price"]
+        base_duration = package["duration"]
+        
+        # No extra charge for included zone
+        original_total = base_price
+        total_duration = base_duration  # Duration stays same for herbal
+        
+        # Apply discount
+        discount_pct = min(request.discount_percentage or 0, 15)
+        discount_amount, final_total, applied_discount = apply_spa_discount(original_total, discount_pct)
+        
+        # Build breakdown with included zone note
+        breakdown = f"{package['name']} ({base_price} RSD) + SPA zona (uključeno: {included_zone_name}) = {original_total} RSD"
+        if applied_discount > 0:
+            breakdown += f" - {applied_discount}% = {final_total} RSD"
+        
+        logger.info(f"💰 SPA_QUOTE (HERBAL+ZONE): package={package['name']}, included_zone={included_zone_name}, total={original_total}")
+        
+        return SpaQuoteResponse(
+            services=[{"id": package["id"], "name": package["name"], "price": package["price"], "duration": package["duration"]}],
+            original_total=original_total,
+            discount_percentage=applied_discount,
+            discount_amount=discount_amount,
+            final_total=final_total,
+            breakdown=breakdown,
+            total_duration=total_duration,
+            base_price=base_price,
+            addon_price=0,
+            addons=[{"name": f"SPA zona (uključeno): {included_zone_name}", "price": 0, "duration": 0}] if included_zone_name else []
+        )
+    
+    # ============================================
+    # RITUAL + Addons mode
     # ============================================
     if request.spa_package_id:
         # Fetch main package
