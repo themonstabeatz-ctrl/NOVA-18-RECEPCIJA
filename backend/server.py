@@ -144,8 +144,8 @@ class Appointment(AppointmentBase):
     # Alias fields for frontend compatibility (duplicated from snapshot_ fields for JSON response)
     final_total: Optional[float] = None
     original_total: Optional[float] = None
-    discount_percentage_value: Optional[float] = Field(default=None, alias="discount_percentage")
-    discount_amount_value: Optional[float] = Field(default=None, alias="discount_amount")
+    discount_percentage: Optional[float] = None  # Same as snapshot_discount_percentage
+    discount_amount: Optional[float] = None  # Same as snapshot_discount_amount
 
 
 # ============================================
