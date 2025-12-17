@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { serviceService } from '../services/api';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 
+// API base URL for SPA services (separate from massage services)
+const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+
 // Updated with new duration options: 15, 165, 195, 225, 255
 const Services = () => {
   const [services, setServices] = useState([]);
+  const [spaServices, setSpaServices] = useState([]); // SPA services (separate)
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingService, setEditingService] = useState(null);
