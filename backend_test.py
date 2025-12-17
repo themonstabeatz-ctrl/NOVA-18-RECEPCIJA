@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script for Spa & Massage Booking System
-Testing couples multi-service booking and discount display fixes
-REVIEW REQUEST: Test couples booking with 4 services, 3 services, and discount analytics
+Backend API Testing Script for SPA Module
+Testing SPA endpoints as specified in review request
+REVIEW REQUEST: Test SPA module backend endpoints on spa-dashboard-2
 """
 
 import requests
