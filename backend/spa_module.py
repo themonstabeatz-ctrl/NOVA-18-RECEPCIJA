@@ -41,12 +41,16 @@ class SpaService(BaseModel):
     applicable_to: Optional[List[str]] = None  # ["spa_ritual"]
 
 class SpaQuoteRequest(BaseModel):
-    service_ids: List[str]  # Legacy support
+    service_ids: List[str] = []  # Legacy support
     discount_percentage: Optional[float] = 0  # 0, 5, 10, or 15
-    # NEW: Support for package + addons
+    # Support for package + addons (SPA_RITUAL)
     spa_package_id: Optional[str] = None  # Main ritual/package ID
     spa_category: Optional[str] = None  # "spa_ritual", "spa_zone", etc.
     selected_addons: Optional[List[str]] = []  # List of addon IDs
+    # Support for SPA_ZONE booking
+    selected_zones: Optional[List[str]] = []  # List of zone service IDs
+    # Support for HERBAL included zone
+    included_spa_zone: Optional[str] = None  # "none", "SAUNA_15", "STEAM_15"
 
 class SpaQuoteResponse(BaseModel):
     services: List[dict]
