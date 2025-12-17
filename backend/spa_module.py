@@ -695,6 +695,11 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     
     logger.info(f"✅ SPA Appointment created: {spa_apt.id}, total={final_total} RSD")
     
+    # Send email notification
+    email_data = doc.copy()
+    email_data['spa_category'] = appointment.spa_category or 'spa_zone'
+    await send_spa_booking_email(email_data)
+    
     return spa_apt
 
 @spa_router.get("/appointments")
