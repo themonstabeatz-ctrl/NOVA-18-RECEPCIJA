@@ -244,22 +244,27 @@ const DashboardNew = () => {
   };
 
   const handleDeleteAllAppointments = async () => {
-    if (!window.confirm(`Da li ste sigurni da želite da obrišete SVE rezervacije za period "${getPeriodLabel()}"?\n\nOvo će obrisati ${detailedData?.total_appointments || 0} rezervacija i ne može se poništiti!`)) {
+    const totalCount = unifiedListing?.total_count || detailedData?.total_appointments || 0;
+    if (!window.confirm(`Da li ste sigurni da želite da obrišete SVE rezervacije za period "${getPeriodLabel()}"?\n\nOvo će obrisati ${totalCount} rezervacija (masaže + SPA) i ne može se poništiti!`)) {
       return;
     }
     
     try {
-      const grouped = groupAppointmentsByDay();
-      const allAppointmentIds = Object.values(grouped).flat().map(apt => apt.id);
+      const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+      // Use unified delete endpoint
+      const deleteRes = await fetch(`${API_BASE}/api/appointments/all?period=${period}&include_spa=true`, {
+        method: 'DELETE'
+      });
       
-      // Delete each appointment
-      for (const id of allAppointmentIds) {
-        await appointmentService.delete(id);
+      if (deleteRes.ok) {
+        const result = await deleteRes.json();
+        alert(`Uspešno obrisano ${result.total_deleted} rezervacija!\n(Masaže: ${result.massage_deleted}, SPA: ${result.spa_deleted})`);
+        setShowAppointmentsList(false);
+        setUnifiedListing(null);
+        fetchData(); // Reload dashboard data
+      } else {
+        throw new Error('Delete failed');
       }
-      
-      alert(`Uspešno obrisano ${allAppointmentIds.length} rezervacija!`);
-      setShowAppointmentsList(false);
-      fetchData(); // Reload dashboard data
     } catch (error) {
       console.error('Error deleting appointments:', error);
       alert('Greška pri brisanju rezervacija. Pokušajte ponovo.');
