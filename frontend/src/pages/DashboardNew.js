@@ -858,23 +858,32 @@ const DashboardNew = () => {
             {/* Modal Content */}
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
               <div id="appointments-listing-print">
-                {detailedData?.appointments_by_service && detailedData.appointments_by_service.length > 0 ? (
+                {listingLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
+                    <p className="text-gray-500">Učitavanje rezervacija...</p>
+                  </div>
+                ) : unifiedListing?.items?.length > 0 ? (
                   <div className="space-y-6">
                     {/* Summary Info */}
                     <div className="summary bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-                      <div className="summary-grid grid grid-cols-3 gap-4 text-center">
+                      <div className="summary-grid grid grid-cols-4 gap-4 text-center">
                         <div className="summary-item">
                           <p className="text-sm text-gray-600">Ukupno Rezervacija</p>
-                          <p className="text-2xl font-bold text-amber-700">{detailedData.total_appointments}</p>
+                          <p className="text-2xl font-bold text-amber-700">{unifiedListing.total_count}</p>
+                        </div>
+                        <div className="summary-item">
+                          <p className="text-sm text-gray-600">Masaže</p>
+                          <p className="text-xl font-bold text-blue-600">{unifiedListing.massage_count}</p>
+                        </div>
+                        <div className="summary-item">
+                          <p className="text-sm text-gray-600">SPA</p>
+                          <p className="text-xl font-bold text-teal-600">{unifiedListing.spa_count}</p>
                         </div>
                         <div className="summary-item">
                           <p className="text-sm text-gray-600">Ukupna Zarada</p>
-                          <p className="text-2xl font-bold text-green-700">{formatCurrency(detailedData.total_revenue)}</p>
-                        </div>
-                        <div className="summary-item">
-                          <p className="text-sm text-gray-600">Period</p>
-                          <p className="text-lg font-semibold text-gray-700">
-                            {new Date(detailedData.start_date).toLocaleDateString('sr-RS')} - {new Date(detailedData.end_date).toLocaleDateString('sr-RS')}
+                          <p className="text-2xl font-bold text-green-700">
+                            {formatCurrency(unifiedListing.items.reduce((sum, apt) => sum + (apt.total_price || 0), 0))}
                           </p>
                         </div>
                       </div>
