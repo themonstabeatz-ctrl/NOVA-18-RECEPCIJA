@@ -8,16 +8,39 @@ Endpoints:
 - GET /api/spa/services
 - POST /api/spa/quote
 - POST /api/spa/appointments
+- GET /api/spa/analytics
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 import logging
+import os
+import aiosmtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 logger = logging.getLogger(__name__)
+
+# ============================================
+# SPECIAL COUPLE PACKAGES (Romantični paketi)
+# ============================================
+SPECIAL_PACKAGES = {
+    "ROMANTIC_COUPLE_1": {
+        "name": "Romantični paket za parove",
+        "duration": 210,
+        "price": 25000,
+        "description": "Savršen romantični doživljaj za dvoje"
+    },
+    "ROMANTIC_COUPLE_2": {
+        "name": "Romantični piling paket za parove",
+        "duration": 210,
+        "price": 25000,
+        "description": "Piling tretman za parove"
+    }
+}
 
 # ============================================
 # SPA Router
