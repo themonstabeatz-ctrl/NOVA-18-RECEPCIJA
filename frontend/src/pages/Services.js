@@ -328,14 +328,34 @@ const Services = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {services.filter(s => s.category === activeCategory).length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
-                      Nema usluga u ovoj kategoriji. Dodajte prvu uslugu.
-                    </td>
-                  </tr>
-                ) : (
-                  services.filter(s => s.category === activeCategory).map((service) => {
+                {(() => {
+                  // Determine which services to show based on active tab
+                  const isSpaTab = activeCategory === 'SPA' || activeCategory === 'SPA paketi za posebne prilike';
+                  let displayServices = [];
+                  
+                  if (isSpaTab) {
+                    // Use SPA services from separate endpoint
+                    if (activeCategory === 'SPA') {
+                      displayServices = spaServices.filter(s => s.category === 'spa_zone' || s.category === 'spa_ritual');
+                    } else {
+                      displayServices = spaServices.filter(s => s.category === 'spa_special');
+                    }
+                  } else {
+                    // Use regular massage services
+                    displayServices = services.filter(s => s.category === activeCategory);
+                  }
+                  
+                  if (displayServices.length === 0) {
+                    return (
+                      <tr>
+                        <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                          Nema usluga u ovoj kategoriji. Dodajte prvu uslugu.
+                        </td>
+                      </tr>
+                    );
+                  }
+                  
+                  return displayServices.map((service) => {
                     const discount = service.discount_percentage || 0;
                     // CRITICAL: Always show ORIGINAL price in "Cena" column
                     const originalPrice = service.metadata?.original_price || service.price;
