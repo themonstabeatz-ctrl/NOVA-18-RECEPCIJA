@@ -1031,10 +1031,10 @@ const DashboardNew = () => {
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg p-6 mt-6">
                       <div className="flex items-center justify-between">
                         <h3 className="text-xl font-bold text-gray-900">
-                          UKUPNA ZARADA ZA PERIOD:
+                          UKUPNA ZARADA ZA PERIOD (Masaže + SPA):
                         </h3>
                         <p className="text-3xl font-bold text-green-700">
-                          {formatCurrency(detailedData.total_revenue)}
+                          {formatCurrency(unifiedListing?.items?.reduce((sum, apt) => sum + (apt.total_price || 0), 0) || 0)}
                         </p>
                       </div>
                     </div>
@@ -1043,6 +1043,7 @@ const DashboardNew = () => {
                   <div className="text-center py-12">
                     <List className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <p className="text-gray-500 text-lg">Nema rezervacija za izabrani period</p>
+                    <p className="text-sm text-gray-400 mt-2">Pokušajte sa drugim periodom ili proverite da li ima rezervacija</p>
                   </div>
                 )}
               </div>
