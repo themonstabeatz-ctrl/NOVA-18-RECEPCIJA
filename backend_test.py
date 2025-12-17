@@ -16,6 +16,292 @@ BACKEND_URL = "https://spa-dashboard-2.preview.emergentagent.com/api"
 PRODUCTION_BACKEND_URL = "https://thai-spa-booking.emergent.host/api"
 WEBSITE_URL = "https://spa-dashboard-2.preview.emergentagent.com"
 
+def test_health_check():
+    """
+    Test 1: Health Check
+    GET /api/health
+    Expected: {"status":"healthy"}
+    """
+    print("=" * 80)
+    print("TEST 1: HEALTH CHECK")
+    print("=" * 80)
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/health")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        try:
+            data = response.json()
+            expected_status = "healthy"
+            actual_status = data.get("status")
+            
+            if actual_status == expected_status:
+                print(f"✅ SUCCESS: Health check returned correct status: {actual_status}")
+                return True
+            else:
+                print(f"❌ FAILED: Expected status '{expected_status}', got '{actual_status}'")
+                return False
+                
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Response is not valid JSON")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ ERROR during health check: {e}")
+        return False
+
+def test_spa_analytics():
+    """
+    Test 2: SPA Analytics
+    GET /api/spa/analytics
+    Expected: JSON with totals and breakdown
+    """
+    print("=" * 80)
+    print("TEST 2: SPA ANALYTICS")
+    print("=" * 80)
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/spa/analytics")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        try:
+            data = response.json()
+            print(f"✅ SUCCESS: SPA Analytics endpoint returned data")
+            
+            # Check required fields
+            required_fields = ["totals", "breakdown"]
+            missing_fields = []
+            
+            for field in required_fields:
+                if field not in data:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                print(f"❌ FAILED: Missing required fields: {missing_fields}")
+                return False
+            
+            # Check totals structure
+            totals = data.get("totals", {})
+            required_totals = ["revenue", "count", "discount_total"]
+            missing_totals = []
+            
+            for field in required_totals:
+                if field not in totals:
+                    missing_totals.append(field)
+            
+            if missing_totals:
+                print(f"❌ FAILED: Missing totals fields: {missing_totals}")
+                return False
+            
+            # Check breakdown structure
+            breakdown = data.get("breakdown", {})
+            required_breakdown = ["spa_zone", "spa_ritual", "spa_special_couple", "spa_addons"]
+            missing_breakdown = []
+            
+            for field in required_breakdown:
+                if field not in breakdown:
+                    missing_breakdown.append(field)
+            
+            if missing_breakdown:
+                print(f"❌ FAILED: Missing breakdown fields: {missing_breakdown}")
+                return False
+            
+            print(f"✅ SUCCESS: All required fields present")
+            print(f"   Totals: revenue={totals.get('revenue')}, count={totals.get('count')}, discount_total={totals.get('discount_total')}")
+            print(f"   Breakdown categories: {list(breakdown.keys())}")
+            
+            return True
+            
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Response is not valid JSON")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ ERROR during SPA analytics test: {e}")
+        return False
+
+def test_spa_appointments():
+    """
+    Test 3: SPA Appointments (create)
+    POST /api/spa/appointments
+    Expected: Response with "id" field
+    """
+    print("=" * 80)
+    print("TEST 3: SPA APPOINTMENTS CREATE")
+    print("=" * 80)
+    
+    # Test payload as specified in review request
+    payload = {
+        "client_first_name": "TestAgent",
+        "client_last_name": "Tester",
+        "client_phone": "0609999999",
+        "client_email": "testagent@test.com",
+        "appointment_date": "2025-12-31",
+        "appointment_time": "18:00",
+        "spa_category": "spa_special_couple",
+        "spa_package_id": "ROMANTIC_COUPLE_1",
+        "selected_zones": [],
+        "selected_addons": []
+    }
+    
+    print(f"Request payload:")
+    print(json.dumps(payload, indent=2))
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/spa/appointments",
+            json=payload,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        try:
+            data = response.json()
+            
+            # Check for required "id" field
+            appointment_id = data.get("id")
+            if not appointment_id:
+                print(f"❌ FAILED: Response missing required 'id' field")
+                print(f"Response: {json.dumps(data, indent=2)}")
+                return False
+            
+            print(f"✅ SUCCESS: SPA appointment created with ID: {appointment_id}")
+            
+            # Check other expected fields
+            expected_fields = ["client_first_name", "client_last_name", "client_phone", "start_time", "end_time"]
+            for field in expected_fields:
+                if field in data:
+                    print(f"   {field}: {data.get(field)}")
+                else:
+                    print(f"   ⚠️  Missing field: {field}")
+            
+            return True
+            
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Response is not valid JSON")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ ERROR during SPA appointment creation: {e}")
+        return False
+
+def test_cors_verification():
+    """
+    Test 4: CORS Verification
+    OPTIONS preflight request with Origin: https://relaxhub-1.preview.emergentagent.com
+    Expected: access-control-allow-origin header
+    """
+    print("=" * 80)
+    print("TEST 4: CORS VERIFICATION")
+    print("=" * 80)
+    
+    origin = "https://relaxhub-1.preview.emergentagent.com"
+    
+    try:
+        # Test OPTIONS preflight request
+        response = requests.options(
+            f"{BACKEND_URL}/spa/appointments",
+            headers={
+                "Origin": origin,
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "Content-Type"
+            }
+        )
+        
+        print(f"Response Status: {response.status_code}")
+        print(f"Response Headers: {dict(response.headers)}")
+        
+        # Check for CORS headers
+        cors_origin = response.headers.get("access-control-allow-origin")
+        cors_methods = response.headers.get("access-control-allow-methods")
+        cors_headers = response.headers.get("access-control-allow-headers")
+        
+        print(f"CORS Origin: {cors_origin}")
+        print(f"CORS Methods: {cors_methods}")
+        print(f"CORS Headers: {cors_headers}")
+        
+        # Verify the origin is allowed
+        if cors_origin == origin or cors_origin == "*":
+            print(f"✅ SUCCESS: CORS origin header correct: {cors_origin}")
+            return True
+        else:
+            print(f"❌ FAILED: Expected CORS origin '{origin}' or '*', got '{cors_origin}'")
+            return False
+            
+    except Exception as e:
+        print(f"❌ ERROR during CORS verification: {e}")
+        return False
+
+def run_spa_tests():
+    """Run all SPA module tests"""
+    print("🧖 STARTING SPA MODULE TESTS")
+    print("API Base URL:", BACKEND_URL)
+    print("=" * 80)
+    
+    tests = [
+        ("Health Check", test_health_check),
+        ("SPA Analytics", test_spa_analytics),
+        ("SPA Appointments", test_spa_appointments),
+        ("CORS Verification", test_cors_verification)
+    ]
+    
+    results = []
+    
+    for test_name, test_func in tests:
+        print(f"\n🔍 Running: {test_name}")
+        try:
+            result = test_func()
+            results.append((test_name, result))
+            if result:
+                print(f"✅ {test_name}: PASSED")
+            else:
+                print(f"❌ {test_name}: FAILED")
+        except Exception as e:
+            print(f"❌ {test_name}: ERROR - {e}")
+            results.append((test_name, False))
+        
+        print("-" * 80)
+    
+    # Summary
+    print("\n" + "=" * 80)
+    print("🧖 SPA MODULE TEST SUMMARY")
+    print("=" * 80)
+    
+    passed = sum(1 for _, result in results if result)
+    total = len(results)
+    
+    for test_name, result in results:
+        status = "✅ PASSED" if result else "❌ FAILED"
+        print(f"{test_name}: {status}")
+    
+    print(f"\nOverall: {passed}/{total} tests passed")
+    
+    if passed == total:
+        print("🎉 ALL SPA TESTS PASSED!")
+        return True
+    else:
+        print("❌ SOME SPA TESTS FAILED!")
+        return False
+
 def test_couples_4_services_no_therapist():
     """
     Test Scenario 1: Couples booking with 4 services (no therapist)
