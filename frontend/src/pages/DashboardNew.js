@@ -253,8 +253,19 @@ const DashboardNew = () => {
 
   const { summary, by_category, by_discount, appointments_with_discount } = detailedData;
 
-  // Prepare data for charts
-  const categoryChartData = Object.entries(by_category)
+  // Filter out SPA categories from massage data (will use spa_analytics instead)
+  const filteredCategories = Object.entries(by_category)
+    .filter(([name]) => !name.toLowerCase().includes('spa'))
+    .reduce((acc, [name, data]) => ({ ...acc, [name]: data }), {});
+  
+  // Calculate combined totals (massage + SPA)
+  const spaRevenue = spaAnalytics?.totals?.revenue || 0;
+  const spaCount = spaAnalytics?.totals?.count || 0;
+  const combinedTotalRevenue = (summary?.total_revenue || 0) + spaRevenue;
+  const combinedTotalCount = (summary?.total_appointments || 0) + spaCount;
+
+  // Prepare data for charts (massage only, SPA is separate)
+  const categoryChartData = Object.entries(filteredCategories)
     .filter(([_, data]) => data.appointments_count > 0)
     .map(([name, data]) => ({
       name: name,
