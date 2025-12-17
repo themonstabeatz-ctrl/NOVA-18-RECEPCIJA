@@ -648,3 +648,142 @@ async def get_spa_appointments():
     """Get all SPA appointments"""
     appointments = await db.spa_appointments.find({}, {"_id": 0}).to_list(1000)
     return appointments
+
+# ============================================
+# EMAIL SENDING FOR SPA BOOKINGS
+# ============================================
+async def send_spa_booking_email(appointment_data: dict):
+    """Send email notification for SPA booking"""
+    try:
+        smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+        smtp_user = os.getenv("SMTP_USER", "")
+        smtp_password = os.getenv("SMTP_PASSWORD", "")
+        owner_email = os.getenv("OWNER_EMAIL", "")
+        
+        if not all([smtp_user, smtp_password, owner_email]):
+            logger.warning("Email credentials not configured, skipping SPA email")
+            return False
+        
+        # Build email content
+        client_name = f"{appointment_data.get('client_first_name', '')} {appointment_data.get('client_last_name', '')}"
+        client_phone = appointment_data.get('client_phone', 'N/A')
+        client_email = appointment_data.get('client_email', 'N/A')
+        start_time = appointment_data.get('start_time', 'N/A')
+        total = appointment_data.get('final_total', 0)
+        services = appointment_data.get('services_snapshot', [])
+        spa_category = appointment_data.get('spa_category', 'SPA')
+        
+        service_names = ", ".join([s.get('name', '') for s in services]) if services else spa_category
+        
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px;">
+                <h2 style="color: #8B4513; text-align: center;">🧖 Nova SPA Rezervacija</h2>
+                <hr style="border: 1px solid #ddd;">
+                <p><strong>Klijent:</strong> {client_name}</p>
+                <p><strong>Telefon:</strong> {client_phone}</p>
+                <p><strong>Email:</strong> {client_email}</p>
+                <p><strong>Datum/Vreme:</strong> {start_time}</p>
+                <p><strong>Usluge:</strong> {service_names}</p>
+                <p><strong>Ukupno:</strong> {total} RSD</p>
+                <hr style="border: 1px solid #ddd;">
+                <p style="text-align: center; color: #888;">Bu Aluang Thai Spa</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"🧖 Nova SPA rezervacija - {client_name}"
+        msg["From"] = smtp_user
+        msg["To"] = owner_email
+        msg.attach(MIMEText(html_content, "html"))
+        
+        await aiosmtplib.send(
+            msg,
+            hostname=smtp_host,
+            port=smtp_port,
+            start_tls=True,
+            username=smtp_user,
+            password=smtp_password
+        )
+        
+        logger.info(f"📧 SPA booking email sent to {owner_email}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to send SPA email: {e}")
+        return False
+
+# ============================================
+# SPA ANALYTICS ENDPOINT
+# ============================================
+@spa_router.get("/analytics")
+async def get_spa_analytics(
+    from_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
+    to_date: Optional[str] = Query(None, description="End date YYYY-MM-DD")
+):
+    """Get SPA analytics including all categories"""
+    
+    # Build date filter
+    date_filter = {}
+    if from_date:
+        date_filter["$gte"] = from_date
+    if to_date:
+        date_filter["$lte"] = to_date + "T23:59:59"
+    
+    query = {}
+    if date_filter:
+        query["start_time"] = date_filter
+    
+    # Fetch all SPA appointments
+    appointments = await db.spa_appointments.find(query, {"_id": 0}).to_list(10000)
+    
+    # Initialize counters
+    totals = {
+        "revenue": 0,
+        "count": 0,
+        "discount_total": 0
+    }
+    
+    breakdown = {
+        "spa_zone": {"count": 0, "revenue": 0},
+        "spa_ritual": {"count": 0, "revenue": 0},
+        "spa_special_couple": {"count": 0, "revenue": 0},
+        "spa_addons": {"count": 0, "revenue": 0}
+    }
+    
+    for apt in appointments:
+        final_total = apt.get("final_total", 0)
+        original_total = apt.get("original_total", 0)
+        discount_amount = apt.get("discount_amount", 0)
+        spa_category = apt.get("spa_category", "spa_zone")
+        
+        totals["revenue"] += final_total
+        totals["count"] += 1
+        totals["discount_total"] += discount_amount
+        
+        # Categorize
+        if spa_category == "spa_special_couple":
+            breakdown["spa_special_couple"]["count"] += 1
+            breakdown["spa_special_couple"]["revenue"] += final_total
+        elif spa_category == "spa_ritual":
+            breakdown["spa_ritual"]["count"] += 1
+            breakdown["spa_ritual"]["revenue"] += final_total
+            # Check for addons
+            services = apt.get("services_snapshot", [])
+            for svc in services:
+                if "ADD-ON" in svc.get("name", ""):
+                    breakdown["spa_addons"]["count"] += 1
+                    breakdown["spa_addons"]["revenue"] += svc.get("price", 0)
+        else:
+            breakdown["spa_zone"]["count"] += 1
+            breakdown["spa_zone"]["revenue"] += final_total
+    
+    return {
+        "totals": totals,
+        "breakdown": breakdown,
+        "appointments_count": len(appointments)
+    }
