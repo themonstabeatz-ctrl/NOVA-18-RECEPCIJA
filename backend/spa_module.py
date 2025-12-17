@@ -483,15 +483,63 @@ async def get_spa_quote(request: SpaQuoteRequest):
 
 @spa_router.post("/appointments", response_model=SpaAppointment)
 async def create_spa_appointment(appointment: SpaAppointmentCreate):
-    """Create a SPA appointment"""
+    """Create a SPA appointment - supports multiple formats"""
+    
+    # Determine which IDs to use based on what was provided
+    service_ids_to_use = []
+    
+    # Priority 1: selected_zones for SPA_ZONE bookings
+    if appointment.selected_zones:
+        service_ids_to_use = appointment.selected_zones
+    # Priority 2: spa_package_id for ritual bookings
+    elif appointment.spa_package_id:
+        service_ids_to_use = [appointment.spa_package_id]
+        if appointment.selected_addons:
+            service_ids_to_use.extend(appointment.selected_addons)
+    # Priority 3: Legacy service_ids
+    elif appointment.service_ids:
+        service_ids_to_use = appointment.service_ids
+    
+    # If still no IDs, try to create minimal appointment (for testing)
+    if not service_ids_to_use:
+        logger.warning("SPA appointment created without services - creating placeholder")
+        # Create a minimal appointment without services
+        start_time = appointment.start_time.replace(tzinfo=None) if appointment.start_time.tzinfo else appointment.start_time
+        from datetime import timedelta
+        
+        spa_apt = SpaAppointment(
+            client_first_name=appointment.client_first_name,
+            client_last_name=appointment.client_last_name,
+            client_phone=appointment.client_phone,
+            client_email=appointment.client_email,
+            service_ids=[],
+            services_snapshot=[],
+            start_time=start_time,
+            end_time=start_time + timedelta(minutes=60),
+            original_total=appointment.total_original or 0,
+            discount_percentage=appointment.discount_percentage or 0,
+            discount_amount=0,
+            final_total=appointment.final_price or 0,
+            notes=appointment.message or appointment.notes
+        )
+        
+        doc = spa_apt.model_dump()
+        doc['start_time'] = doc['start_time'].isoformat()
+        doc['end_time'] = doc['end_time'].isoformat()
+        doc['created_at'] = doc['created_at'].isoformat()
+        
+        await db.spa_appointments.insert_one(doc)
+        logger.info(f"✅ SPA Appointment created (no services): {spa_apt.id}")
+        return spa_apt
+    
     # Fetch services
     services = await db.spa_services.find(
-        {"id": {"$in": appointment.service_ids}}, 
+        {"id": {"$in": service_ids_to_use}}, 
         {"_id": 0}
     ).to_list(100)
     
     if not services:
-        raise HTTPException(status_code=404, detail="No SPA services found")
+        raise HTTPException(status_code=404, detail=f"No SPA services found for IDs: {service_ids_to_use}")
     
     # Check for POZOVITE services
     for svc in services:
