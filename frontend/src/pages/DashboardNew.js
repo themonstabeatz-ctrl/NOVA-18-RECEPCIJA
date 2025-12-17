@@ -13,6 +13,10 @@ const DashboardNew = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAppointmentsList, setShowAppointmentsList] = useState(false);
+  
+  // SPA Analytics state
+  const [spaAnalytics, setSpaAnalytics] = useState(null);
+  const [spaLoading, setSpaLoading] = useState(false);
 
   // Check authentication on mount
   useEffect(() => {
