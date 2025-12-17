@@ -70,11 +70,11 @@ class SpaAppointmentCreate(BaseModel):
     client_last_name: str
     client_phone: str
     client_email: Optional[str] = None
-    service_ids: List[str]  # Legacy
+    service_ids: List[str] = []  # Legacy
     start_time: datetime
     discount_percentage: Optional[float] = 0
     notes: Optional[str] = None
-    # NEW: Package + addons support
+    # Package + addons support (SPA_RITUAL)
     spa_package_id: Optional[str] = None
     spa_category: Optional[str] = None
     spa_name: Optional[str] = None
@@ -82,6 +82,12 @@ class SpaAppointmentCreate(BaseModel):
     base_price: Optional[int] = None
     selected_addons: Optional[List[str]] = []
     total_duration: Optional[int] = None
+    # SPA_ZONE booking support
+    selected_zones: Optional[List[str]] = []
+    # HERBAL included zone
+    included_spa_zone: Optional[str] = None
+    # Auto-generated message
+    message: Optional[str] = None
     total_original: Optional[int] = None
     final_price: Optional[int] = None
 
