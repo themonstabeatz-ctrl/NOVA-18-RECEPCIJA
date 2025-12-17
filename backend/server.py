@@ -2541,24 +2541,9 @@ async def get_detailed_analytics(
     service_map = {s['id']: s for s in services}
     
     # Initialize category stats (without "Kartica Masaza za parove" - will be added dynamically from "couple")
+    # NOTE: SPA categories removed - SPA analytics is handled by /api/spa/analytics endpoint
     categories = {
         "Obicne masaze": {
-            "appointments_count": 0,
-            "revenue": 0,
-            "original_revenue": 0,
-            "discount_given": 0,
-            "with_discount": 0,
-            "without_discount": 0
-        },
-        "SPA": {
-            "appointments_count": 0,
-            "revenue": 0,
-            "original_revenue": 0,
-            "discount_given": 0,
-            "with_discount": 0,
-            "without_discount": 0
-        },
-        "SPA Special kartica": {
             "appointments_count": 0,
             "revenue": 0,
             "original_revenue": 0,
