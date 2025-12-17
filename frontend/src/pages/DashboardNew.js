@@ -36,14 +36,26 @@ const DashboardNew = () => {
 
   const fetchData = async () => {
     setLoading(true);
+    setSpaLoading(true);
     try {
+      // Fetch massage analytics
       const response = await analyticsService.getDetailed({ period });
       setDetailedData(response.data);
       console.log('Detailed analytics:', response.data);
+      
+      // Fetch SPA analytics
+      const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+      const spaRes = await fetch(`${API_BASE}/api/spa/analytics`);
+      if (spaRes.ok) {
+        const spaData = await spaRes.json();
+        setSpaAnalytics(spaData);
+        console.log('SPA analytics:', spaData);
+      }
     } catch (error) {
       console.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
+      setSpaLoading(false);
     }
   };
 
