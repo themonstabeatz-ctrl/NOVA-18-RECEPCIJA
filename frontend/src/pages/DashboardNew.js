@@ -940,9 +940,20 @@ const DashboardNew = () => {
                                   {dayAppointments.map((apt) => {
                                     const rowNumber = globalCounter++;
                                     return (
-                                      <tr key={apt.id} className="hover:bg-gray-50 transition-colors">
+                                      <tr key={apt.id} className={`hover:bg-gray-50 transition-colors ${apt.type === 'spa' ? 'bg-teal-50/30' : ''}`}>
                                         <td className="px-4 py-3 text-sm text-gray-600 font-bold">
                                           {rowNumber}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                          {apt.type === 'spa' ? (
+                                            <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full font-medium">
+                                              🧖 SPA
+                                            </span>
+                                          ) : (
+                                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                              💆 Masaža
+                                            </span>
+                                          )}
                                         </td>
                                         <td className="px-4 py-3">
                                           <span className="text-sm font-semibold text-gray-900">
