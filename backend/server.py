@@ -17,6 +17,9 @@ from email.mime.multipart import MIMEMultipart
 # 🔒 LOCKDOWN IMPORT
 from lockdown import assert_not_locked
 
+# 🧖 SPA MODULE IMPORT (separate from massage)
+from spa_module import spa_router, set_db as set_spa_db
+
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -25,6 +28,9 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# Initialize SPA module with database
+set_spa_db(db)
 
 # Create the main app without a prefix
 app = FastAPI()
