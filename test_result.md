@@ -80,14 +80,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Health Check Endpoint"
-    - "SPA Analytics Endpoint"
-    - "SPA Appointments Creation"
-    - "CORS Configuration"
-  stuck_tasks: []
+    - "CEO Dashboard Analytics"
+  stuck_tasks:
+    - "CEO Dashboard Analytics"
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "testing"
-    message: "✅ ALL SPA MODULE BACKEND TESTS PASSED (4/4). Health check, analytics, appointments creation, and CORS verification all working correctly. API base URL https://spa-dashboard-2.preview.emergentagent.com is functional. Ready for main agent to summarize and finish."
+    message: "❌ CRITICAL ISSUE FOUND: CEO Dashboard Analytics has a major problem. The massage analytics endpoint (GET /api/analytics/detailed?period=week) incorrectly includes SPA categories ['SPA', 'SPA Special kartica'] which should NOT appear in 'Pregled Po Kategorijama (Masaže)' section. Only massage categories like 'Obicne masaze' should be present. This is hardcoded in backend/server.py lines 2553-2568. SPA analytics endpoint works correctly. 4/5 backend tests passed, 1 critical issue needs fixing."
