@@ -211,8 +211,8 @@ Frontend errors (ako postoje):
 ✅ Dashboard prikazuje tačne cene  
 
 ### Preview URLs:
-✅ Backend API: `https://massage-scheduler-4.preview.emergentagent.com/api`  
-✅ Recepcija: `https://massage-scheduler-4.preview.emergentagent.com`  
+✅ Backend API: `https://spa-dashboard-2.preview.emergentagent.com/api`  
+✅ Recepcija: `https://spa-dashboard-2.preview.emergentagent.com`  
 ✅ Website povezan sa backend-om (čekamo website team fix)  
 
 ---
