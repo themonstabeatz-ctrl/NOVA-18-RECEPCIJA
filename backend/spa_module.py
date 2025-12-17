@@ -120,7 +120,9 @@ def set_db(database):
 # SPA Default Services Data
 # ============================================
 SPA_DEFAULT_SERVICES = [
-    # SPA ZONE (standalone)
+    # ============================================
+    # SPA ZONE (standalone) - tačne cene
+    # ============================================
     {"name": "Sauna 15 min", "category": "spa_zone", "duration": 15, "price": 1400, "booking_type": "ZAKAZITE"},
     {"name": "Sauna 30 min", "category": "spa_zone", "duration": 30, "price": 2400, "booking_type": "ZAKAZITE"},
     {"name": "Parno kupatilo 15 min", "category": "spa_zone", "duration": 15, "price": 1400, "booking_type": "ZAKAZITE"},
@@ -128,16 +130,19 @@ SPA_DEFAULT_SERVICES = [
     {"name": "Jacuzzi 30 min", "category": "spa_zone", "duration": 30, "price": 2200, "booking_type": "ZAKAZITE"},
     {"name": "Jacuzzi 60 min", "category": "spa_zone", "duration": 60, "price": 3400, "booking_type": "ZAKAZITE"},
     
-    # Luksuzni SPA rituali
-    {"name": "Royal Thai Ritual", "category": "spa_ritual", "duration": 120, "price": 12000, "booking_type": "ZAKAZITE", "description": "Kompletno kraljevsko iskustvo"},
-    {"name": "Detox & Refresh Ritual", "category": "spa_ritual", "duration": 90, "price": 9500, "booking_type": "ZAKAZITE", "description": "Detoksikacija i osveženje"},
-    {"name": "Romantic Couple Ritual", "category": "spa_ritual", "duration": 120, "price": 18000, "booking_type": "ZAKAZITE", "description": "Romantični ritual za parove"},
-    {"name": "Anti-Stress Ritual", "category": "spa_ritual", "duration": 90, "price": 8500, "booking_type": "ZAKAZITE", "description": "Oslobodite se stresa"},
-    {"name": "Beauty & Glow Ritual", "category": "spa_ritual", "duration": 90, "price": 9000, "booking_type": "ZAKAZITE", "description": "Lepota i sjaj"},
-    {"name": "Deep Relaxation Ritual", "category": "spa_ritual", "duration": 120, "price": 11000, "booking_type": "ZAKAZITE", "description": "Duboka relaksacija"},
-    {"name": "Signature Thai Ritual", "category": "spa_ritual", "duration": 150, "price": 14000, "booking_type": "ZAKAZITE", "description": "Potpis tajlandskog spa iskustva"},
+    # ============================================
+    # SPA Rituali - tačni nazivi i cene sa websajta
+    # ============================================
+    {"name": "Silky Body Ritual", "category": "spa_ritual", "duration": 150, "price": 9200, "booking_type": "ZAKAZITE", "description": "Svilenkasto meko telo ritual"},
+    {"name": "Gentle Touch Ritual", "category": "spa_ritual", "duration": 180, "price": 10400, "booking_type": "ZAKAZITE", "description": "Nežni dodir ritual"},
+    {"name": "Deep Renewal Ritual", "category": "spa_ritual", "duration": 210, "price": 11600, "booking_type": "ZAKAZITE", "description": "Duboka obnova ritual"},
+    {"name": "Silky Herbal Compress Ritual", "category": "spa_ritual", "duration": 120, "price": 7600, "booking_type": "ZAKAZITE", "description": "Svilenkasti biljni kompres ritual"},
+    {"name": "Thai Herbal Compress Ritual", "category": "spa_ritual", "duration": 120, "price": 7600, "booking_type": "ZAKAZITE", "description": "Tajlandski biljni kompres ritual"},
+    {"name": "Aroma Stone Harmony Ritual", "category": "spa_ritual", "duration": 120, "price": 7600, "booking_type": "ZAKAZITE", "description": "Aroma kamen harmonija ritual"},
     
+    # ============================================
     # SPA Special - paketi za posebne prilike
+    # ============================================
     {"name": "Romantični paket za parove", "category": "spa_special", "duration": 180, "price": 22000, "booking_type": "ZAKAZITE", "description": "Savršen romantični doživljaj za dvoje"},
     {"name": "Romantični piling paket za parove", "category": "spa_special", "duration": 150, "price": 19000, "booking_type": "ZAKAZITE", "description": "Piling tretman za parove"},
     {"name": "Devojačko veče & Lady Party", "category": "spa_special", "duration": 240, "price": 0, "booking_type": "POZOVITE", "description": "Za grupne rezervacije pozovite nas direktno"},
