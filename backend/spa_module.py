@@ -513,7 +513,78 @@ async def get_spa_quote(request: SpaQuoteRequest):
 
 @spa_router.post("/appointments", response_model=SpaAppointment)
 async def create_spa_appointment(appointment: SpaAppointmentCreate):
-    """Create a SPA appointment - supports multiple formats"""
+    """Create a SPA appointment - supports multiple formats including special couple packages"""
+    
+    # Parse start_time from various formats
+    def get_start_time():
+        if appointment.start_time:
+            return appointment.start_time.replace(tzinfo=None) if appointment.start_time.tzinfo else appointment.start_time
+        elif appointment.appointment_date and appointment.appointment_time:
+            date_str = f"{appointment.appointment_date}T{appointment.appointment_time}:00"
+            return datetime.fromisoformat(date_str)
+        else:
+            return datetime.now() + timedelta(days=1)
+    
+    # ============================================
+    # SPECIAL COUPLE PACKAGES (Romantični paketi)
+    # ============================================
+    if appointment.spa_category == "spa_special_couple" and appointment.spa_package_id:
+        if appointment.spa_package_id not in SPECIAL_PACKAGES:
+            raise HTTPException(status_code=400, detail=f"Unknown special package: {appointment.spa_package_id}")
+        
+        pkg = SPECIAL_PACKAGES[appointment.spa_package_id]
+        start_time = get_start_time()
+        end_time = start_time + timedelta(minutes=pkg["duration"])
+        
+        # Apply discount if any
+        original_total = pkg["price"]
+        discount_pct = min(appointment.discount_percentage or 0, 15)
+        discount_amount, final_total, applied_discount = apply_spa_discount(original_total, discount_pct)
+        
+        spa_apt = SpaAppointment(
+            client_first_name=appointment.client_first_name,
+            client_last_name=appointment.client_last_name,
+            client_phone=appointment.client_phone,
+            client_email=appointment.client_email,
+            service_ids=[appointment.spa_package_id],
+            services_snapshot=[{
+                "id": appointment.spa_package_id,
+                "name": pkg["name"],
+                "price": pkg["price"],
+                "duration": pkg["duration"]
+            }],
+            start_time=start_time,
+            end_time=end_time,
+            original_total=original_total,
+            discount_percentage=applied_discount,
+            discount_amount=discount_amount,
+            final_total=final_total,
+            notes=appointment.message or appointment.notes
+        )
+        
+        # Save to database with spa_category
+        doc = spa_apt.model_dump()
+        doc['start_time'] = doc['start_time'].isoformat()
+        doc['end_time'] = doc['end_time'].isoformat()
+        doc['created_at'] = doc['created_at'].isoformat()
+        doc['spa_category'] = "spa_special_couple"
+        doc['guests'] = appointment.guests or 2
+        
+        await db.spa_appointments.insert_one(doc)
+        
+        logger.info(f"✅ SPA SPECIAL COUPLE Appointment created: {spa_apt.id}, package={pkg['name']}, total={final_total} RSD")
+        
+        # Send email notification
+        await send_spa_booking_email({
+            **doc,
+            "spa_category": "spa_special_couple"
+        })
+        
+        return spa_apt
+    
+    # ============================================
+    # REGULAR SPA BOOKINGS (Zone, Ritual, etc.)
+    # ============================================
     
     # Determine which IDs to use based on what was provided
     service_ids_to_use = []
@@ -526,23 +597,6 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         service_ids_to_use = [appointment.spa_package_id]
         if appointment.selected_addons:
             service_ids_to_use.extend(appointment.selected_addons)
-    # Priority 3: Legacy service_ids
-    elif appointment.service_ids:
-        service_ids_to_use = appointment.service_ids
-    
-    # Parse start_time from various formats
-    from datetime import timedelta
-    
-    def get_start_time():
-        if appointment.start_time:
-            return appointment.start_time.replace(tzinfo=None) if appointment.start_time.tzinfo else appointment.start_time
-        elif appointment.appointment_date and appointment.appointment_time:
-            # Parse from separate date and time fields
-            date_str = f"{appointment.appointment_date}T{appointment.appointment_time}:00"
-            return datetime.fromisoformat(date_str)
-        else:
-            # Default to now + 1 day
-            return datetime.now() + timedelta(days=1)
     
     # If still no IDs, try to create minimal appointment (for testing)
     if not service_ids_to_use:
