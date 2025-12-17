@@ -38,8 +38,12 @@ class SpaService(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
 
 class SpaQuoteRequest(BaseModel):
-    service_ids: List[str]
+    service_ids: List[str]  # Legacy support
     discount_percentage: Optional[float] = 0  # 0, 5, 10, or 15
+    # NEW: Support for package + addons
+    spa_package_id: Optional[str] = None  # Main ritual/package ID
+    spa_category: Optional[str] = None  # "spa_ritual", "spa_zone", etc.
+    selected_addons: Optional[List[str]] = []  # List of addon IDs
 
 class SpaQuoteResponse(BaseModel):
     services: List[dict]
@@ -48,16 +52,31 @@ class SpaQuoteResponse(BaseModel):
     discount_amount: int
     final_total: int
     breakdown: str
+    # NEW: Addon details
+    base_price: Optional[int] = 0
+    addon_price: Optional[int] = 0
+    total_duration: Optional[int] = 0
+    addons: Optional[List[dict]] = []
 
 class SpaAppointmentCreate(BaseModel):
     client_first_name: str
     client_last_name: str
     client_phone: str
     client_email: Optional[str] = None
-    service_ids: List[str]
+    service_ids: List[str]  # Legacy
     start_time: datetime
     discount_percentage: Optional[float] = 0
     notes: Optional[str] = None
+    # NEW: Package + addons support
+    spa_package_id: Optional[str] = None
+    spa_category: Optional[str] = None
+    spa_name: Optional[str] = None
+    base_duration: Optional[int] = None
+    base_price: Optional[int] = None
+    selected_addons: Optional[List[str]] = []
+    total_duration: Optional[int] = None
+    total_original: Optional[int] = None
+    final_price: Optional[int] = None
 
 class SpaAppointment(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
