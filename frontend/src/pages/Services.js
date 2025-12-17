@@ -20,7 +20,7 @@ const Services = () => {
     { id: 'Obicne masaze', label: 'Obicne masaze' },
     { id: 'Kartica Masaza za parove', label: 'Kartica Masaza za parove' },
     { id: 'SPA', label: 'SPA' },
-    { id: 'SPA Special kartica', label: 'SPA Special kartica' }
+    { id: 'SPA paketi za posebne prilike', label: 'SPA paketi za posebne prilike' }
   ];
 
   const durationOptions = [
