@@ -276,11 +276,21 @@ const DashboardNew = () => {
   
   console.log('Filtered out SPA from massage analytics:', spaFromMassageAnalytics);
   
-  // Calculate combined totals (massage + SPA)
+  // Calculate massage-only totals (excluding SPA categories from massage analytics)
+  const massageOnlyRevenue = (summary?.total_revenue || 0) - spaFromMassageAnalytics.revenue;
+  const massageOnlyCount = (summary?.total_appointments || 0) - spaFromMassageAnalytics.count;
+  
+  // Calculate combined totals (massage + SPA from new SPA analytics)
   const spaRevenue = spaAnalytics?.totals?.revenue || 0;
   const spaCount = spaAnalytics?.totals?.count || 0;
-  const combinedTotalRevenue = (summary?.total_revenue || 0) + spaRevenue;
-  const combinedTotalCount = (summary?.total_appointments || 0) + spaCount;
+  const combinedTotalRevenue = massageOnlyRevenue + spaRevenue;
+  const combinedTotalCount = massageOnlyCount + spaCount;
+  
+  console.log('Totals breakdown:', {
+    massageOnly: { revenue: massageOnlyRevenue, count: massageOnlyCount },
+    spaNew: { revenue: spaRevenue, count: spaCount },
+    combined: { revenue: combinedTotalRevenue, count: combinedTotalCount }
+  });
 
   // Prepare data for charts (massage only, SPA is separate)
   const categoryChartData = Object.entries(filteredCategories)
