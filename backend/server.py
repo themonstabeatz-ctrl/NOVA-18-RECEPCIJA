@@ -141,23 +141,11 @@ class Appointment(AppointmentBase):
     person1_services_snapshot: Optional[List[Dict[str, Any]]] = None
     person2_services_snapshot: Optional[List[Dict[str, Any]]] = None
     pricing_breakdown: Optional[str] = None
-    
-    # Alias fields for frontend compatibility (same as snapshot_ fields)
-    @property
-    def final_total(self) -> Optional[float]:
-        return self.snapshot_price
-    
-    @property
-    def original_total(self) -> Optional[float]:
-        return self.snapshot_original_price
-    
-    @property
-    def discount_percentage(self) -> Optional[float]:
-        return self.snapshot_discount_percentage
-    
-    @property
-    def discount_amount(self) -> Optional[float]:
-        return self.snapshot_discount_amount
+    # Alias fields for frontend compatibility (duplicated from snapshot_ fields for JSON response)
+    final_total: Optional[float] = None
+    original_total: Optional[float] = None
+    discount_percentage_value: Optional[float] = Field(default=None, alias="discount_percentage")
+    discount_amount_value: Optional[float] = Field(default=None, alias="discount_amount")
 
 
 # ============================================
