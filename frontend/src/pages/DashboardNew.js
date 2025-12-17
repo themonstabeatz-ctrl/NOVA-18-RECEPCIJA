@@ -475,6 +475,86 @@ const DashboardNew = () => {
             </div>
           ))}
         </div>
+        
+        {/* SPA Analytics Section */}
+        {spaAnalytics && (
+          <div className="mt-8">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">🧖 SPA Analitika</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* SPA Regular (Zone + Ritual) */}
+              <div className="bg-white rounded-lg shadow p-6 border-l-4 border-teal-500">
+                <h4 className="text-sm font-semibold text-gray-700 mb-4">SPA</h4>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-600">Termini</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {(spaAnalytics.breakdown?.spa_zone?.count || 0) + (spaAnalytics.breakdown?.spa_ritual?.count || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Zarada</p>
+                    <p className="text-lg font-semibold text-teal-600">
+                      {formatCurrency((spaAnalytics.breakdown?.spa_zone?.revenue || 0) + (spaAnalytics.breakdown?.spa_ritual?.revenue || 0))}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* SPA Paketi za posebne prilike */}
+              <div className="bg-white rounded-lg shadow p-6 border-l-4 border-pink-500">
+                <h4 className="text-sm font-semibold text-gray-700 mb-4">SPA Paketi za posebne prilike</h4>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-600">Termini</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {spaAnalytics.breakdown?.spa_special_couple?.count || 0}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Zarada</p>
+                    <p className="text-lg font-semibold text-pink-600">
+                      {formatCurrency(spaAnalytics.breakdown?.spa_special_couple?.revenue || 0)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* SPA Add-ons */}
+              <div className="bg-white rounded-lg shadow p-6 border-l-4 border-amber-500">
+                <h4 className="text-sm font-semibold text-gray-700 mb-4">SPA Add-ons (doplate)</h4>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-600">Termini</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {spaAnalytics.breakdown?.spa_addons?.count || 0}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Zarada</p>
+                    <p className="text-lg font-semibold text-amber-600">
+                      {formatCurrency(spaAnalytics.breakdown?.spa_addons?.revenue || 0)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* SPA Total Summary */}
+            <div className="mt-4 bg-gradient-to-r from-teal-50 to-pink-50 rounded-lg p-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-700">Ukupno SPA</span>
+                <div className="text-right">
+                  <span className="text-lg font-bold text-gray-900">{formatCurrency(spaAnalytics.totals?.revenue || 0)}</span>
+                  <span className="text-sm text-gray-500 ml-2">({spaAnalytics.totals?.count || 0} termina)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {spaLoading && (
+          <div className="mt-8 text-center text-gray-500">Učitavanje SPA analitike...</div>
+        )}
       </div>
 
       {/* Charts */}
