@@ -505,12 +505,25 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     elif appointment.service_ids:
         service_ids_to_use = appointment.service_ids
     
+    # Parse start_time from various formats
+    from datetime import timedelta
+    
+    def get_start_time():
+        if appointment.start_time:
+            return appointment.start_time.replace(tzinfo=None) if appointment.start_time.tzinfo else appointment.start_time
+        elif appointment.appointment_date and appointment.appointment_time:
+            # Parse from separate date and time fields
+            date_str = f"{appointment.appointment_date}T{appointment.appointment_time}:00"
+            return datetime.fromisoformat(date_str)
+        else:
+            # Default to now + 1 day
+            return datetime.now() + timedelta(days=1)
+    
     # If still no IDs, try to create minimal appointment (for testing)
     if not service_ids_to_use:
         logger.warning("SPA appointment created without services - creating placeholder")
         # Create a minimal appointment without services
-        start_time = appointment.start_time.replace(tzinfo=None) if appointment.start_time.tzinfo else appointment.start_time
-        from datetime import timedelta
+        start_time = get_start_time()
         
         spa_apt = SpaAppointment(
             client_first_name=appointment.client_first_name,
