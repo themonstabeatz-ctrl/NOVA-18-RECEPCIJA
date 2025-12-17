@@ -17,6 +17,10 @@ const DashboardNew = () => {
   // SPA Analytics state
   const [spaAnalytics, setSpaAnalytics] = useState(null);
   const [spaLoading, setSpaLoading] = useState(false);
+  
+  // Unified listing state (massage + SPA)
+  const [unifiedListing, setUnifiedListing] = useState(null);
+  const [listingLoading, setListingLoading] = useState(false);
 
   // Check authentication on mount
   useEffect(() => {
