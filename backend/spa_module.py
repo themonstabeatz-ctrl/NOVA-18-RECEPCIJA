@@ -30,12 +30,15 @@ spa_router = APIRouter(prefix="/spa", tags=["SPA"])
 class SpaService(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    category: str  # "spa_zone", "spa_ritual", "spa_special"
+    category: str  # "spa_zone", "spa_ritual", "spa_special", "spa_addon"
     duration: int  # minutes
     price: int  # RSD - must end in 00
     description: Optional[str] = None
     booking_type: str = "ZAKAZITE"  # "ZAKAZITE" or "POZOVITE"
     created_at: datetime = Field(default_factory=datetime.now)
+    # ADD-ON specific fields
+    addon_group: Optional[str] = None  # "sauna", "steam", "jacuzzi", "face"
+    applicable_to: Optional[List[str]] = None  # ["spa_ritual"]
 
 class SpaQuoteRequest(BaseModel):
     service_ids: List[str]  # Legacy support
