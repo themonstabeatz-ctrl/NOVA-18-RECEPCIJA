@@ -440,11 +440,11 @@ const DashboardNew = () => {
         </div>
       </div>
 
-      {/* Category Breakdown */}
+      {/* Category Breakdown - Massage Categories Only (SPA is below) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Pregled Po Kategorijama</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Pregled Po Kategorijama (Masaže)</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {Object.entries(by_category).map(([categoryName, categoryData], index) => (
+          {Object.entries(filteredCategories).map(([categoryName, categoryData], index) => (
             <div key={categoryName} className="bg-white rounded-lg shadow p-6">
               <h3 className="text-sm font-semibold text-gray-700 mb-4">{categoryName}</h3>
               <div className="space-y-3">
