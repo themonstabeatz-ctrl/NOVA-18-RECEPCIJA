@@ -160,8 +160,22 @@ const DashboardNew = () => {
     return grouped;
   };
 
-  const handleShowAppointmentsList = () => {
+  const handleShowAppointmentsList = async () => {
     setShowAppointmentsList(true);
+    setListingLoading(true);
+    try {
+      const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+      const listRes = await fetch(`${API_BASE}/api/appointments/list?period=${period}`);
+      if (listRes.ok) {
+        const listData = await listRes.json();
+        setUnifiedListing(listData);
+        console.log('Unified listing:', listData);
+      }
+    } catch (error) {
+      console.error('Error fetching unified listing:', error);
+    } finally {
+      setListingLoading(false);
+    }
   };
 
   const handlePrintListing = () => {
