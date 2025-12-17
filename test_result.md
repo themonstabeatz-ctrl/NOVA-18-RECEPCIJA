@@ -21,7 +21,7 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ GET /api/spa/analytics returns correct JSON structure with totals (revenue=386200, count=33, discount_total=0) and breakdown (spa_zone, spa_ritual, spa_special_couple, spa_addons)"
+        comment: "✅ GET /api/spa/analytics returns correct JSON structure with totals (revenue=461200, count=36, discount_total=0) and breakdown (spa_zone, spa_ritual, spa_special_couple, spa_addons). All expected SPA categories present with proper structure."
 
   - task: "SPA Appointments Creation"
     implemented: true
@@ -33,7 +33,7 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ POST /api/spa/appointments successfully creates appointment with required 'id' field. Test payload with spa_special_couple category and ROMANTIC_COUPLE_1 package works correctly. Returns appointment ID: 1b8569b3-ae9b-4f6e-812d-eab3dc5f66b0"
+        comment: "✅ POST /api/spa/appointments successfully creates appointment with required 'id' field. Test payload with spa_special_couple category and ROMANTIC_COUPLE_1 package works correctly. Returns appointment ID: ef6ffdee-edd9-49bc-a3d1-002ccf7273e7"
 
   - task: "CORS Configuration"
     implemented: true
@@ -46,6 +46,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ CORS verification successful. OPTIONS preflight request returns correct access-control-allow-origin header: https://relaxhub-1.preview.emergentagent.com. All required CORS headers present (methods, headers, credentials)"
+
+  - task: "CEO Dashboard Analytics"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: GET /api/analytics/detailed?period=week returns SPA categories ['SPA', 'SPA Special kartica'] in massage analytics. According to review request, 'Pregled Po Kategorijama (Masaže)' should NOT contain SPA cards - only massage categories like 'Obicne masaze'. Lines 2553-2568 in server.py hardcode SPA categories in massage analytics. SPA analytics endpoint works correctly with proper categories (spa_zone, spa_ritual, spa_special_couple, spa_addons)."
 
 frontend:
   - task: "CEO Dashboard UI"
