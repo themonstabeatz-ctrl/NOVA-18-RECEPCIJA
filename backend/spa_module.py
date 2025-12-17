@@ -586,8 +586,7 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     ]
     
     # Calculate end time
-    start_time = appointment.start_time.replace(tzinfo=None) if appointment.start_time.tzinfo else appointment.start_time
-    from datetime import timedelta
+    start_time = get_start_time()
     end_time = start_time + timedelta(minutes=total_duration)
     
     # Create appointment
