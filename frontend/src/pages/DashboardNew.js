@@ -406,7 +406,7 @@ const DashboardNew = () => {
               </div>
             </div>
             <div className="text-xs text-gray-500 mt-2 space-y-1">
-              <p>Masaže: {formatCurrency(summary.total_revenue)}</p>
+              <p>Masaže: {formatCurrency(massageOnlyRevenue)}</p>
               <p>SPA: {formatCurrency(spaRevenue)}</p>
             </div>
           </div>
