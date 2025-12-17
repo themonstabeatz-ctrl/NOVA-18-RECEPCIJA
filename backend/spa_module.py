@@ -202,8 +202,103 @@ async def get_spa_services(category: Optional[str] = None):
 
 @spa_router.post("/quote", response_model=SpaQuoteResponse)
 async def get_spa_quote(request: SpaQuoteRequest):
-    """Calculate SPA quote with optional discount"""
-    # Fetch requested services
+    """Calculate SPA quote with optional discount and add-ons"""
+    
+    # ============================================
+    # NEW: Package + Addons mode
+    # ============================================
+    if request.spa_package_id:
+        # Fetch main package
+        package = await db.spa_services.find_one({"id": request.spa_package_id}, {"_id": 0})
+        if not package:
+            raise HTTPException(status_code=404, detail=f"SPA package {request.spa_package_id} not found")
+        
+        # Check POZOVITE
+        if package.get("booking_type") == "POZOVITE":
+            raise HTTPException(status_code=400, detail={
+                "error": "POZOVITE_SERVICE",
+                "service_name": package["name"],
+                "message": f"Usluga '{package['name']}' nije dostupna za online rezervaciju. Molimo pozovite nas direktno."
+            })
+        
+        base_price = package["price"]
+        base_duration = package["duration"]
+        package_category = package.get("category", "")
+        
+        # Fetch addons
+        addons = []
+        addon_price = 0
+        addon_duration = 0
+        addon_groups_used = {}  # Track which groups are used
+        
+        if request.selected_addons:
+            addon_services = await db.spa_services.find(
+                {"id": {"$in": request.selected_addons}, "category": "spa_addon"},
+                {"_id": 0}
+            ).to_list(100)
+            
+            for addon in addon_services:
+                # Validate addon is applicable to this category
+                applicable_to = addon.get("applicable_to", [])
+                if applicable_to and package_category not in applicable_to:
+                    raise HTTPException(status_code=400, detail={
+                        "error": "ADDON_NOT_APPLICABLE",
+                        "addon_name": addon["name"],
+                        "package_category": package_category,
+                        "message": f"Add-on '{addon['name']}' nije primenjiv na kategoriju '{package_category}'"
+                    })
+                
+                # Validate no duplicate groups (sauna, steam, jacuzzi)
+                addon_group = addon.get("addon_group", "")
+                if addon_group and addon_group != "face":  # Face can be only 0 or 1
+                    if addon_group in addon_groups_used:
+                        raise HTTPException(status_code=400, detail={
+                            "error": "DUPLICATE_ADDON_GROUP",
+                            "addon_group": addon_group,
+                            "existing": addon_groups_used[addon_group],
+                            "duplicate": addon["name"],
+                            "message": f"Ne možete odabrati više od jednog add-on-a iz grupe '{addon_group}'. Već ste izabrali '{addon_groups_used[addon_group]}'."
+                        })
+                    addon_groups_used[addon_group] = addon["name"]
+                
+                addons.append(addon)
+                addon_price += addon["price"]
+                addon_duration += addon["duration"]
+        
+        # Calculate totals
+        original_total = base_price + addon_price
+        total_duration = base_duration + addon_duration
+        
+        # Apply discount
+        discount_pct = min(request.discount_percentage or 0, 15)
+        discount_amount, final_total, applied_discount = apply_spa_discount(original_total, discount_pct)
+        
+        # Build breakdown
+        breakdown_parts = [f"{package['name']} ({base_price} RSD)"]
+        for addon in addons:
+            breakdown_parts.append(f"+{addon['name']} ({addon['price']} RSD)")
+        breakdown = " ".join(breakdown_parts) + f" = {original_total} RSD"
+        if applied_discount > 0:
+            breakdown += f" - {applied_discount}% = {final_total} RSD"
+        
+        logger.info(f"💰 SPA_QUOTE (PACKAGE+ADDONS): base={base_price}, addon={addon_price}, total={original_total}, discount={applied_discount}%, final={final_total}, duration={total_duration}")
+        
+        return SpaQuoteResponse(
+            services=[{"id": package["id"], "name": package["name"], "price": package["price"], "duration": package["duration"]}],
+            original_total=original_total,
+            discount_percentage=applied_discount,
+            discount_amount=discount_amount,
+            final_total=final_total,
+            breakdown=breakdown,
+            base_price=base_price,
+            addon_price=addon_price,
+            total_duration=total_duration,
+            addons=[{"id": a["id"], "name": a["name"], "price": a["price"], "duration": a["duration"]} for a in addons]
+        )
+    
+    # ============================================
+    # LEGACY: Simple service_ids mode
+    # ============================================
     services = await db.spa_services.find(
         {"id": {"$in": request.service_ids}}, 
         {"_id": 0}
@@ -226,6 +321,7 @@ async def get_spa_quote(request: SpaQuoteRequest):
     
     # Calculate original total
     original_total = sum(svc["price"] for svc in services)
+    total_duration = sum(svc["duration"] for svc in services)
     
     # SPA PRICE LOCK check
     if original_total % 100 != 0:
@@ -253,6 +349,7 @@ async def get_spa_quote(request: SpaQuoteRequest):
         discount_percentage=applied_discount,
         discount_amount=discount_amount,
         final_total=final_total,
+        total_duration=total_duration,
         breakdown=breakdown
     )
 
