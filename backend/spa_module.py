@@ -112,6 +112,8 @@ class SpaAppointmentCreate(BaseModel):
     final_price: Optional[int] = None
     # SPA_ZONE booking support
     selected_zones: Optional[List[str]] = []
+    # SPA_SPECIAL_COUPLE support
+    guests: Optional[int] = 2  # Number of guests for couple packages
     # HERBAL included zone
     included_spa_zone: Optional[str] = None
     # Auto-generated message
