@@ -304,14 +304,16 @@ def test_ceo_dashboard_analytics():
                     print(f"   Categories found: {list(by_category.keys())}")
                     
                     # Verify SPA categories are NOT in massage analytics
-                    spa_categories = ["spa", "spa_special_kartica"]
+                    spa_categories = ["SPA", "SPA Special kartica"]
                     found_spa_categories = []
                     for spa_cat in spa_categories:
                         if spa_cat in by_category:
                             found_spa_categories.append(spa_cat)
                     
                     if found_spa_categories:
-                        print(f"❌ FAILED: Found SPA categories in massage analytics: {found_spa_categories}")
+                        print(f"❌ CRITICAL ISSUE: Found SPA categories in massage analytics: {found_spa_categories}")
+                        print(f"   According to review request, 'Pregled Po Kategorijama (Masaže)' should NOT contain SPA cards")
+                        print(f"   Only massage categories like 'Obicne masaze' should be present")
                         all_tests_passed = False
                     else:
                         print(f"✅ SUCCESS: No SPA categories found in massage analytics (correct)")
