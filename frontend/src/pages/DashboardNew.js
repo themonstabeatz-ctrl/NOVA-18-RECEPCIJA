@@ -364,33 +364,32 @@ const DashboardNew = () => {
       {/* Summary Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Total Revenue */}
+          {/* Total Revenue (Massage + SPA) */}
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Ukupna Zarada</p>
+                <p className="text-sm text-gray-600">Ukupna Zarada (Masaže + SPA)</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(summary.total_revenue)}
+                  {formatCurrency(combinedTotalRevenue)}
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-full flex items-center justify-center">
                 <span className="text-lg font-bold text-green-600">RSD</span>
               </div>
             </div>
-            {summary.total_discount_given > 0 && (
-              <p className="text-xs text-gray-500 mt-2">
-                Originalna: {formatCurrency(summary.total_original_revenue)}
-              </p>
-            )}
+            <div className="text-xs text-gray-500 mt-2 space-y-1">
+              <p>Masaže: {formatCurrency(summary.total_revenue)}</p>
+              <p>SPA: {formatCurrency(spaRevenue)}</p>
+            </div>
           </div>
 
-          {/* Total Appointments */}
+          {/* Total Appointments (Massage + SPA) */}
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Broj Termina</p>
+                <p className="text-sm text-gray-600">Broj Termina (Masaže + SPA)</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {summary.total_appointments}
+                  {combinedTotalCount}
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
