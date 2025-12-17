@@ -1907,6 +1907,217 @@ async def get_appointments(
     
     return appointments
 
+# ============================================
+# UNIFIED LISTING ENDPOINT (Massage + SPA)
+# ============================================
+@api_router.get("/appointments/list")
+async def get_unified_appointments_list(
+    period: Optional[str] = Query("week", description="Period: day, week, month, year"),
+    start_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD")
+):
+    """
+    UNIFIED LISTING: Returns both massage and SPA appointments in a single list.
+    Used by CEO Dashboard "Listing Rezervacija" feature.
+    """
+    from datetime import datetime, timedelta
+    
+    # Calculate date range based on period if not provided
+    now = datetime.now()
+    if not start_date or not end_date:
+        if period == "day":
+            start_dt = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_dt = start_dt + timedelta(days=1)
+        elif period == "week":
+            start_dt = now - timedelta(days=now.weekday())
+            start_dt = start_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_dt = start_dt + timedelta(days=7)
+        elif period == "month":
+            start_dt = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            if now.month == 12:
+                end_dt = start_dt.replace(year=now.year + 1, month=1)
+            else:
+                end_dt = start_dt.replace(month=now.month + 1)
+        elif period == "year":
+            start_dt = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+            end_dt = start_dt.replace(year=now.year + 1)
+        else:
+            start_dt = now - timedelta(days=7)
+            end_dt = now + timedelta(days=1)
+        
+        start_date = start_dt.isoformat()
+        end_date = end_dt.isoformat()
+    
+    items = []
+    
+    # 1. Fetch MASSAGE appointments
+    massage_query = {
+        "start_time": {
+            "$gte": start_date,
+            "$lte": end_date
+        }
+    }
+    massage_appointments = await db.appointments.find(massage_query, {"_id": 0}).to_list(10000)
+    
+    # Get services for massage appointments
+    service_ids = list(set(apt.get('service_id') for apt in massage_appointments if apt.get('service_id')))
+    services = await db.services.find({"id": {"$in": service_ids}}, {"_id": 0}).to_list(1000)
+    service_map = {s['id']: s for s in services}
+    
+    for apt in massage_appointments:
+        service = service_map.get(apt.get('service_id'), {})
+        service_name = service.get('name', 'Nepoznata usluga')
+        
+        # Handle couples booking - use description for service details
+        if apt.get('is_couples_booking'):
+            service_name = service.get('description', service_name)
+        
+        items.append({
+            "id": apt.get('id'),
+            "type": "massage",
+            "start_time": apt.get('start_time'),
+            "end_time": apt.get('end_time'),
+            "client_first_name": apt.get('client_first_name', ''),
+            "client_last_name": apt.get('client_last_name', ''),
+            "client_name": f"{apt.get('client_first_name', '')} {apt.get('client_last_name', '')}",
+            "client_phone": apt.get('client_phone', ''),
+            "service_name": service_name,
+            "service_duration": service.get('duration', 0),
+            "service_description": service.get('description', ''),
+            "original_price": apt.get('snapshot_original_price') or service.get('price', 0),
+            "final_total": apt.get('snapshot_price') or service.get('price', 0),
+            "total_price": apt.get('snapshot_price') or service.get('price', 0),
+            "discount_percentage": apt.get('snapshot_discount_percentage', 0) or 0,
+            "discount_amount": apt.get('snapshot_discount_amount', 0) or 0,
+            "is_couples_booking": apt.get('is_couples_booking', False),
+            "status": apt.get('status', 'scheduled')
+        })
+    
+    # 2. Fetch SPA appointments
+    spa_query = {
+        "start_time": {
+            "$gte": start_date,
+            "$lte": end_date
+        }
+    }
+    spa_appointments = await db.spa_appointments.find(spa_query, {"_id": 0}).to_list(10000)
+    
+    for apt in spa_appointments:
+        # Get service names from snapshot
+        services_snapshot = apt.get('services_snapshot', [])
+        if services_snapshot:
+            service_names = [s.get('name', '') for s in services_snapshot]
+            service_name = ', '.join(service_names)
+            total_duration = sum(s.get('duration', 0) for s in services_snapshot)
+        else:
+            service_name = apt.get('spa_category', 'SPA')
+            total_duration = 0
+        
+        items.append({
+            "id": apt.get('id'),
+            "type": "spa",
+            "start_time": apt.get('start_time'),
+            "end_time": apt.get('end_time'),
+            "client_first_name": apt.get('client_first_name', ''),
+            "client_last_name": apt.get('client_last_name', ''),
+            "client_name": f"{apt.get('client_first_name', '')} {apt.get('client_last_name', '')}",
+            "client_phone": apt.get('client_phone', ''),
+            "service_name": service_name,
+            "service_duration": total_duration,
+            "service_description": apt.get('spa_category', ''),
+            "original_price": apt.get('original_total', 0),
+            "final_total": apt.get('final_total', 0),
+            "total_price": apt.get('final_total', 0),
+            "discount_percentage": apt.get('discount_percentage', 0) or 0,
+            "discount_amount": apt.get('discount_amount', 0) or 0,
+            "is_couples_booking": False,
+            "status": apt.get('status', 'scheduled')
+        })
+    
+    # Sort by start_time
+    items.sort(key=lambda x: x.get('start_time', ''))
+    
+    logger.info(f"📋 UNIFIED LISTING: {len(massage_appointments)} massage + {len(spa_appointments)} SPA = {len(items)} total")
+    
+    return {
+        "items": items,
+        "total_count": len(items),
+        "massage_count": len(massage_appointments),
+        "spa_count": len(spa_appointments),
+        "period": period,
+        "start_date": start_date,
+        "end_date": end_date
+    }
+
+# ============================================
+# DELETE ALL APPOINTMENTS (Unified)
+# ============================================
+@api_router.delete("/appointments/all")
+async def delete_all_appointments_unified(
+    period: Optional[str] = Query("week", description="Period: day, week, month, year"),
+    start_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD"),
+    include_spa: bool = Query(True, description="Also delete SPA appointments")
+):
+    """
+    Delete ALL appointments (massage + optionally SPA) within a date range.
+    Used by CEO Dashboard "Obriši Sve" feature.
+    """
+    from datetime import datetime, timedelta
+    
+    # Calculate date range based on period if not provided
+    now = datetime.now()
+    if not start_date or not end_date:
+        if period == "day":
+            start_dt = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_dt = start_dt + timedelta(days=1)
+        elif period == "week":
+            start_dt = now - timedelta(days=now.weekday())
+            start_dt = start_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_dt = start_dt + timedelta(days=7)
+        elif period == "month":
+            start_dt = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            if now.month == 12:
+                end_dt = start_dt.replace(year=now.year + 1, month=1)
+            else:
+                end_dt = start_dt.replace(month=now.month + 1)
+        elif period == "year":
+            start_dt = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+            end_dt = start_dt.replace(year=now.year + 1)
+        else:
+            start_dt = now - timedelta(days=7)
+            end_dt = now + timedelta(days=1)
+        
+        start_date = start_dt.isoformat()
+        end_date = end_dt.isoformat()
+    
+    query = {
+        "start_time": {
+            "$gte": start_date,
+            "$lte": end_date
+        }
+    }
+    
+    # Delete massage appointments
+    massage_result = await db.appointments.delete_many(query)
+    massage_deleted = massage_result.deleted_count
+    
+    # Delete SPA appointments if requested
+    spa_deleted = 0
+    if include_spa:
+        spa_result = await db.spa_appointments.delete_many(query)
+        spa_deleted = spa_result.deleted_count
+    
+    total_deleted = massage_deleted + spa_deleted
+    logger.info(f"🗑️ BULK DELETE: {massage_deleted} massage + {spa_deleted} SPA = {total_deleted} total")
+    
+    return {
+        "message": f"Deleted {total_deleted} appointments",
+        "massage_deleted": massage_deleted,
+        "spa_deleted": spa_deleted,
+        "total_deleted": total_deleted
+    }
+
 @api_router.get("/appointments/{appointment_id}", response_model=Appointment)
 async def get_appointment(appointment_id: str):
     """Get a specific appointment"""
