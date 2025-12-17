@@ -253,10 +253,28 @@ const DashboardNew = () => {
 
   const { summary, by_category, by_discount, appointments_with_discount } = detailedData;
 
-  // Filter out SPA categories from massage data (will use spa_analytics instead)
-  const filteredCategories = Object.entries(by_category)
-    .filter(([name]) => !name.toLowerCase().includes('spa'))
+  // Filter out ALL SPA categories from massage analytics (SPA data comes from /api/spa/analytics)
+  // This removes: "SPA", "SPA Special kartica", and any other SPA-related categories
+  const filteredCategories = Object.entries(by_category || {})
+    .filter(([name]) => {
+      const nameLower = name.toLowerCase();
+      // Exclude any category that starts with "spa" or contains "spa "
+      return !nameLower.startsWith('spa') && !nameLower.includes('spa ');
+    })
     .reduce((acc, [name, data]) => ({ ...acc, [name]: data }), {});
+  
+  // Calculate SPA revenue/count from massage analytics that we're filtering out
+  const spaFromMassageAnalytics = Object.entries(by_category || {})
+    .filter(([name]) => {
+      const nameLower = name.toLowerCase();
+      return nameLower.startsWith('spa') || nameLower.includes('spa ');
+    })
+    .reduce((acc, [_, data]) => ({
+      revenue: acc.revenue + (data.revenue || 0),
+      count: acc.count + (data.appointments_count || 0)
+    }), { revenue: 0, count: 0 });
+  
+  console.log('Filtered out SPA from massage analytics:', spaFromMassageAnalytics);
   
   // Calculate combined totals (massage + SPA)
   const spaRevenue = spaAnalytics?.totals?.revenue || 0;
