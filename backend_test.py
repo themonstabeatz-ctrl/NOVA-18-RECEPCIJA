@@ -251,6 +251,196 @@ def test_cors_verification():
         print(f"❌ ERROR during CORS verification: {e}")
         return False
 
+def test_ceo_dashboard_analytics():
+    """
+    Test CEO Dashboard Analytics Endpoints
+    Tests the specific endpoints mentioned in the review request:
+    - GET /api/analytics/detailed?period=week (massage analytics)
+    - GET /api/spa/analytics (SPA analytics)
+    """
+    print("=" * 80)
+    print("TEST: CEO DASHBOARD ANALYTICS")
+    print("=" * 80)
+    
+    all_tests_passed = True
+    
+    # Test 1: Massage Analytics (detailed endpoint)
+    print("\n1. Testing GET /api/analytics/detailed?period=week (Massage Analytics)")
+    print("-" * 60)
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/analytics/detailed?period=week")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            all_tests_passed = False
+        else:
+            try:
+                massage_data = response.json()
+                print(f"✅ SUCCESS: Massage analytics endpoint returned data")
+                
+                # Check required structure for CEO Dashboard
+                required_fields = ["summary", "by_category"]
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field not in massage_data:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    print(f"❌ FAILED: Missing required fields: {missing_fields}")
+                    all_tests_passed = False
+                else:
+                    print(f"✅ SUCCESS: All required fields present")
+                    
+                    # Check summary structure
+                    summary = massage_data.get("summary", {})
+                    print(f"   Summary: total_revenue={summary.get('total_revenue')}, total_appointments={summary.get('total_appointments')}")
+                    
+                    # Check by_category structure (should NOT contain SPA categories)
+                    by_category = massage_data.get("by_category", {})
+                    print(f"   Categories found: {list(by_category.keys())}")
+                    
+                    # Verify SPA categories are NOT in massage analytics
+                    spa_categories = ["spa", "spa_special_kartica"]
+                    found_spa_categories = []
+                    for spa_cat in spa_categories:
+                        if spa_cat in by_category:
+                            found_spa_categories.append(spa_cat)
+                    
+                    if found_spa_categories:
+                        print(f"❌ FAILED: Found SPA categories in massage analytics: {found_spa_categories}")
+                        all_tests_passed = False
+                    else:
+                        print(f"✅ SUCCESS: No SPA categories found in massage analytics (correct)")
+                        
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Response is not valid JSON")
+                print(f"Response: {response.text}")
+                all_tests_passed = False
+                
+    except Exception as e:
+        print(f"❌ ERROR during massage analytics test: {e}")
+        all_tests_passed = False
+    
+    # Test 2: SPA Analytics
+    print("\n2. Testing GET /api/spa/analytics (SPA Analytics)")
+    print("-" * 60)
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/spa/analytics")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            all_tests_passed = False
+        else:
+            try:
+                spa_data = response.json()
+                print(f"✅ SUCCESS: SPA Analytics endpoint returned data")
+                
+                # Check required fields
+                required_fields = ["totals", "breakdown"]
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field not in spa_data:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    print(f"❌ FAILED: Missing required fields: {missing_fields}")
+                    all_tests_passed = False
+                else:
+                    print(f"✅ SUCCESS: All required fields present")
+                    
+                    # Check totals structure
+                    totals = spa_data.get("totals", {})
+                    print(f"   Totals: revenue={totals.get('revenue')}, count={totals.get('count')}, discount_total={totals.get('discount_total')}")
+                    
+                    # Check breakdown structure - should contain specific SPA categories
+                    breakdown = spa_data.get("breakdown", {})
+                    expected_spa_categories = ["spa_zone", "spa_ritual", "spa_special_couple", "spa_addons"]
+                    
+                    print(f"   SPA Categories found: {list(breakdown.keys())}")
+                    
+                    missing_spa_categories = []
+                    for spa_cat in expected_spa_categories:
+                        if spa_cat not in breakdown:
+                            missing_spa_categories.append(spa_cat)
+                    
+                    if missing_spa_categories:
+                        print(f"❌ FAILED: Missing SPA categories: {missing_spa_categories}")
+                        all_tests_passed = False
+                    else:
+                        print(f"✅ SUCCESS: All expected SPA categories present")
+                        
+                        # Verify each category has count and revenue
+                        for cat_name, cat_data in breakdown.items():
+                            if "count" not in cat_data or "revenue" not in cat_data:
+                                print(f"❌ FAILED: Category {cat_name} missing count or revenue")
+                                all_tests_passed = False
+                            else:
+                                print(f"   {cat_name}: count={cat_data.get('count')}, revenue={cat_data.get('revenue')}")
+                        
+                        if all_tests_passed:
+                            print(f"✅ SUCCESS: All SPA categories have proper structure")
+                        
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Response is not valid JSON")
+                print(f"Response: {response.text}")
+                all_tests_passed = False
+                
+    except Exception as e:
+        print(f"❌ ERROR during SPA analytics test: {e}")
+        all_tests_passed = False
+    
+    # Test 3: Combined Analytics Verification
+    print("\n3. Testing Combined Analytics for CEO Dashboard")
+    print("-" * 60)
+    
+    try:
+        # Get both analytics
+        massage_response = requests.get(f"{BACKEND_URL}/analytics/detailed?period=week")
+        spa_response = requests.get(f"{BACKEND_URL}/spa/analytics")
+        
+        if massage_response.status_code == 200 and spa_response.status_code == 200:
+            massage_data = massage_response.json()
+            spa_data = spa_response.json()
+            
+            # Calculate combined totals
+            massage_revenue = massage_data.get("summary", {}).get("total_revenue", 0)
+            massage_count = massage_data.get("summary", {}).get("total_appointments", 0)
+            
+            spa_revenue = spa_data.get("totals", {}).get("revenue", 0)
+            spa_count = spa_data.get("totals", {}).get("count", 0)
+            
+            combined_revenue = massage_revenue + spa_revenue
+            combined_count = massage_count + spa_count
+            
+            print(f"   Massage Analytics: {massage_revenue} RSD, {massage_count} appointments")
+            print(f"   SPA Analytics: {spa_revenue} RSD, {spa_count} appointments")
+            print(f"   Combined Totals: {combined_revenue} RSD, {combined_count} appointments")
+            
+            # Verify data makes sense
+            if combined_revenue >= 0 and combined_count >= 0:
+                print(f"✅ SUCCESS: Combined analytics data is valid")
+            else:
+                print(f"❌ FAILED: Invalid combined analytics data")
+                all_tests_passed = False
+                
+        else:
+            print(f"❌ FAILED: Could not retrieve both analytics for combination test")
+            all_tests_passed = False
+            
+    except Exception as e:
+        print(f"❌ ERROR during combined analytics test: {e}")
+        all_tests_passed = False
+    
+    return all_tests_passed
+
 def run_spa_tests():
     """Run all SPA module tests"""
     print("🧖 STARTING SPA MODULE TESTS")
@@ -261,7 +451,8 @@ def run_spa_tests():
         ("Health Check", test_health_check),
         ("SPA Analytics", test_spa_analytics),
         ("SPA Appointments", test_spa_appointments),
-        ("CORS Verification", test_cors_verification)
+        ("CORS Verification", test_cors_verification),
+        ("CEO Dashboard Analytics", test_ceo_dashboard_analytics)
     ]
     
     results = []
