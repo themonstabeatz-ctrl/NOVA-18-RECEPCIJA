@@ -331,15 +331,17 @@ const Services = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {(() => {
                   // Determine which services to show based on active tab
-                  const isSpaTab = activeCategory === 'SPA' || activeCategory === 'SPA paketi za posebne prilike';
+                  const isSpaTab = activeCategory === 'SPA' || activeCategory === 'SPA paketi za posebne prilike' || activeCategory === 'SPA add-ons (doplate)';
                   let displayServices = [];
                   
                   if (isSpaTab) {
                     // Use SPA services from separate endpoint
                     if (activeCategory === 'SPA') {
                       displayServices = spaServices.filter(s => s.category === 'spa_zone' || s.category === 'spa_ritual');
-                    } else {
+                    } else if (activeCategory === 'SPA paketi za posebne prilike') {
                       displayServices = spaServices.filter(s => s.category === 'spa_special');
+                    } else if (activeCategory === 'SPA add-ons (doplate)') {
+                      displayServices = spaServices.filter(s => s.category === 'spa_addon');
                     }
                   } else {
                     // Use regular massage services
