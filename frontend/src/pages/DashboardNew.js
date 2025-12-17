@@ -1010,7 +1010,7 @@ const DashboardNew = () => {
                                 </tbody>
                                 <tfoot className="bg-gray-50">
                                   <tr className="total-row">
-                                    <td colSpan="4" className="px-4 py-3 text-right text-sm font-bold text-gray-900">
+                                    <td colSpan="5" className="px-4 py-3 text-right text-sm font-bold text-gray-900">
                                       Ukupno za dan:
                                     </td>
                                     <td className="px-4 py-3 text-right">
