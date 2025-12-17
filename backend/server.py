@@ -2747,6 +2747,9 @@ async def root():
 # Include the router in the main app
 app.include_router(api_router)
 
+# 🧖 Include SPA router (separate module)
+app.include_router(spa_router, prefix="/api")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
