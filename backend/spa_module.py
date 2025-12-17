@@ -718,10 +718,10 @@ async def send_spa_booking_email(appointment_data: dict):
         smtp_port = int(os.getenv("SMTP_PORT", "587"))
         smtp_user = os.getenv("SMTP_USER", "")
         smtp_password = os.getenv("SMTP_PASSWORD", "")
-        owner_email = os.getenv("OWNER_EMAIL", "")
+        owner_email = os.getenv("SMTP_TO_OWNER", os.getenv("OWNER_EMAIL", ""))
         
         if not all([smtp_user, smtp_password, owner_email]):
-            logger.warning("Email credentials not configured, skipping SPA email")
+            logger.warning(f"Email credentials not configured (user={smtp_user}, owner={owner_email}), skipping SPA email")
             return False
         
         # Build email content
