@@ -387,6 +387,14 @@ async def calculate_discounted_price(service_code: str, base_price: float) -> di
 
 
 # ============================================
+# Routes - Health Check
+# ============================================
+@api_router.get("/health")
+async def health_check():
+    """Health check endpoint - always returns 200"""
+    return {"status": "healthy"}
+
+# ============================================
 # Routes - Therapists
 # ============================================
 @api_router.post("/therapists", response_model=Therapist)
