@@ -1242,6 +1242,11 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
         "snapshot_original_price": original_total,
         "snapshot_discount_percentage": discount_pct,
         "snapshot_discount_amount": original_total - final_total if discount_pct > 0 else 0,
+        # ALIAS FIELDS for frontend compatibility
+        "final_total": final_total,
+        "original_total": original_total,
+        "discount_percentage_value": discount_pct,
+        "discount_amount_value": original_total - final_total if discount_pct > 0 else 0,
         # COUPLES MULTI-SERVICE SNAPSHOT: Store ALL selected services
         "person1_services_snapshot": person1_services_snapshot,
         "person2_services_snapshot": person2_services_snapshot,
