@@ -18,7 +18,7 @@ import sys
 import subprocess
 
 # Backend URL from environment
-BACKEND_URL = "https://spa-dashboard-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://spa-booking-api.preview.emergentagent.com/api"
 
 def test_services_service_code_and_final_price():
     """

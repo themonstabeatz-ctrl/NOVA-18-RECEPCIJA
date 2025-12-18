@@ -45,7 +45,7 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ CORS verification successful. OPTIONS preflight request returns correct access-control-allow-origin header: https://relaxhub-1.preview.emergentagent.com. All required CORS headers present (methods, headers, credentials)"
+        comment: "✅ CORS verification successful. OPTIONS preflight request returns correct access-control-allow-origin header: https://spa-booking-api.preview.emergentagent.com. All required CORS headers present (methods, headers, credentials)"
 
   - task: "CEO Dashboard Analytics"
     implemented: true

@@ -27,7 +27,7 @@ Websajt prikazuje popust od -10% u kartici "Masaža za parove" kada korisnik oda
 **POGREŠNO (trenutno):**
 ```javascript
 // Fetch SVE servise
-const services = await fetch('https://spa-dashboard-2.preview.emergentagent.com/api/services')
+const services = await fetch('https://spa-booking-api.preview.emergentagent.com/api/services')
   .then(r => r.json());
 
 // Filter po nazivu (POGREŠNO!)
@@ -38,7 +38,7 @@ const stopala = services.find(s => s.name.includes('Masaža stopala'));
 **TAČNO (kako treba):**
 ```javascript
 // Fetch SVE servise
-const services = await fetch('https://spa-dashboard-2.preview.emergentagent.com/api/services')
+const services = await fetch('https://spa-booking-api.preview.emergentagent.com/api/services')
   .then(r => r.json());
 
 // Filter SAMO [PAROVI] servise iz kategorije "Kartica Masaza za parove"
@@ -113,7 +113,7 @@ console.log('Popust:', selectedService.discount_percentage);  // 0% ✅
 
 ```javascript
 // 1. Fetch svih servisa
-const allServices = await fetch('https://spa-dashboard-2.preview.emergentagent.com/api/services')
+const allServices = await fetch('https://spa-booking-api.preview.emergentagent.com/api/services')
   .then(r => r.json());
 
 console.log('Ukupno servisa:', allServices.length);
@@ -205,7 +205,7 @@ const coupleServices = allServices.filter(s =>
 
 async function fetchCoupleServices() {
   // 1. Fetch svih servisa
-  const response = await fetch('https://spa-dashboard-2.preview.emergentagent.com/api/services');
+  const response = await fetch('https://spa-booking-api.preview.emergentagent.com/api/services');
   const allServices = await response.json();
   
   // 2. Filter SAMO [PAROVI] servise iz kategorije "Kartica Masaza za parove"

@@ -1,56 +1,42 @@
 <analysis>**original_problem_statement:**
-Korisnik je zatražio niz hitnih ispravki i implementaciju potpuno novog SPA modula, uz strogo pravilo da se postojeća logika za masaže i couple termine ne menja.
+Korisnik je zatražio seriju tehničkih unapređenja kako bi se novi **SPA modul** u potpunosti integrisao sa postojećom aplikacijom za rezervaciju masaža. Glavni ciljevi su bili:
 
-**Prioritetni zadaci su bili:**
-1.  **Hitne CORS ispravke:** Više puta je bilo potrebno ažurirati  u  fajlu kako bi se dozvolili zahtevi sa novih frontend domena (, , ).
-2.  **Ispravka Couples validacije:** Popraviti logiku u  endpointu kako bi se osiguralo da se koriste samo  servisi i da ukupno trajanje usluga po osobi odgovara izabranom .
-3.  **Ispravka Price Lock pravila:** Modifikovati logiku zaključavanja cena tako da se provera okruglih cena (na 00) vrši samo na  (zbir cena pre popusta), a ne na finalnoj ceni.
-4.  **Implementacija Lockdown mehanizma:** Dodati mehanizam (prvo kao strogi lock, kasnije kao feature-flag) koji sprečava izmene na zaključanim endpointima za masaže.
-5.  **Ispravka prikaza trajanja:** Osigurati da se za couple termine prikazuje ukupno trajanje (), a ne zbir trajanja svih usluga.
-6.  **Implementacija kompletnog SPA Modula (odvojeno od masaža):**
-    *   Kreiranje novih backend ruta () u odvojenom fajlu ().
-    *   Seeding SPA usluga u bazu (SPA Zone, Rituali, Specijalni paketi).
-    *   Implementacija  endpointa sa logikom za popuste (5/10/15%).
-    *   Implementacija  endpointa za SPA rezervacije.
-    *   Dodavanje podrške za Add-ons (doplate uz rituale) sa validacijom.
-    *   Dodavanje podrške za SPA Zone booking (kombinacija više zona).
-    *   Implementacija slanja email notifikacija iz backend-a za SPA rezervacije.
-7.  **Povezivanje SPA modula sa Admin Panelom:**
-    *   Ispraviti Admin UI () da poziva nove  endpoint-e i prikazuje SPA usluge u odvojenim tabovima.
-    *   Implementirati prikaz SPA analitike na CEO Dashboard-u () pozivanjem novog  endpointa.
-    *   Finalno poliranje CEO dashboarda kako bi se uklonile duplirane kategorije i objedinili ukupni zbirovi (masaže + SPA).
+1.  **Stabilizacija API odgovora**: Osigurati da svi endpointi, posebno , vraćaju konzistentan JSON format sa svim potrebnim poljima (uid=0(root) gid=0(root) groups=0(root), , , itd.) koje frontend očekuje.
+2.  **Konzistentan prikaz podataka**: Ukloniti nedoslednosti u Admin Panelu. Svi SPA termini moraju se prikazivati u Listingu Rezervacija i Termini (kalendar) zajedno sa masažama. Podaci poput naziva usluge, opisa i trajanja moraju biti kompletni i ispravni, bez generičkih vrednosti kao što su SPA ili N/A min.
+3.  **Funkcionalnost upravljanja**: Omogućiti brisanje SPA termina iz Admin Panela, pošto su se prethodno samo masaže mogle brisati.
+4.  **Centralizacija notifikacija**: Osigurati da kreiranje SPA rezervacije pokreće isti mehanizam za slanje email notifikacija (adminu i klijentu) i kreiranje notifikacija u samoj aplikaciji, kao što to rade rezervacije za masaže.
+5.  **Sigurnost i CORS**: Zaključati backend tako da prihvata zahteve isključivo sa definisanih frontend domena ( i  za razvoj).
 
 **User's preferred language**: srpski (Serbian)
 
 **what currently exists?**
-Aplikacija ima stabilan i zaključan modul za masaže i couple termine, čija se logika više ne menja. Pored toga, implementiran je potpuno nov i odvojen **SPA modul**.
--   **Backend**: Sadrži  koji upravlja svim SPA operacijama: listanje usluga, kalkulacija cena sa add-onima i popustima (), kreiranje rezervacija () i slanje email notifikacija. Takođe, postoji i endpoint za analitiku (). Logika za masaže je netaknuta.
--   **Frontend (Admin Panel)**: CEO Dashboard () je ažuriran da prikazuje detaljnu analitiku za novi SPA modul (podeljeno na SPA, SPA pakete i Add-ons) i da sabira ukupnu zaradu i broj termina sa postojećom analitikom za masaže. Stranica za usluge () sada ispravno prikazuje SPA usluge, pakete i add-on-e u odvojenim tabovima.
+Aplikacija ima dva glavna modula: originalni za masaže i novi za SPA. Backend je značajno unapređen i sada poseduje:
+-   **Centralizovanu logiku za prikaz termina**: Endpointi  (za kalendar) i  (za listing) sada vraćaju objedinjenu listu koja sadrži i masaže i SPA termine.
+-   **Backend normalizator podataka**: U fajlu  implementirana je ključna funkcija . Ova funkcija parsira  polje iz SPA rezervacija kako bi izvukla i sačuvala strukturirane podatke kao što su ,  i . Ovo rešava problem prikaza generičkih vrednosti na frontendu.
+-   **Centralizovan sistem notifikacija**: SPA modul je refaktorisan da koristi isti centralni  dispatcher kao i modul za masaže, čime se osigurava konzistentno slanje emailova i in-app notifikacija.
+-   **Kompletan CRUD za SPA**: Implementirani su endpointi za kreiranje, listanje i brisanje SPA termina.
+-   **Ojačanu sigurnost**: CORS politika je strogo konfigurisana da prihvata zahteve samo sa odobrenih domena.
+-   **Ažuriran frontend**: Stranice  (listing) i  (kalendar) su ažurirane da ispravno prikazuju objedinjene podatke.
 
 **Last working item**:
--   **Last item agent was working**: Agent je završavao finalno poliranje CEO Dashboard-a (). To je uključivalo:
-    1.  Filtriranje stare SPA Special kartica kategorije iz prikaza analitike za masaže.
-    2.  Ažuriranje prikaza ukupne zarade i broja termina tako da sabiraju podatke iz analitike za masaže i nove SPA analitike.
--   **Status**: IN PROGRESS
--   **Agent Testing Done**: N (Agent je implementirao izmene, ali nije stigao da restartuje frontend i uradi finalnu proveru.)
--   **Which testing method agent to use?**: screenshot tool (Da se proveri finalni izgled CEO dashboard-a na )
+-   **Last item agent was working**: Agent je završavao implementaciju centralizovanog sistema notifikacija. Cilj je bio da se kreiranje SPA rezervacije () poveže sa istim centralnim dispatcher-om ( u ) koji se koristi za masaže.
+-   **Status**: USER VERIFICATION PENDING
+-   **Agent Testing Done**: Y
+-   **Which testing method agent to use?**: manual testing by curl. Napraviti novu SPA rezervaciju i proveriti backend logove za potvrdu slanja emaila i in-app notifikacije (npr. ). Takođe, proveriti da li se brojač nepregledanih notifikacija na dashboardu povećao.
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: (P0) Završiti i verifikovati finalne izmene na CEO Dashboard-u.
-    -   **Attempted fixes**: Agent je editovao  da doda logiku za filtriranje i sabiranje.
+-   **Issue 1**: (P0) Verifikacija centralizovanog sistema notifikacija.
+    -   **Attempted fixes**: Agent je uspešno refaktorisao kod. U  je ubrizgao  funkciju iz  (koristeći  mehanizam da se izbegne circular import) i pozvao je prilikom kreiranja SPA termina. Testiranje putem -a i pregled logova su pokazali da je kod izvršen i da je status notifikacije sent.
     -   **Next debug checklist**:
-        1.  Restartovati frontend servis: frontend: stopped
-frontend: started.
-        2.  Pomoću  alata, proveriti URL  (nakon logovanja sa lozinkom ).
-        3.  Proveriti da li:
-            -   U gornjoj sekciji Pregled po kategorijama više **nema** kartice SPA Special kartica.
-            -   Ukupna zarada i broj termina na vrhu stranice sada prikazuju **sabranu vrednost** (masaže + SPA).
-            -   Nova sekcija SPA Analitika i dalje ispravno prikazuje podatke.
-    -   **Why fix this issue and what will be achieved with the fix?**: Da bi se CEO dashboard prikazivao korektno, bez dupliranih/zastarelih podataka i sa tačnim ukupnim zbirovima.
-    -   **Status**: IN PROGRESS
+        1.  Kreirati testnu SPA rezervaciju preko API-ja ili frontenda.
+        2.  Proveriti da li je stigao email adminu () i klijentu (ako je email unet).
+        3.  Proveriti da li se na Admin panelu pojavila nova in-app notifikacija.
+        4.  Pregledati backend logove () da se potvrdi izvršenje bez grešaka.
+    -   **Why fix this issue and what will be achieved with the fix?**: Ovo je finalni korak u potpunoj integraciji SPA modula, čime se osigurava da operativni tok (uključujući komunikaciju sa klijentima i adminima) bude identičan za sve tipove usluga.
+    -   **Status**: USER VERIFICATION PENDING
     -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Should Test frontend/backend/both after fix?**: backend
     -   **Blocked on other issue**: None
 
 **In progress Task List**:
@@ -58,7 +44,7 @@ Nema.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P0) Korisnička verifikacija**: Nakon što agent potvrdi ispravnost CEO Dashboard-a, korisnik treba da testira ceo SPA modul i analitiku.
+    -   (P0) Korisnička verifikacija kompletnog SPA modula nakon svih implementiranih izmena (prikaz u listingu, kalendaru, analitici i slanje notifikacija).
 -   **Future Tasks**:
     -   E2E testiranje kompletnog booking flow-a (masaže i SPA).
     -   Integracija sa POS/kasa i terminalom za kartice.
@@ -66,20 +52,14 @@ Nema.
     -   Loyalty program.
 
 **Completed work in this session**
--   **Ispravljena  validacija**: Logika za  booking sada ispravno proverava  prefix i trajanje usluga po osobi.
--   **Ispravljen  mehanizam**: Provera okruglih cena se sada primenjuje samo na originalnu cenu pre popusta.
--   **Implementiran  mehanizam**: Dodat je feature-flag u  koji štiti endpoint-e za masaže od izmena.
--   **Ispravljen prikaz trajanja**: Nazivi couple termina sada prikazuju tačno ukupno trajanje.
--   **Dodat  endpoint**: Implementiran je endpoint za proveru statusa backend-a.
--   **Ažurirana CORS pravila**:  je više puta ažuriran da podrži nove frontend domene i  za razvoj.
--   **Kompletno implementiran SPA Modul**:
-    -   Kreiran odvojen modul  sa novim Pydantic modelima.
-    -   Implementirani endpointi: , , , .
-    -   Dodata podrška za SPA Zone, Rituale, Specijalne pakete i Add-on-e.
-    -   Implementirano slanje email-a iz backend-a za SPA rezervacije.
--   **Ažuriran Admin Panel (Frontend)**:
-    -   : Stranica sa uslugama sada prikazuje sve SPA kategorije u odvojenim tabovima, pozivajući nove endpoint-e.
-    -   : CEO Dashboard sada prikazuje detaljnu analitiku za SPA modul.
+-   **Korigovana CORS pravila**: Backend je zaključan da prihvata zahteve samo sa  i .
+-   **Stabilizovan  endpoint**:  sada vraća stabilan JSON sa svim poljima koje frontend očekuje (, ,  itd.).
+-   **Uklonjene greške na frontendu**: Popravljena je greška sa praznim ekranom zbog hardkodirane provere URL-a u .
+-   **Unificiran Listing Rezervacija**: Kreiran je  koji vraća i masaže i SPA. Frontend () je ažuriran da prikazuje objedinjene podatke.
+-   **Omogućeno brisanje SPA termina**: Dodat je .
+-   **Unificiran Kalendarski Prikaz (Termini)**: Endpoint  je proširen da uključuje SPA termine, koji su sada vidljivi na stranici .
+-   **Implementiran Backend Normalizator**: Kreirana je centralna funkcija  koja parsira  polje i trajno upisuje strukturirane podatke (, , ) u bazu. Ovo je rešilo problem prikaza N/A min i generičkih naziva na frontendu.
+-   **Centralizovane Notifikacije**: SPA booking je povezan sa centralnim  sistemom, osiguravajući konzistentno slanje emailova i in-app notifikacija.
 
 **Earlier issues found/mentioned but not fixed**
 -   Nema.
@@ -91,58 +71,57 @@ Nema.
 
 
 **Key Technical Concepts**
--   **Modularizacija**: Logika za novu SPA funkcionalnost je potpuno odvojena u  kako se ne bi mešala sa postojećom logikom za masaže.
--   **Seeding podataka**: SPA usluge se pri pokretanju servera upisuju u bazu podataka (ako ne postoje), osiguravajući konzistentnost.
--   **Feature Flag**: Korišćenje environment varijable () za uslovno aktiviranje lockdown mehanizma.
--   **Frontend State Management**: Korišćenje odvojenih  i  hook-ova u React komponentama za dohvatanje i prikazivanje podataka iz različitih API endpointa (masaže vs. SPA).
+-   **Backend Data Normalization**: Ključni koncept je  funkcija u . Ona uzima sirove SPA podatke (često sa detaljima u  polju), parsira ih koristeći regex, i upisuje nazad u bazu kao strukturirana polja (, , itd.). Ovo osigurava da podaci u bazi budu konzistentni i spremni za prikaz.
+-   **Dependency Injection**: Da bi se izbegao circular import ( importuje , a  treba funkciju iz ), korišćen je  mehanizam. Glavni  prosleđuje svoju  funkciju SPA modulu prilikom inicijalizacije.
+-   **Unified Endpoints**: Umesto da frontend poziva odvojene endpointe za masaže i SPA, kreirani su jedinstveni endpointi ( i ) koji na backendu spajaju podatke iz obe kolekcije.
 
 **key DB schema**
--   **spa_services**: uid=0(root) gid=0(root) groups=0(root), ,  ('spa_zone', 'spa_ritual', 'spa_special', 'spa_addon'), , , , , etc. (Nova kolekcija za sve SPA usluge).
--   **spa_appointments**: uid=0(root) gid=0(root) groups=0(root), , , , , , , etc. (Nova kolekcija za SPA rezervacije).
--   **appointments**: (Netaknuto) Kolekcija za rezervacije masaža.
--   **services**: (Netaknuto) Kolekcija za usluge masaža.
+-   **appointments**: Kolekcija za rezervacije masaža. Nije menjana.
+-   **spa_appointments**: Kolekcija za SPA rezervacije. Značajno unapređena - sada sadrži normalizovana polja kao što su , , , i kompletan  koji se upisuju nakon svake rezervacije.
+-   **services**: Kolekcija za usluge masaža.
+-   **spa_services**: Kolekcija za SPA usluge.
 
 **changes in tech stack**
 -   Nema.
 
 **All files of reference**
--   : Centralni fajl za svu novu SPA logiku.
--   : Izmenjen da uključi SPA ruter.
--   : Izmenjen da prikazuje SPA analitiku.
--   : Izmenjen da prikazuje SPA usluge.
--   : Sadrži CORS konfiguraciju.
+-   : Centralni fajl sa unificiranim endpointima, normalizatorom i dispatcherom.
+-   : Modul za SPA logiku, refaktorisan da koristi centralne funkcije.
+-   : Frontend za CEO dashboard i listing.
+-   : Frontend za kalendarski prikaz termina.
+-   : Sadrži CORS i email konfiguraciju.
 
 **Areas that need refactoring**:
--   **Analitika**: Trenutno frontend poziva dva odvojena endpointa za analitiku (jedan za masaže, jedan za SPA) i spaja podatke. Bilo bi idealno napraviti jedan objedinjeni backend endpoint () koji vraća sve podatke odjednom, kako je korisnik predložio kao opciju.
+-   Nema kritičnih oblasti. Kod je značajno poboljšan uvođenjem normalizatora i centralnog dispatchera.
 
 **key api endpoints**
--   : Vraća listu SPA usluga, sa filterom po kategoriji.
--   : Vraća izračunatu cenu za SPA usluge, uključujući add-on-e i popuste.
--   : Kreira novu SPA rezervaciju i šalje email.
--   : Vraća agregirane podatke o prihodima i broju termina za SPA modul.
--   : Vraća status .
+-   : **Unificirani endpoint** za kalendarski prikaz (Termini), vraća i masaže i SPA.
+-   : **Unificirani endpoint** za tabelarni prikaz (Listing Rezervacija), vraća i masaže i SPA.
+-   : Kreira SPA rezervaciju, poziva normalizator i centralni notifikacioni dispatcher.
+-   : Kreira couple rezervaciju za masažu, sa stabilizovanim JSON odgovorom.
+-   : Briše pojedinačnu SPA rezervaciju.
 
 **Critical Info for New Agent**
--   **Dva različita frontend-a**: Tokom sesije je utvrđeno da postoji website frontend (npr. ) i admin panel frontend. Kod u  se odnosi na **admin panel**. Za testiranje admin panela koristite , ne preview URL.
--   **CORS za localhost**: Da bi lokalni admin panel () radio, mora biti dodat u  listu u  fajlu.
--   **Moduli su odvojeni**: Strogo se pridržavajte pravila da ne menjate  za logiku masaža. Sve izmene vezane za SPA idu u .
+-   **Normalizacija je ključ**: Ne oslanjajte se na parsiranje  polja na frontendu. Sva logika za osiguravanje ispravnih podataka (, , itd.) nalazi se u  funkciji na backendu. Ako se pojavi nova nedoslednost u prikazu, prvo proverite i unapredite tu funkciju.
+-   **Centralni dispatcher**: Sva logika za slanje notifikacija (email i in-app) je centralizovana u  funkciji u . Nemojte dodavati odvojenu logiku za slanje emailova u .
+-   **CORS je zaključan**: Ako se pojavi novi frontend domen ili je potrebno testiranje sa drugog URL-a,  u  fajlu se mora ažurirati.
 
 **documents created in this job**
--   /app/backend/lockdown.py
--   /app/backend/spa_module.py
+- Nema novih dokumenata, ali postojeći fajlovi su značajno modifikovani.
 
 **Last 10 User Messages and any pending user messages**
--   **Korisnik**: Zatražio finalne izmene na CEO Dashboard-u: preimenovati SPA Special kartica, ukloniti duplikat i objediniti ukupne zbirove (masaže + SPA). (IN PROGRESS)
--   **Agent**: Pregledao  i identifikovao da je potrebno filtrirati kategorije iz analitike za masaže i sabrati ukupne vrednosti sa novom SPA analitikom.
--   **Agent**: Ažurirao  da filtrira neželjenu kategoriju i da sabira ukupne prihode i broj termina.
--   **Status**: Implementacija je završena, ali čeka finalnu proveru nakon restarta frontenda.
+-   Korisnik je više puta iterativno zahtevao da se podaci o SPA terminima (naziv, opis, trajanje) ispravno prikazuju u Listingu i Terminima. (COMPLETED)
+-   Agent je prvo pokušao da popuni podatke direktno u endpointima. (IN PROGRESS)
+-   Korisnik je zatim dao preciznu instrukciju da se uvede centralni normalizator koji parsira  polje kao fallback, što je agent uspešno implementirao. (COMPLETED)
+-   Poslednji zahtev je bio da se slanje notifikacija za SPA rezervacije ujedini sa postojećim sistemom za masaže. (COMPLETED, USER VERIFICATION PENDING)
+-   Nema preostalih nerešenih zahteva od korisnika.
 
 **Project Health Check:**
--   **Broken**: Ništa. Očekuje se da sve radi nakon završetka poslednjeg zadatka.
+-   **Broken**: Ništa.
 -   **Mocked**: Nema.
 
 **3rd Party Integrations**
--   **aiosmtplib (Gmail SMTP)**: Proširen da šalje email notifikacije i za nove SPA rezervacije.
+-   **aiosmtplib (Gmail SMTP)**: Koristi se za slanje email notifikacija. Logika je sada centralizovana i poziva se i za masaže i za SPA.
 
 **Testing status**
 -   **Testing agent used after significant changes**: NO
@@ -154,4 +133,4 @@ Nema.
 -   **Dashboard lozinka**: 
 
 **What agent forgot to execute**
--   Agent nije zaboravio ništa. Poslednji zadatak je u toku. Agent je bio u procesu završavanja poslednjeg zahteva korisnika za poliranje CEO dashboard-a.</analysis>
+-   Agent je bio temeljan i ispratio je sve iterativne zahteve korisnika. Nema zaboravljenih zadataka.</analysis>

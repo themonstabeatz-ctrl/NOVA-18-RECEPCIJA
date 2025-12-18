@@ -10,7 +10,7 @@ Web sajt (`thaimassage-web`) treba da učita ove popuste i prikaže odgovarajuć
 
 ### API Endpoint
 ```
-GET https://spa-dashboard-2.preview.emergentagent.com/api/services
+GET https://spa-booking-api.preview.emergentagent.com/api/services
 ```
 
 ### Odgovor API-ja (Primer)
@@ -51,7 +51,7 @@ GET https://spa-dashboard-2.preview.emergentagent.com/api/services
 ### 1. Učitavanje Usluga sa Popustima
 ```javascript
 // Fetch services from booking system API
-const response = await fetch('https://spa-dashboard-2.preview.emergentagent.com/api/services');
+const response = await fetch('https://spa-booking-api.preview.emergentagent.com/api/services');
 const services = await response.json();
 
 // Process each service
@@ -181,7 +181,7 @@ Treba da integriš prikaz popusta iz booking sistema na web sajtu.
 
 ZADATAK:
 1. Učitaj usluge iz booking sistema API-ja:
-   GET https://spa-dashboard-2.preview.emergentagent.com/api/services
+   GET https://spa-booking-api.preview.emergentagent.com/api/services
 
 2. Za svaku uslugu proveri "discount_percentage" polje (može biti 0, 5, 10 ili 15)
 
@@ -238,7 +238,7 @@ Nakon implementacije, web sajt treba da:
 ### Problem: API ne vraća podatke
 **Rešenje:** Proveri da li booking sistem radi:
 ```bash
-curl https://spa-dashboard-2.preview.emergentagent.com/api/services
+curl https://spa-booking-api.preview.emergentagent.com/api/services
 ```
 
 ### Problem: Slike popusta se ne prikazuju

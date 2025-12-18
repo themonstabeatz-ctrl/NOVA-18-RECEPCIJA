@@ -12,9 +12,9 @@ import sys
 import subprocess
 
 # Backend URL from environment - USING PRODUCTION URL FOR TESTING
-BACKEND_URL = "https://spa-dashboard-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://spa-booking-api.preview.emergentagent.com/api"
 PRODUCTION_BACKEND_URL = "https://thai-spa-booking.emergent.host/api"
-WEBSITE_URL = "https://spa-dashboard-2.preview.emergentagent.com"
+WEBSITE_URL = "https://spa-booking-api.preview.emergentagent.com"
 
 def test_health_check():
     """
@@ -207,14 +207,14 @@ def test_spa_appointments():
 def test_cors_verification():
     """
     Test 4: CORS Verification
-    OPTIONS preflight request with Origin: https://relaxhub-1.preview.emergentagent.com
+    OPTIONS preflight request with Origin: https://spa-booking-api.preview.emergentagent.com
     Expected: access-control-allow-origin header
     """
     print("=" * 80)
     print("TEST 4: CORS VERIFICATION")
     print("=" * 80)
     
-    origin = "https://relaxhub-1.preview.emergentagent.com"
+    origin = "https://spa-booking-api.preview.emergentagent.com"
     
     try:
         # Test OPTIONS preflight request
