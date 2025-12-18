@@ -1873,14 +1873,18 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
 # 🔒🔒🔒 LOCKED ZONE END - COUPLES APPOINTMENT BOOKING 🔒🔒🔒
 
 
-@api_router.get("/appointments", response_model=List[Appointment])
+@api_router.get("/appointments")
 async def get_appointments(
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
     therapist_id: Optional[str] = Query(None),
-    status: Optional[AppointmentStatus] = Query(None)
+    status: Optional[AppointmentStatus] = Query(None),
+    include_spa: bool = Query(True, description="Include SPA appointments in results")
 ):
-    """Get appointments with optional filters"""
+    """
+    Get appointments with optional filters.
+    Now includes SPA appointments by default for unified calendar view.
+    """
     query = {}
     
     if start_date and end_date:
@@ -1895,15 +1899,114 @@ async def get_appointments(
     if status:
         query["status"] = status
     
+    # Fetch MASSAGE appointments
     appointments = await db.appointments.find(query, {"_id": 0}).to_list(1000)
     
     for apt in appointments:
+        apt['type'] = 'massage'  # Add type field
         if isinstance(apt['start_time'], str):
             apt['start_time'] = datetime.fromisoformat(apt['start_time'])
         if isinstance(apt['end_time'], str):
             apt['end_time'] = datetime.fromisoformat(apt['end_time'])
         if isinstance(apt['created_at'], str):
             apt['created_at'] = datetime.fromisoformat(apt['created_at'])
+    
+    # Fetch SPA appointments if requested
+    if include_spa and start_date and end_date:
+        spa_query = {
+            "start_time": {
+                "$gte": start_date,
+                "$lte": end_date
+            }
+        }
+        spa_appointments = await db.spa_appointments.find(spa_query, {"_id": 0}).to_list(1000)
+        
+        # Get service info map for massage appointments
+        service_ids = list(set(apt.get('service_id') for apt in appointments if apt.get('service_id')))
+        if service_ids:
+            services = await db.services.find({"id": {"$in": service_ids}}, {"_id": 0}).to_list(1000)
+            service_map = {s['id']: s for s in services}
+        else:
+            service_map = {}
+        
+        # Normalize SPA appointments to match Appointment format for calendar
+        for spa in spa_appointments:
+            # Get service name from various sources
+            service_name = spa.get('service_name')
+            if not service_name:
+                services_snapshot = spa.get('services_snapshot', [])
+                if services_snapshot:
+                    base_services = [s for s in services_snapshot if 'addon' not in s.get('category', '').lower()]
+                    service_name = base_services[0].get('name') if base_services else services_snapshot[0].get('name', 'SPA')
+            if not service_name:
+                category = spa.get('spa_category', 'spa_zone')
+                category_names = {
+                    'spa_zone': 'SPA Zona',
+                    'spa_ritual': 'SPA Ritual',
+                    'spa_special_couple': 'SPA Paket za parove'
+                }
+                service_name = category_names.get(category, 'SPA')
+            
+            # Calculate duration
+            total_duration = 0
+            services_snapshot = spa.get('services_snapshot', [])
+            if services_snapshot:
+                total_duration = sum(s.get('duration', 0) for s in services_snapshot)
+            if not total_duration:
+                total_duration = 120  # Default 2 hours for SPA
+            
+            # Parse start_time
+            start_time = spa.get('start_time')
+            if isinstance(start_time, str):
+                start_time = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+            
+            # Calculate end_time if not present
+            end_time = spa.get('end_time')
+            if end_time and isinstance(end_time, str):
+                end_time = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+            elif not end_time and start_time:
+                end_time = start_time + timedelta(minutes=total_duration)
+            
+            # Create normalized appointment object
+            normalized_spa = {
+                'id': spa.get('id'),
+                'type': 'spa',
+                'client_first_name': spa.get('client_first_name', ''),
+                'client_last_name': spa.get('client_last_name', ''),
+                'client_phone': spa.get('client_phone', ''),
+                'client_email': spa.get('client_email', ''),
+                'service_id': spa.get('spa_package_id') or spa.get('id'),  # Use package ID or appointment ID
+                'service_name': service_name,  # Extra field for display
+                'service_duration': total_duration,  # Extra field for display
+                'service_category': spa.get('spa_category', 'spa_zone'),  # Extra field
+                'start_time': start_time,
+                'end_time': end_time,
+                'created_at': datetime.fromisoformat(spa.get('created_at')) if spa.get('created_at') else datetime.now(),
+                'status': spa.get('status', 'scheduled'),
+                'notes': spa.get('notes', ''),
+                'is_viewed': spa.get('is_viewed', False),
+                'is_couples_booking': spa.get('spa_category') == 'spa_special_couple',
+                # Pricing fields
+                'snapshot_price': spa.get('final_total', 0),
+                'snapshot_original_price': spa.get('original_total', 0),
+                'snapshot_discount_percentage': spa.get('discount_percentage', 0),
+                'snapshot_discount_amount': spa.get('discount_amount', 0),
+                'final_total': spa.get('final_total', 0),
+                'original_total': spa.get('original_total', 0),
+                'discount_percentage': spa.get('discount_percentage', 0),
+                'discount_amount': spa.get('discount_amount', 0),
+                # Services snapshot for detail view
+                'services_snapshot': services_snapshot,
+                'addons': spa.get('addons', []),
+                'addons_total': spa.get('addons_total', 0)
+            }
+            
+            appointments.append(normalized_spa)
+        
+        logger.info(f"📅 Calendar feed: {len(appointments) - len(spa_appointments)} massage + {len(spa_appointments)} SPA appointments")
+    
+    # Sort by start_time
+    appointments.sort(key=lambda x: x.get('start_time') if x.get('start_time') else datetime.min)
     
     return appointments
 
