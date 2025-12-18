@@ -314,10 +314,17 @@ def apply_spa_discount(original_total: int, discount_pct: float) -> tuple:
 # Database reference (will be set from main server)
 # ============================================
 db = None
+_dispatch_notifications = None  # Central dispatcher function
 
 def set_db(database):
     global db
     db = database
+
+def set_dispatcher(dispatcher_func):
+    """Set the central notification dispatcher function from server.py"""
+    global _dispatch_notifications
+    _dispatch_notifications = dispatcher_func
+    logger.info("✅ SPA module connected to central notification dispatcher")
 
 # ============================================
 # SPA Default Services Data
