@@ -3287,6 +3287,8 @@ async def dispatch_booking_notifications(payload: dict) -> dict:
     
     return result
 
+# Connect SPA module to central dispatcher
+set_spa_dispatcher(dispatch_booking_notifications)
 
 # ============================================
 # Email Notification Helper
