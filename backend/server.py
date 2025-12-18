@@ -35,22 +35,25 @@ def _parse_notes_spa(notes: str) -> dict:
     if not notes:
         return {"title": None, "variant": None, "total_min": None, "spa_zone": None}
     
-    # SPA paket: Deep Renewal Ritual Varijanta: Sa masažom lica ... Ukupno trajanje: 330 min
+    # Title: "SPA paket: Deep Renewal Ritual" (stop at Varijanta/SPA zona/Ukupno/newline)
     title = None
-    m = re.search(r"SPA paket:\s*([^V\n]+)", notes)
+    m = re.search(r"SPA paket:\s*([^\n]+?)(?:\s+Varijanta:|\s+SPA zona:|\s+Ukupno trajanje:|\s+Ukupna cena:|$)", notes)
     if m:
         title = m.group(1).strip()
     
+    # Variant: "Varijanta: Sa masažom lica (+3.000 RSD)" (stop at SPA zona/Ukupno/Ukupna/newline)
     variant = None
-    m = re.search(r"Varijanta:\s*([^\n]+?)(?:SPA zona:|Ukupno trajanje:|Ukupna cena:|$)", notes)
+    m = re.search(r"Varijanta:\s*([^\n]+?)(?:\s+SPA zona:|\s+Ukupno trajanje:|\s+Ukupna cena:|$)", notes)
     if m:
         variant = m.group(1).strip()
     
+    # Duration: "Ukupno trajanje: 210 min"
     total_min = None
     m = re.search(r"Ukupno trajanje:\s*(\d+)\s*min", notes)
     if m:
         total_min = int(m.group(1))
     
+    # SPA Zone: "SPA zona: Sauna: 30 min - Parno: 30 min..."
     spa_zone = None
     m = re.search(r"SPA zona:\s*([^\n]+)", notes)
     if m:
