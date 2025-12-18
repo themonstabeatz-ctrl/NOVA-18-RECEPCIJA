@@ -577,8 +577,10 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         doc['spa_category'] = "spa_special_couple"
         doc['guests'] = appointment.guests or 2
         
-        # Add service_name for listing
+        # Add COMPLETE service data for listing (NO N/A allowed)
         doc['service_name'] = pkg['name']
+        doc['service_description'] = pkg.get('description', f"Romantični paket za {appointment.guests or 2} osobe")
+        doc['duration_min'] = pkg['duration']  # MUST have duration
         doc['addons'] = []
         doc['addons_total'] = 0
         
