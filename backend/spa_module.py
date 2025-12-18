@@ -577,17 +577,34 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         doc['spa_category'] = "spa_special_couple"
         doc['guests'] = appointment.guests or 2
         
+        # Add service_name for listing
+        doc['service_name'] = pkg['name']
+        doc['addons'] = []
+        doc['addons_total'] = 0
+        
         await db.spa_appointments.insert_one(doc)
         
         logger.info(f"✅ SPA SPECIAL COUPLE Appointment created: {spa_apt.id}, package={pkg['name']}, total={final_total} RSD")
         
-        # Send email notification
-        await send_spa_booking_email({
+        # Send email notification with status tracking
+        email_sent = await send_spa_booking_email({
             **doc,
             "spa_category": "spa_special_couple"
         })
         
-        return spa_apt
+        if email_sent:
+            logger.info(f"📧 SPA_EMAIL_SENT appointment_id={spa_apt.id} to={appointment.client_email}")
+        else:
+            logger.warning(f"⚠️ SPA_EMAIL_FAILED appointment_id={spa_apt.id} to={appointment.client_email}")
+        
+        # Return response with email status
+        response = spa_apt.model_dump()
+        response['email_sent'] = email_sent
+        response['email_error'] = None if email_sent else "Email not sent - check SMTP configuration"
+        response['warnings'] = [] if email_sent else ["EMAIL_FAILED"]
+        response['service_name'] = pkg['name']
+        
+        return response
     
     # ============================================
     # REGULAR SPA BOOKINGS (Zone, Ritual, etc.)
