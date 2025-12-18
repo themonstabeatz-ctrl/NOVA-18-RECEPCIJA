@@ -2637,12 +2637,17 @@ async def mark_appointment_viewed(appointment_id: str):
 
 @api_router.patch("/appointments/mark-all-viewed")
 async def mark_all_appointments_viewed():
-    """Mark all appointments as viewed"""
-    result = await db.appointments.update_many(
+    """Mark all appointments as viewed (massage + SPA)"""
+    massage_result = await db.appointments.update_many(
         {"is_viewed": False},
         {"$set": {"is_viewed": True}}
     )
-    return {"message": f"Marked {result.modified_count} appointments as viewed"}
+    spa_result = await db.spa_appointments.update_many(
+        {"is_viewed": False},
+        {"$set": {"is_viewed": True}}
+    )
+    total_marked = massage_result.modified_count + spa_result.modified_count
+    return {"message": f"Marked {total_marked} appointments as viewed"}
 
 
 
