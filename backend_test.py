@@ -443,6 +443,57 @@ def test_ceo_dashboard_analytics():
     
     return all_tests_passed
 
+def run_spa_notification_tests():
+    """Run SPA notification system tests as requested in review"""
+    print("🧖 STARTING SPA NOTIFICATION SYSTEM TESTS")
+    print("API Base URL:", BACKEND_URL)
+    print("=" * 80)
+    
+    tests = [
+        ("CORS Verification", test_cors_verification),
+        ("SPA Booking with Notifications", test_spa_booking_with_notifications),
+        ("SPA Booking without Client Email", test_spa_booking_without_client_email),
+        ("Backend Logs Check", check_backend_logs)
+    ]
+    
+    results = []
+    
+    for test_name, test_func in tests:
+        print(f"\n🔍 Running: {test_name}")
+        try:
+            result = test_func()
+            results.append((test_name, result))
+            if result:
+                print(f"✅ {test_name}: PASSED")
+            else:
+                print(f"❌ {test_name}: FAILED")
+        except Exception as e:
+            print(f"❌ {test_name}: ERROR - {e}")
+            results.append((test_name, False))
+        
+        print("-" * 80)
+    
+    # Summary
+    print("\n" + "=" * 80)
+    print("🧖 SPA NOTIFICATION SYSTEM TEST SUMMARY")
+    print("=" * 80)
+    
+    passed = sum(1 for _, result in results if result)
+    total = len(results)
+    
+    for test_name, result in results:
+        status = "✅ PASSED" if result else "❌ FAILED"
+        print(f"{test_name}: {status}")
+    
+    print(f"\nOverall: {passed}/{total} tests passed")
+    
+    if passed == total:
+        print("🎉 ALL SPA NOTIFICATION TESTS PASSED!")
+        return True
+    else:
+        print("❌ SOME SPA NOTIFICATION TESTS FAILED!")
+        return False
+
 def run_spa_tests():
     """Run all SPA module tests"""
     print("🧖 STARTING SPA MODULE TESTS")
