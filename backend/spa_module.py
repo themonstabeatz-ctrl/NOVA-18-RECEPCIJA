@@ -518,7 +518,7 @@ async def get_spa_quote(request: SpaQuoteRequest):
         breakdown=breakdown
     )
 
-@spa_router.post("/appointments", response_model=SpaAppointment)
+@spa_router.post("/appointments")
 async def create_spa_appointment(appointment: SpaAppointmentCreate):
     """Create a SPA appointment - supports multiple formats including special couple packages"""
     
