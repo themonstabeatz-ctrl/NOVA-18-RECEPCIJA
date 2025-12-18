@@ -840,6 +840,7 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         doc['end_time'] = doc['end_time'].isoformat()
         doc['created_at'] = doc['created_at'].isoformat()
         doc['spa_category'] = appointment.spa_category or 'spa_zone'
+        doc['is_viewed'] = False  # For notification badge on dashboard
         
         # 1) INSERT into DB
         await db.spa_appointments.insert_one(doc)
