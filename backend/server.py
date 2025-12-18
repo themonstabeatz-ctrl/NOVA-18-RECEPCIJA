@@ -53,9 +53,9 @@ def _parse_notes_spa(notes: str) -> dict:
     if m:
         total_min = int(m.group(1))
     
-    # SPA Zone: "SPA zona: Sauna: 30 min - Parno: 30 min..."
+    # SPA Zone: "SPA zona: Sauna: 30 min - Parno: 30 min..." (stop at Ukupno)
     spa_zone = None
-    m = re.search(r"SPA zona:\s*([^\n]+)", notes)
+    m = re.search(r"SPA zona:\s*([^\n]+?)(?:\s+Ukupno trajanje:|\s+Ukupna cena:|$)", notes)
     if m:
         spa_zone = m.group(1).strip()
     
