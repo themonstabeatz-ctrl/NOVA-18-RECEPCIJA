@@ -138,6 +138,13 @@ class SpaAppointment(BaseModel):
     notes: Optional[str] = None
     status: str = "scheduled"
     created_at: datetime = Field(default_factory=datetime.now)
+    # ADD-ONS tracking
+    addons: List[dict] = []  # [{code, name, price}]
+    addons_total: int = 0
+    # SPA category for analytics
+    spa_category: Optional[str] = None  # "spa_zone", "spa_ritual", "spa_special_couple"
+    # Service name for display
+    service_name: Optional[str] = None  # Primary service name for listing
 
 # ============================================
 # SPA Price Lock (separate from massage)
