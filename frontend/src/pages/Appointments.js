@@ -452,14 +452,31 @@ const Appointments = () => {
     return therapist?.name || 'Unknown';
   };
 
-  const getServiceName = (id) => {
+  const getServiceName = (id, appointment = null) => {
+    // For SPA appointments, use the service_name directly from appointment
+    if (appointment?.type === 'spa' && appointment?.service_name) {
+      return appointment.service_name;
+    }
     const service = services.find((s) => s.id === id);
     return service?.name || 'Unknown';
   };
 
-  const getServiceDescription = (id) => {
+  const getServiceDescription = (id, appointment = null) => {
+    // For SPA appointments, use service_category as description
+    if (appointment?.type === 'spa') {
+      return appointment.service_category || appointment.spa_category || null;
+    }
     const service = services.find((s) => s.id === id);
     return service?.description || null;
+  };
+  
+  const getServiceDuration = (id, appointment = null) => {
+    // For SPA appointments, use service_duration directly
+    if (appointment?.type === 'spa' && appointment?.service_duration) {
+      return appointment.service_duration;
+    }
+    const service = services.find((s) => s.id === id);
+    return service?.duration || 60;
   };
 
   const formatTime = (dateString) => {
