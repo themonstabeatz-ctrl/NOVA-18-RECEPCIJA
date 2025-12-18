@@ -197,6 +197,9 @@ set_spa_db(db)
 # Create the main app without a prefix
 app = FastAPI()
 
+# 🛡️ ADD API ONLY MIDDLEWARE FIRST (before CORS)
+app.add_middleware(ApiOnlyMiddleware)
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
