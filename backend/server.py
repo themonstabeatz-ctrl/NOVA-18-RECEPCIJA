@@ -2064,81 +2064,16 @@ async def get_appointments(
             # Use normalize_spa_appt for consistent data across ALL endpoints
             normalized = normalize_spa_appt(spa)
             
-            # ============================================
-            # SERVICE NAME - MUST NOT be generic "SPA"
-            # ============================================
-            service_name = spa.get('service_name')
-            if not service_name or service_name == 'SPA':
-                # Try from snapshot
-                if services_snapshot:
-                    base_services = [s for s in services_snapshot if 'addon' not in s.get('category', '').lower()]
-                    service_name = base_services[0].get('name') if base_services else services_snapshot[0].get('name')
-            if not service_name or service_name == 'SPA':
-                # Fallback to category-based name
-                category = spa.get('spa_category', 'spa_zone')
-                category_names = {
-                    'spa_zone': 'SPA Zona Tretman',
-                    'spa_ritual': 'SPA Ritual Tretman',
-                    'spa_special_couple': 'SPA Romantični Paket'
-                }
-                service_name = category_names.get(category, 'SPA Tretman')
-            
-            # ============================================
-            # SERVICE DESCRIPTION - MUST be set
-            # ============================================
-            service_description = spa.get('service_description', '')
-            if not service_description:
-                # Try from snapshot
-                if services_snapshot:
-                    for s in services_snapshot:
-                        if s.get('description'):
-                            service_description = s.get('description')
-                            break
-                    if not service_description:
-                        # Build from service names
-                        service_description = ', '.join([s.get('name', '') for s in services_snapshot if s.get('name')])
-            if not service_description:
-                # Ultimate fallback
-                service_description = spa.get('notes', '') or f"{service_name}"
-            
-            # ============================================
-            # DURATION - MUST NOT be N/A or 0
-            # ============================================
-            # Priority 1: Direct duration_min field
-            duration_min = spa.get('duration_min', 0)
-            
-            # Priority 2: From services_snapshot
-            if not duration_min and services_snapshot:
-                duration_min = sum(s.get('duration_min', s.get('duration', 0)) for s in services_snapshot)
-            
-            # Priority 3: Calculate from start/end times
-            if not duration_min:
-                start_str = spa.get('start_time')
-                end_str = spa.get('end_time')
-                if start_str and end_str:
-                    try:
-                        start_dt = datetime.fromisoformat(str(start_str).replace('Z', '+00:00'))
-                        end_dt = datetime.fromisoformat(str(end_str).replace('Z', '+00:00'))
-                        duration_min = int((end_dt - start_dt).total_seconds() / 60)
-                    except:
-                        pass
-            
-            # Priority 4: Default (NEVER N/A)
-            if not duration_min or duration_min <= 0:
-                duration_min = 120  # Default 2 hours
-                logger.warning(f"SPA appointment {spa.get('id')} missing duration, using default 120 min")
-            
-            # Parse start_time
-            start_time = spa.get('start_time')
+            # Parse datetime fields
+            start_time = normalized.get('start_time')
             if isinstance(start_time, str):
                 start_time = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
             
-            # Calculate end_time if not present
-            end_time = spa.get('end_time')
-            if end_time and isinstance(end_time, str):
+            end_time = normalized.get('end_time')
+            if isinstance(end_time, str):
                 end_time = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
             elif not end_time and start_time:
-                end_time = start_time + timedelta(minutes=duration_min)
+                end_time = start_time + timedelta(minutes=normalized.get('duration_min', 120))
             
             # Create normalized appointment object with COMPLETE data
             normalized_spa = {
