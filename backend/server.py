@@ -2075,21 +2075,24 @@ async def get_appointments(
             elif not end_time and start_time:
                 end_time = start_time + timedelta(minutes=normalized.get('duration_min', 120))
             
-            # Create normalized appointment object with COMPLETE data
+            # Create calendar-compatible object
             normalized_spa = {
-                'id': spa.get('id'),
+                'id': normalized.get('id'),
                 'type': 'spa',
-                'client_first_name': spa.get('client_first_name', ''),
-                'client_last_name': spa.get('client_last_name', ''),
-                'client_phone': spa.get('client_phone', ''),
-                'client_email': spa.get('client_email', ''),
+                'client_first_name': normalized.get('client_first_name', ''),
+                'client_last_name': normalized.get('client_last_name', ''),
+                'client_phone': normalized.get('client_phone', ''),
+                'client_email': normalized.get('client_email', ''),
                 'service_id': spa.get('spa_package_id') or spa.get('id'),
-                # COMPLETE SERVICE DATA (NO N/A)
-                'service_name': service_name,
-                'service_description': service_description,
-                'service_duration': duration_min,  # Legacy field name
-                'duration_min': duration_min,  # Explicit duration_min
-                'service_category': spa.get('spa_category', 'spa_zone'),
+                # NORMALIZED SERVICE DATA (from normalize_spa_appt)
+                'service_name': normalized['service_name'],
+                'service_title': normalized['service_title'],  # Alias
+                'service_description': normalized['service_description'],
+                'service_desc': normalized['service_desc'],  # Alias
+                'service_duration': normalized['duration_min'],
+                'duration_min': normalized['duration_min'],
+                'service_category': normalized.get('spa_category') or spa.get('spa_category', 'spa_zone'),
+                'spa_zone': normalized.get('spa_zone', ''),
                 'start_time': start_time,
                 'end_time': end_time,
                 'created_at': datetime.fromisoformat(spa.get('created_at')) if spa.get('created_at') else datetime.now(),
@@ -2107,7 +2110,7 @@ async def get_appointments(
                 'discount_percentage': spa.get('discount_percentage', 0),
                 'discount_amount': spa.get('discount_amount', 0),
                 # Services snapshot for detail view
-                'services_snapshot': services_snapshot,
+                'services_snapshot': spa.get('services_snapshot', []),
                 'addons': spa.get('addons', []),
                 'addons_total': spa.get('addons_total', 0)
             }
