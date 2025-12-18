@@ -3336,19 +3336,19 @@ async def dispatch_booking_notifications(payload: dict) -> dict:
         result["email_sent_client"] = email_result.get("client_sent", False)
         result["email_sent"] = result["email_sent_admin"] or result["email_sent_client"]
         
-        # 🔥 BRUTALNI LOG - email status
+        # 🔥 BRUTALNI LOG - email status sa appt_id
         if result["email_sent_admin"]:
-            logger.info(f"📧 ADMIN_EMAIL_SENT to=bualuangthailandspa@gmail.com")
+            logger.info(f"📧 ADMIN_EMAIL_SENT to=bualuangthailandspa@gmail.com appt_id={appointment_id}")
         else:
-            logger.warning(f"❌ ADMIN_EMAIL_FAILED type={booking_type} id={appointment_id}")
+            logger.warning(f"❌ ADMIN_EMAIL_FAILED type={booking_type} appt_id={appointment_id}")
         
         if client_email:
             if result["email_sent_client"]:
-                logger.info(f"📧 CLIENT_EMAIL_SENT to={client_email}")
+                logger.info(f"📧 CLIENT_EMAIL_SENT to={client_email} appt_id={appointment_id}")
             else:
-                logger.warning(f"❌ CLIENT_EMAIL_FAILED to={client_email}")
+                logger.warning(f"❌ CLIENT_EMAIL_FAILED to={client_email} appt_id={appointment_id}")
         else:
-            logger.info(f"ℹ️ CLIENT_EMAIL_SKIPPED - no email provided")
+            logger.info(f"ℹ️ CLIENT_EMAIL_SKIPPED - no email provided appt_id={appointment_id}")
         
         # 2) Create dashboard notification (in-app)
         notification_id = None
