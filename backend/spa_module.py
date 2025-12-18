@@ -824,10 +824,51 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         doc['start_time'] = doc['start_time'].isoformat()
         doc['end_time'] = doc['end_time'].isoformat()
         doc['created_at'] = doc['created_at'].isoformat()
+        doc['spa_category'] = appointment.spa_category or 'spa_zone'
         
+        # 1) INSERT into DB
         await db.spa_appointments.insert_one(doc)
-        logger.info(f"✅ SPA Appointment created (no services): {spa_apt.id}")
-        return spa_apt
+        
+        # 2) NORMALIZE - parse notes to get proper fields
+        doc = normalize_spa_appt(doc)
+        
+        # 3) UPDATE DB with normalized fields
+        await db.spa_appointments.update_one(
+            {"id": doc["id"]},
+            {"$set": {
+                "service_name": doc["service_name"],
+                "service_description": doc["service_description"],
+                "duration_min": doc["duration_min"],
+                "spa_zone": doc.get("spa_zone", ""),
+                "services_snapshot": doc["services_snapshot"]
+            }}
+        )
+        
+        logger.info(f"✅ SPA BOOKED id={doc['id']} name={doc['service_name']} email={appointment.client_email} price={doc.get('final_total', 0)}")
+        
+        # 4) NOTIFICATIONS
+        notify_status = "pending"
+        try:
+            email_sent = await send_spa_booking_email(doc)
+            await create_in_app_notification(db, doc)
+            notify_status = "sent" if email_sent else "partial"
+        except Exception as e:
+            logger.exception(f"❌ SPA NOTIFY FAILED id={doc['id']}")
+            notify_status = "failed"
+        
+        logger.info(f"📢 SPA NOTIFY status={notify_status} id={doc['id']}")
+        
+        # 5) RESPONSE
+        response = spa_apt.model_dump()
+        response['service_name'] = doc['service_name']
+        response['service_description'] = doc['service_description']
+        response['duration_min'] = doc['duration_min']
+        response['spa_zone'] = doc.get('spa_zone', '')
+        response['services_snapshot'] = doc['services_snapshot']
+        response['notify_status'] = notify_status
+        response['email_sent'] = (notify_status in ["sent", "partial"])
+        
+        return response
     
     # Fetch services
     services = await db.spa_services.find(
