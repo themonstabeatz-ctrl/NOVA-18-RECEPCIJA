@@ -41,11 +41,23 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ CORS verification successful. OPTIONS preflight request returns correct access-control-allow-origin header: https://spa-booking-api.preview.emergentagent.com. All required CORS headers present (methods, headers, credentials)"
+        comment: "✅ CORS updated to https://massage-app-4.preview.emergentagent.com. Needs re-verification."
+
+  - task: "SPA Central Notification System"
+    implemented: true
+    working: true
+    file: "backend/server.py, backend/spa_module.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ SPA booking uses central dispatch_booking_notifications. Response now includes: notify_status, email_sent, email_sent_admin, email_sent_client, notification_created. Brutalni logovi: SPA_BOOKED, ADMIN_EMAIL_SENT, CLIENT_EMAIL_SENT, NOTIFICATION_CREATED"
 
   - task: "CEO Dashboard Analytics"
     implemented: true
