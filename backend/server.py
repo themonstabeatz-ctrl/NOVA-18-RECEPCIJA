@@ -1,7 +1,8 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Query
+from fastapi import FastAPI, APIRouter, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
@@ -17,6 +18,32 @@ from email.mime.multipart import MIMEMultipart
 
 # 🔒 LOCKDOWN IMPORT
 from lockdown import assert_not_locked
+
+
+# ============================================
+# 🛡️ API ONLY MIDDLEWARE - BLOCKS STATIC FILES
+# This ensures backend NEVER serves frontend assets
+# ============================================
+class ApiOnlyMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+
+        # 1) BLOCK STATIC FILES (critical for preventing frontend serving)
+        if path.startswith("/static/") or path.startswith("/assets/"):
+            return JSONResponse(
+                {"ok": False, "error": "STATIC_DISABLED_ON_API_DOMAIN", "path": path},
+                status_code=404
+            )
+
+        # 2) ALLOW only /api/* + / (root) + docs (optional)
+        if path == "/" or path.startswith("/api/") or path.startswith("/docs") or path.startswith("/openapi"):
+            return await call_next(request)
+
+        # 3) BLOCK EVERYTHING ELSE (prevent SPA fallback)
+        return JSONResponse(
+            {"ok": False, "error": "API_ONLY_DOMAIN", "path": path},
+            status_code=404
+        )
 
 # 🧖 SPA MODULE IMPORT (separate from massage)
 from spa_module import spa_router, set_db as set_spa_db, set_dispatcher as set_spa_dispatcher
