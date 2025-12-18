@@ -3237,34 +3237,66 @@ async def dispatch_booking_notifications(payload: dict) -> dict:
         payload: Dict with booking details (type, appointment_id, service_name, etc.)
     
     Returns:
-        Dict with status: {"email_sent": bool, "notify_status": str}
+        Dict with detailed status for frontend:
+        {
+            "notify_status": "sent" | "partial" | "failed",
+            "email_sent": bool,
+            "email_sent_admin": bool,
+            "email_sent_client": bool,
+            "notification_created": bool,
+            "notify_error": str | None
+        }
     """
     booking_type = payload.get("type", "massage")
     appointment_id = payload.get("appointment_id", "unknown")
-    client_email = payload.get("client_email")
+    client_email = payload.get("client_email", "")
+    service_name = payload.get("service_name", "Usluga")
+    
+    # 🔥 BRUTALNI LOG - početak
+    logger.info(f"✅ SPA_BOOKED id={appointment_id} service={service_name} client_email={client_email}")
     
     result = {
         "email_sent": False,
+        "email_sent_admin": False,
+        "email_sent_client": False,
+        "notification_created": False,
         "notify_status": "pending",
         "notify_error": None
     }
     
     try:
-        # 1) Send admin + client emails (uses existing send_booking_emails)
-        await send_booking_emails(payload)
-        result["email_sent"] = True
-        logger.info(f"📧 CLIENT_EMAIL_SENT type={booking_type} id={appointment_id}")
+        # 1) Send admin + client emails (uses existing send_booking_emails with tracking)
+        email_result = await send_booking_emails_tracked(payload)
+        result["email_sent_admin"] = email_result.get("admin_sent", False)
+        result["email_sent_client"] = email_result.get("client_sent", False)
+        result["email_sent"] = result["email_sent_admin"] or result["email_sent_client"]
         
-        # 2) Create dashboard notification
+        # 🔥 BRUTALNI LOG - email status
+        if result["email_sent_admin"]:
+            logger.info(f"📧 ADMIN_EMAIL_SENT to=bualuangthailandspa@gmail.com")
+        else:
+            logger.warning(f"❌ ADMIN_EMAIL_FAILED type={booking_type} id={appointment_id}")
+        
+        if client_email:
+            if result["email_sent_client"]:
+                logger.info(f"📧 CLIENT_EMAIL_SENT to={client_email}")
+            else:
+                logger.warning(f"❌ CLIENT_EMAIL_FAILED to={client_email}")
+        else:
+            logger.info(f"ℹ️ CLIENT_EMAIL_SKIPPED - no email provided")
+        
+        # 2) Create dashboard notification (in-app)
+        notification_id = None
         try:
+            notification_id = str(uuid.uuid4())
             notification = {
-                "id": str(uuid.uuid4()),
+                "id": notification_id,
                 "type": f"{booking_type}_booking",
                 "appointment_id": appointment_id,
                 "title": f"Nova {booking_type.upper()} rezervacija",
-                "message": f"{payload.get('client_first_name', '')} {payload.get('client_last_name', '')} - {payload.get('service_name', 'Usluga')}",
+                "message": f"{payload.get('client_first_name', '')} {payload.get('client_last_name', '')} - {service_name}",
                 "details": {
-                    "service_name": payload.get("service_name"),
+                    "service_name": service_name,
                     "duration_min": payload.get("duration_min"),
                     "price": payload.get("price") or payload.get("final_total", 0),
                     "start_time": payload.get("start_time"),
@@ -3274,16 +3306,126 @@ async def dispatch_booking_notifications(payload: dict) -> dict:
                 "created_at": datetime.now().isoformat()
             }
             await db.notifications.insert_one(notification)
-            logger.info(f"🔔 DASHBOARD_NOTIFY_SENT type={booking_type} id={appointment_id}")
+            result["notification_created"] = True
+            
+            # 🔥 BRUTALNI LOG - notification created
+            logger.info(f"🔔 NOTIFICATION_CREATED id={notification_id}")
         except Exception as e:
-            logger.error(f"❌ Dashboard notification failed: {e}")
+            logger.error(f"❌ NOTIFICATION_FAILED id={notification_id} error={e}")
         
-        result["notify_status"] = "sent"
+        # Determine final status
+        if result["email_sent_admin"] and result["notification_created"]:
+            result["notify_status"] = "sent"
+        elif result["email_sent_admin"] or result["notification_created"]:
+            result["notify_status"] = "partial"
+        else:
+            result["notify_status"] = "failed"
         
     except Exception as e:
         logger.error(f"❌ NOTIFICATION_DISPATCH_FAILED type={booking_type} id={appointment_id} error={e}")
         result["notify_status"] = "failed"
         result["notify_error"] = str(e)[:200]
+    
+    return result
+
+
+async def send_booking_emails_tracked(appointment_data: dict) -> dict:
+    """
+    Send booking confirmation emails with tracking.
+    Returns: {"admin_sent": bool, "client_sent": bool}
+    """
+    result = {"admin_sent": False, "client_sent": False}
+    
+    try:
+        # Get SMTP settings from environment
+        smtp_host = os.environ.get('SMTP_HOST')
+        smtp_port = int(os.environ.get('SMTP_PORT', 587))
+        smtp_user = os.environ.get('SMTP_USER')
+        smtp_password = os.environ.get('SMTP_PASSWORD')
+        smtp_from = os.environ.get('SMTP_FROM', smtp_user)
+        smtp_to_owner = os.environ.get('SMTP_TO_OWNER', 'bualuangthailandspa@gmail.com')
+        
+        # Check if SMTP is configured
+        if not smtp_host or not smtp_user or smtp_password == 'PLACEHOLDER_APP_PASSWORD':
+            logger.warning("⚠️ Email not sent - SMTP not configured")
+            return result
+        
+        # Extract appointment details
+        client_name = f"{appointment_data.get('client_first_name', '')} {appointment_data.get('client_last_name', '')}"
+        client_phone = appointment_data.get('client_phone', 'N/A')
+        client_email = appointment_data.get('client_email')
+        start_time = appointment_data.get('start_time')
+        service_name = appointment_data.get('service_name', 'N/A')
+        
+        # Format datetime
+        if isinstance(start_time, str):
+            try:
+                start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+                formatted_date = start_dt.strftime('%d.%m.%Y')
+                formatted_time_only = start_dt.strftime('%H:%M')
+            except:
+                formatted_date = start_time
+                formatted_time_only = ""
+        else:
+            formatted_date = start_time.strftime('%d.%m.%Y') if start_time else 'N/A'
+            formatted_time_only = start_time.strftime('%H:%M') if start_time else ''
+        
+        # Simple email body
+        email_body = f"""
+Nova rezervacija - {service_name}
+
+Klijent: {client_name}
+Telefon: {client_phone}
+Email: {client_email or 'N/A'}
+Datum: {formatted_date}
+Vreme: {formatted_time_only}
+
+Bua Luang Thai Spa
+"""
+        
+        # 1) Send to ADMIN (ALWAYS)
+        try:
+            admin_msg = MIMEMultipart()
+            admin_msg['From'] = smtp_from
+            admin_msg['To'] = smtp_to_owner
+            admin_msg['Subject'] = f"🔔 Nova rezervacija — {formatted_date} {formatted_time_only} — {service_name}"
+            admin_msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
+            
+            await aiosmtplib.send(
+                admin_msg,
+                hostname=smtp_host,
+                port=smtp_port,
+                username=smtp_user,
+                password=smtp_password,
+                start_tls=True
+            )
+            result["admin_sent"] = True
+        except Exception as e:
+            logger.error(f"❌ ADMIN_EMAIL_EXCEPTION: {e}")
+        
+        # 2) Send to CLIENT (only if email provided)
+        if client_email and client_email.strip():
+            try:
+                client_msg = MIMEMultipart()
+                client_msg['From'] = smtp_from
+                client_msg['To'] = client_email
+                client_msg['Subject'] = f"✨ Potvrda rezervacije — Bua Luang Thai Spa"
+                client_msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
+                
+                await aiosmtplib.send(
+                    client_msg,
+                    hostname=smtp_host,
+                    port=smtp_port,
+                    username=smtp_user,
+                    password=smtp_password,
+                    start_tls=True
+                )
+                result["client_sent"] = True
+            except Exception as e:
+                logger.error(f"❌ CLIENT_EMAIL_EXCEPTION to={client_email}: {e}")
+    
+    except Exception as e:
+        logger.error(f"❌ EMAIL_GENERAL_EXCEPTION: {e}")
     
     return result
 
