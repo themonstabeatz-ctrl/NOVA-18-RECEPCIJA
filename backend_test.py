@@ -2451,6 +2451,6 @@ def check_frontend_build_and_deployment():
     return True
 
 if __name__ == "__main__":
-    # Run SPA module tests as specified in review request
-    success = run_spa_tests()
+    # Run SPA notification tests as specified in review request
+    success = run_spa_notification_tests()
     sys.exit(0 if success else 1)
