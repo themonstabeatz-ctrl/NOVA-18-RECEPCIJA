@@ -3210,8 +3210,14 @@ async def get_detailed_analytics(
 # Root route
 # ============================================
 @api_router.get("/")
-async def root():
+async def api_root():
     return {"message": "Spa & Massage Booking System API", "version": "1.0"}
+
+
+# Root endpoint - returns JSON to confirm this is API server
+@app.get("/")
+async def root():
+    return JSONResponse({"ok": True, "service": "spa-booking-api", "hint": "Use /api/health for health check"})
 
 
 # Include the router in the main app
