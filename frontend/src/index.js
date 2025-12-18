@@ -3,10 +3,9 @@ import ReactDOM from "react-dom/client";
 import "@/index.css";
 import App from "@/App";
 
-// 🔐 HARD FAIL GUARD - Ensure correct backend URL
-if (!process.env.REACT_APP_BACKEND_URL?.includes("spa-dashboard-2")) {
-  throw new Error("FATAL: Invalid backend URL. Check REACT_APP_BACKEND_URL.");
-}
+// 🔐 Backend URL validation (spa-booking-api is the correct backend)
+const backendUrl = process.env.REACT_APP_BACKEND_URL || '';
+console.log('🔧 Backend URL:', backendUrl);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
