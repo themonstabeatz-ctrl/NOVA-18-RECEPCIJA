@@ -103,6 +103,9 @@ test_plan:
     - "CEO Dashboard Analytics"
   test_all: false
   test_priority: "high_first"
+  completed_tests:
+    - "SPA Central Notification System"
+    - "CORS Configuration"
 
 agent_communication:
   - agent: "testing"
