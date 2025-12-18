@@ -2220,66 +2220,16 @@ async def get_unified_appointments_list(
     spa_appointments = await db.spa_appointments.find(spa_query, {"_id": 0}).to_list(10000)
     
     for apt in spa_appointments:
-        services_snapshot = apt.get('services_snapshot', [])
+        # Use normalize_spa_appt for consistent data across ALL endpoints
+        normalized = normalize_spa_appt(apt)
         
-        # ============================================
-        # SERVICE NAME - MUST NOT be generic "SPA"
-        # ============================================
-        service_name = apt.get('service_name')
-        if not service_name or service_name == 'SPA':
-            if services_snapshot:
-                base_services = [s for s in services_snapshot if 'addon' not in s.get('category', '').lower()]
-                service_name = base_services[0].get('name') if base_services else services_snapshot[0].get('name')
-        if not service_name or service_name == 'SPA':
-            category = apt.get('spa_category', 'spa_zone')
-            category_names = {
-                'spa_zone': 'SPA Zona Tretman',
-                'spa_ritual': 'SPA Ritual Tretman',
-                'spa_special_couple': 'SPA Romantični Paket',
-                'spa_addon': 'SPA Dodatak'
-            }
-            service_name = category_names.get(category, 'SPA Tretman')
-        
-        # ============================================
-        # SERVICE DESCRIPTION - MUST be set
-        # ============================================
-        service_description = apt.get('service_description', '')
-        if not service_description:
-            if services_snapshot:
-                for s in services_snapshot:
-                    if s.get('description'):
-                        service_description = s.get('description')
-                        break
-                if not service_description:
-                    service_description = ', '.join([s.get('name', '') for s in services_snapshot if s.get('name')])
-        if not service_description:
-            service_description = apt.get('notes', '') or service_name
-        
-        # Add addon info to description
+        # Add addon info to description if present
         addons = apt.get('addons', [])
         addons_total = apt.get('addons_total', 0)
         addon_names = ', '.join([a.get('name', '') for a in addons]) if addons else ''
-        if addon_names:
+        service_description = normalized['service_description']
+        if addon_names and addon_names not in service_description:
             service_description = f"{service_description} + {addon_names}"
-        
-        # ============================================
-        # DURATION - MUST NOT be N/A or 0
-        # ============================================
-        duration_min = apt.get('duration_min', 0)
-        if not duration_min and services_snapshot:
-            duration_min = sum(s.get('duration_min', s.get('duration', 0)) for s in services_snapshot)
-        if not duration_min:
-            start_str = apt.get('start_time')
-            end_str = apt.get('end_time')
-            if start_str and end_str:
-                try:
-                    start_dt = datetime.fromisoformat(str(start_str).replace('Z', '+00:00'))
-                    end_dt = datetime.fromisoformat(str(end_str).replace('Z', '+00:00'))
-                    duration_min = int((end_dt - start_dt).total_seconds() / 60)
-                except:
-                    pass
-        if not duration_min or duration_min <= 0:
-            duration_min = 120  # Default 2 hours
         
         items.append({
             "id": apt.get('id'),
@@ -2290,10 +2240,14 @@ async def get_unified_appointments_list(
             "client_last_name": apt.get('client_last_name', ''),
             "client_name": f"{apt.get('client_first_name', '')} {apt.get('client_last_name', '')}",
             "client_phone": apt.get('client_phone', ''),
-            "service_name": service_name,
+            # NORMALIZED SERVICE DATA (from normalize_spa_appt)
+            "service_name": normalized['service_name'],
+            "service_title": normalized['service_title'],  # Alias
             "service_description": service_description,
-            "service_duration": duration_min,
-            "duration_min": duration_min,  # Explicit
+            "service_desc": normalized['service_desc'],  # Alias
+            "service_duration": normalized['duration_min'],
+            "duration_min": normalized['duration_min'],
+            "spa_zone": normalized.get('spa_zone', ''),
             "original_price": apt.get('original_total', 0),
             "final_total": apt.get('final_total', 0),
             "total_price": apt.get('final_total', 0),
