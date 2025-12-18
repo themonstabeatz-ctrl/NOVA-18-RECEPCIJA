@@ -22,7 +22,141 @@ import aiosmtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+import re
+
 logger = logging.getLogger(__name__)
+
+# ============================================
+# SPA NOTES PARSER & NORMALIZER
+# ============================================
+def parse_spa_notes(notes: str) -> dict:
+    """Parse SPA notes to extract structured data as fallback"""
+    notes = notes or ""
+    out = {
+        "service_name": None,
+        "service_description": "",
+        "duration_min": None,
+        "spa_zone": ""
+    }
+    
+    # "SPA paket: Thai Herbal Compress Ritual"
+    m = re.search(r"SPA paket:\s*([^\n\r]+?)(?:\s+Varijanta:|\s+SPA zona:|\s+Ukupno|\s+$)", notes)
+    if m:
+        out["service_name"] = m.group(1).strip()
+    
+    # "Varijanta: Sa masažom lica (+3.000 RSD)"
+    m = re.search(r"Varijanta:\s*([^\n\r]+?)(?:\s+SPA zona:|\s+Ukupno|\s+$)", notes)
+    if m:
+        out["service_description"] = m.group(1).strip()
+    
+    # "Ukupno trajanje: 180 min"
+    m = re.search(r"Ukupno trajanje:\s*(\d+)\s*min", notes)
+    if m:
+        out["duration_min"] = int(m.group(1))
+    
+    # "SPA zona: Sauna: 30 min - Parno kupatilo: 30 min - Jacuzzi: 60 min"
+    m = re.search(r"SPA zona:\s*([^\n\r]+?)(?:\s+Ukupno|\s+$)", notes)
+    if m:
+        out["spa_zone"] = m.group(1).strip()
+    
+    return out
+
+
+def normalize_spa_appt(appt: dict) -> dict:
+    """
+    Normalize SPA appointment - ensures ALL required fields are set.
+    MUST be called before saving to DB and before returning response.
+    """
+    appt = appt or {}
+    notes = appt.get("notes", "") or ""
+    parsed = parse_spa_notes(notes)
+    snap = appt.get("services_snapshot") or []
+    snap0 = snap[0] if snap else {}
+    
+    # 1) service_name - NEVER null/empty
+    if not appt.get("service_name") or appt.get("service_name") == "SPA":
+        appt["service_name"] = (
+            snap0.get("name")
+            or parsed["service_name"]
+            or "SPA Tretman"
+        )
+    
+    # 2) service_description - can be empty string
+    if not appt.get("service_description"):
+        appt["service_description"] = (
+            snap0.get("description")
+            or parsed["service_description"]
+            or ""
+        )
+    
+    # 3) duration_min - NEVER null
+    if not appt.get("duration_min"):
+        appt["duration_min"] = (
+            snap0.get("duration_min")
+            or snap0.get("duration")
+            or parsed["duration_min"]
+        )
+        # fallback: calculate from start/end
+        if not appt["duration_min"]:
+            try:
+                st = appt.get("start_time")
+                en = appt.get("end_time")
+                if st and en:
+                    if isinstance(st, str):
+                        st = datetime.fromisoformat(st.replace("Z", ""))
+                    if isinstance(en, str):
+                        en = datetime.fromisoformat(en.replace("Z", ""))
+                    appt["duration_min"] = int((en - st).total_seconds() / 60)
+            except Exception:
+                pass
+        # ultimate fallback - NEVER N/A
+        if not appt["duration_min"]:
+            appt["duration_min"] = 120
+    
+    # 4) spa_zone - can be empty string
+    if not appt.get("spa_zone"):
+        appt["spa_zone"] = parsed["spa_zone"] or ""
+    
+    # 5) services_snapshot - ensure at least one entry
+    if not snap:
+        snap = [{
+            "name": appt["service_name"],
+            "description": appt["service_description"],
+            "duration_min": appt["duration_min"],
+            "duration": appt["duration_min"],
+            "price": appt.get("final_total") or appt.get("price") or 0
+        }]
+        appt["services_snapshot"] = snap
+    
+    return appt
+
+
+async def create_in_app_notification(db, appt: dict):
+    """Create in-app notification for new SPA booking"""
+    try:
+        notification = {
+            "id": str(uuid.uuid4()),
+            "type": "spa_booking",
+            "appointment_id": appt.get("id"),
+            "title": f"Nova SPA rezervacija: {appt.get('service_name', 'SPA')}",
+            "message": f"{appt.get('client_first_name', '')} {appt.get('client_last_name', '')} - {appt.get('service_name', 'SPA')}",
+            "details": {
+                "service_name": appt.get("service_name"),
+                "duration_min": appt.get("duration_min"),
+                "price": appt.get("final_total", 0),
+                "client_phone": appt.get("client_phone", ""),
+                "start_time": appt.get("start_time")
+            },
+            "is_read": False,
+            "created_at": datetime.now().isoformat()
+        }
+        await db.notifications.insert_one(notification)
+        logger.info(f"📢 SPA IN-APP NOTIFICATION created for {appt.get('id')}")
+        return True
+    except Exception as e:
+        logger.error(f"❌ SPA IN-APP NOTIFICATION failed: {e}")
+        return False
+
 
 # ============================================
 # SPECIAL COUPLE PACKAGES (Romantični paketi)
