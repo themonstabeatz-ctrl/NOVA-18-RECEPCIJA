@@ -729,11 +729,23 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     addons_list = [{"code": s.get('id'), "name": s.get('name'), "price": s.get('price', 0)} for s in addon_services]
     addons_total = sum(s.get('price', 0) for s in addon_services)
     
-    # Add addons to doc
+    # Add COMPLETE snapshot data to doc (NO N/A allowed)
     doc['addons'] = addons_list
     doc['addons_total'] = addons_total
     doc['spa_category'] = appointment.spa_category or 'spa_zone'
-    doc['service_name'] = base_services[0].get('name') if base_services else (services[0].get('name') if services else 'SPA')
+    
+    # Service name - MUST be set (NO generic "SPA")
+    primary_service = base_services[0] if base_services else (services[0] if services else None)
+    doc['service_name'] = primary_service.get('name') if primary_service else 'SPA Tretman'
+    
+    # Service description - MUST be set
+    doc['service_description'] = primary_service.get('description', '') if primary_service else ''
+    if not doc['service_description'] and services_snapshot:
+        # Build description from service names
+        doc['service_description'] = ', '.join([s.get('name', '') for s in services_snapshot])
+    
+    # Duration in minutes - MUST be set (NO N/A)
+    doc['duration_min'] = total_duration if total_duration > 0 else 120  # Default 120 min if not calculated
     
     await db.spa_appointments.insert_one(doc)
     
