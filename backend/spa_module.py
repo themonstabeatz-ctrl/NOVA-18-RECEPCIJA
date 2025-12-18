@@ -899,27 +899,38 @@ async def get_spa_analytics(
         original_total = apt.get("original_total", 0)
         discount_amount = apt.get("discount_amount", 0)
         spa_category = apt.get("spa_category", "spa_zone")
+        addons_total = apt.get("addons_total", 0)
         
         totals["revenue"] += final_total
         totals["count"] += 1
         totals["discount_total"] += discount_amount
         
-        # Categorize
+        # Track add-ons separately (from new addons field OR from services_snapshot)
+        if addons_total > 0:
+            breakdown["spa_addons"]["count"] += 1
+            breakdown["spa_addons"]["revenue"] += addons_total
+        else:
+            # Legacy: Check services_snapshot for ADD-ON
+            services = apt.get("services_snapshot", [])
+            for svc in services:
+                svc_name = svc.get("name", "")
+                svc_category = svc.get("category", "")
+                if "ADD-ON" in svc_name.upper() or svc_category == "spa_addon":
+                    breakdown["spa_addons"]["count"] += 1
+                    breakdown["spa_addons"]["revenue"] += svc.get("price", 0)
+        
+        # Categorize main appointment
         if spa_category == "spa_special_couple":
             breakdown["spa_special_couple"]["count"] += 1
             breakdown["spa_special_couple"]["revenue"] += final_total
         elif spa_category == "spa_ritual":
             breakdown["spa_ritual"]["count"] += 1
             breakdown["spa_ritual"]["revenue"] += final_total
-            # Check for addons
-            services = apt.get("services_snapshot", [])
-            for svc in services:
-                if "ADD-ON" in svc.get("name", ""):
-                    breakdown["spa_addons"]["count"] += 1
-                    breakdown["spa_addons"]["revenue"] += svc.get("price", 0)
         else:
             breakdown["spa_zone"]["count"] += 1
             breakdown["spa_zone"]["revenue"] += final_total
+    
+    logger.info(f"📊 SPA Analytics: {totals['count']} appointments, {totals['revenue']} RSD, addons={breakdown['spa_addons']}")
     
     return {
         "totals": totals,
