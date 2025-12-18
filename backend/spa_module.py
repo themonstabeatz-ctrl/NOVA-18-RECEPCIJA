@@ -897,6 +897,9 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         response['services_snapshot'] = doc['services_snapshot']
         response['notify_status'] = notify_result.get("notify_status", "unknown")
         response['email_sent'] = notify_result.get("email_sent", False)
+        response['email_sent_admin'] = notify_result.get("email_sent_admin", False)
+        response['email_sent_client'] = notify_result.get("email_sent_client", False)
+        response['notification_created'] = notify_result.get("notification_created", False)
         
         return response
     
