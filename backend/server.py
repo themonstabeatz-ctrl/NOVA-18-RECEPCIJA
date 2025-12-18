@@ -104,8 +104,9 @@ def normalize_spa_appt(appt: dict) -> dict:
     # Build description from services if still empty
     if not service_description and snap:
         service_description = ", ".join([s.get("name", "") for s in snap if s.get("name")])
+    # Fallback: use service_name, NOT raw notes
     if not service_description:
-        service_description = notes[:100] if notes else service_name
+        service_description = service_name
     
     # ============================================
     # DURATION - Priority order (NEVER N/A)
