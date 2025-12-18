@@ -3171,6 +3171,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 🔒 Security Headers Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        # Prevent clickjacking
+        response.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Log allowed CORS origins on startup
+cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
+print(f"🔒 CORS LOCK: Allowed origins = {cors_origins}")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
