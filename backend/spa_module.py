@@ -558,7 +558,10 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
                 "id": appointment.spa_package_id,
                 "name": pkg["name"],
                 "price": pkg["price"],
-                "duration": pkg["duration"]
+                "duration": pkg["duration"],
+                "duration_min": pkg["duration"],  # Explicit duration_min
+                "description": pkg.get("description", f"Romantični paket za {appointment.guests or 2} osobe"),
+                "category": "spa_special_couple"
             }],
             start_time=start_time,
             end_time=end_time,
