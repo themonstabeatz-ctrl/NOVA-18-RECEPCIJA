@@ -2552,32 +2552,45 @@ async def get_unviewed_appointments():
         if isinstance(created_at, str):
             created_at = datetime.fromisoformat(created_at)
         
-        # Add service details
-        service = service_map.get(apt.get('service_id'))
-        service_name = service.get('name') if service else None
-        service_duration = service.get('duration') if service else None
-        service_category = service.get('category', 'regular') if service else None
+        # Detect if this is SPA or massage appointment
+        is_spa = apt.get('spa_category') is not None or apt.get('final_total') is not None
         
-        # PRIORITY: Use snapshot price from appointment if available (prevents retroactive price changes)
-        if 'snapshot_price' in apt:
-            service_price = apt['snapshot_price']
-            original_price = apt.get('snapshot_original_price', service_price)
-            discount_percentage = apt.get('snapshot_discount_percentage', 0)
+        if is_spa:
+            # SPA appointment - use direct fields
+            service_name = apt.get('service_name') or 'SPA Tretman'
+            service_duration = apt.get('duration_min') or 120
+            service_category = apt.get('spa_category') or 'spa'
+            service_price = apt.get('final_total') or 0
+            original_price = apt.get('original_total') or service_price
+            discount_percentage = apt.get('discount_percentage') or 0
+            therapist_name = None  # SPA usually doesn't have assigned therapist
         else:
-            # Fallback: Get price from service (for old appointments without snapshot)
-            service_price = service.get('price') if service else None
-            discount_percentage = service.get('discount_percentage', 0) if service else 0
+            # Massage appointment - use service lookup
+            service = service_map.get(apt.get('service_id'))
+            service_name = service.get('name') if service else None
+            service_duration = service.get('duration') if service else None
+            service_category = service.get('category', 'regular') if service else None
             
-            # Get original price from metadata if discount was applied
-            original_price = service_price
-            if service and discount_percentage > 0:
-                metadata = service.get('metadata')
-                if metadata and isinstance(metadata, dict):
-                    original_price = metadata.get('original_price', service_price)
-        
-        # Add therapist name
-        therapist = therapist_map.get(apt.get('therapist_id'))
-        therapist_name = therapist.get('name') if therapist else None
+            # PRIORITY: Use snapshot price from appointment if available (prevents retroactive price changes)
+            if 'snapshot_price' in apt:
+                service_price = apt['snapshot_price']
+                original_price = apt.get('snapshot_original_price', service_price)
+                discount_percentage = apt.get('snapshot_discount_percentage', 0)
+            else:
+                # Fallback: Get price from service (for old appointments without snapshot)
+                service_price = service.get('price') if service else None
+                discount_percentage = service.get('discount_percentage', 0) if service else 0
+                
+                # Get original price from metadata if discount was applied
+                original_price = service_price
+                if service and discount_percentage > 0:
+                    metadata = service.get('metadata')
+                    if metadata and isinstance(metadata, dict):
+                        original_price = metadata.get('original_price', service_price)
+            
+            # Add therapist name
+            therapist = therapist_map.get(apt.get('therapist_id'))
+            therapist_name = therapist.get('name') if therapist else None
         
         # Build clean response object with couples snapshot data
         result.append({
@@ -2600,6 +2613,7 @@ async def get_unviewed_appointments():
             'created_at': created_at.isoformat() if created_at else None,
             'status': apt.get('status'),
             'is_viewed': apt.get('is_viewed', False),
+            'is_spa': is_spa,  # Flag to identify SPA appointments
             # Couples booking snapshot data - CRITICAL for multi-service display
             'is_couples_booking': apt.get('is_couples_booking', False),
             'person1_services_snapshot': apt.get('person1_services_snapshot'),
