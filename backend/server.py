@@ -3248,7 +3248,7 @@ async def api_root():
 # Root endpoint - returns JSON to confirm this is API server
 @app.get("/")
 async def root():
-    return JSONResponse({"ok": True, "service": "spa-booking-api", "hint": "Use /api/health for health check"})
+    return JSONResponse({"ok": True, "service": "spa-booking-api", "mode": "api-only", "hint": "Use /api/health"})
 
 
 # Include the router in the main app
