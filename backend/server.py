@@ -21,8 +21,138 @@ from lockdown import assert_not_locked
 from spa_module import spa_router, set_db as set_spa_db
 
 
+import re
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# ============================================
+# 🧖 SPA APPOINTMENT NORMALIZER
+# Ensures ALL SPA appointments have ready-to-render fields
+# ============================================
+def _parse_notes_spa(notes: str) -> dict:
+    """Parse SPA notes to extract structured data"""
+    if not notes:
+        return {"title": None, "variant": None, "total_min": None, "spa_zone": None}
+    
+    # SPA paket: Deep Renewal Ritual Varijanta: Sa masažom lica ... Ukupno trajanje: 330 min
+    title = None
+    m = re.search(r"SPA paket:\s*([^V\n]+)", notes)
+    if m:
+        title = m.group(1).strip()
+    
+    variant = None
+    m = re.search(r"Varijanta:\s*([^\n]+?)(?:SPA zona:|Ukupno trajanje:|Ukupna cena:|$)", notes)
+    if m:
+        variant = m.group(1).strip()
+    
+    total_min = None
+    m = re.search(r"Ukupno trajanje:\s*(\d+)\s*min", notes)
+    if m:
+        total_min = int(m.group(1))
+    
+    spa_zone = None
+    m = re.search(r"SPA zona:\s*([^\n]+)", notes)
+    if m:
+        spa_zone = m.group(1).strip()
+    
+    return {"title": title, "variant": variant, "total_min": total_min, "spa_zone": spa_zone}
+
+
+def normalize_spa_appt(appt: dict) -> dict:
+    """
+    Returns SPA appointment in unified frontend-friendly shape.
+    MUST include: service_name, service_description, duration_min, type
+    Backend delivers "ready-to-render" - frontend should NOT parse notes.
+    """
+    notes = appt.get("notes") or ""
+    snap = appt.get("services_snapshot") or []
+    snap0 = snap[0] if len(snap) else {}
+    
+    parsed = _parse_notes_spa(notes)
+    
+    # ============================================
+    # SERVICE NAME - Priority order
+    # ============================================
+    service_name = (
+        appt.get("service_name")
+        or snap0.get("name")
+        or parsed["title"]
+    )
+    # Fallback to category-based name if still empty or generic
+    if not service_name or service_name == "SPA":
+        category = appt.get("spa_category", "spa_zone")
+        category_names = {
+            "spa_zone": "SPA Zona Tretman",
+            "spa_ritual": "SPA Ritual Tretman", 
+            "spa_special_couple": "SPA Romantični Paket"
+        }
+        service_name = category_names.get(category, "SPA Tretman")
+    
+    # ============================================
+    # SERVICE DESCRIPTION - Priority order
+    # ============================================
+    service_description = (
+        appt.get("service_description")
+        or snap0.get("description")
+        or parsed["variant"]
+        or ""
+    )
+    # Build description from services if still empty
+    if not service_description and snap:
+        service_description = ", ".join([s.get("name", "") for s in snap if s.get("name")])
+    if not service_description:
+        service_description = notes[:100] if notes else service_name
+    
+    # ============================================
+    # DURATION - Priority order (NEVER N/A)
+    # ============================================
+    duration_min = (
+        appt.get("duration_min")
+        or snap0.get("duration_min")
+        or snap0.get("duration")
+        or parsed["total_min"]
+    )
+    # Sum from snapshot if available
+    if not duration_min and snap:
+        duration_min = sum(s.get("duration_min", s.get("duration", 0)) for s in snap)
+    # Calculate from start/end times
+    if not duration_min:
+        try:
+            start = appt.get("start_time")
+            end = appt.get("end_time")
+            if start and end:
+                if isinstance(start, str):
+                    start = datetime.fromisoformat(start.replace("Z", "+00:00"))
+                if isinstance(end, str):
+                    end = datetime.fromisoformat(end.replace("Z", "+00:00"))
+                duration_min = int((end - start).total_seconds() / 60)
+        except:
+            pass
+    # Ultimate fallback - NEVER return N/A
+    if not duration_min or duration_min <= 0:
+        duration_min = 120
+    
+    # ============================================
+    # SPA ZONE breakdown
+    # ============================================
+    spa_zone = parsed["spa_zone"] or appt.get("spa_zone") or ""
+    
+    # Build unified output
+    out = dict(appt)
+    out["type"] = "spa"
+    out["service_name"] = service_name
+    out["service_description"] = service_description
+    out["duration_min"] = int(duration_min)
+    out["service_duration"] = int(duration_min)  # Alias for compatibility
+    out["spa_zone"] = spa_zone
+    
+    # Add aliases for frontend compatibility
+    out["service_title"] = service_name
+    out["service_desc"] = service_description
+    
+    return out
+
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
