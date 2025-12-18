@@ -782,9 +782,12 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         # 5) BUILD RESPONSE
         response = spa_apt.model_dump()
         response['email_sent'] = notify_result.get("email_sent", False)
+        response['email_sent_admin'] = notify_result.get("email_sent_admin", False)
+        response['email_sent_client'] = notify_result.get("email_sent_client", False)
+        response['notification_created'] = notify_result.get("notification_created", False)
         response['email_error'] = notify_result.get("notify_error")
         response['notify_status'] = notify_result.get("notify_status", "unknown")
-        response['warnings'] = [] if notify_status == "sent" else ["EMAIL_FAILED"]
+        response['warnings'] = [] if notify_result.get("notify_status") == "sent" else ["EMAIL_FAILED"]
         response['service_name'] = doc['service_name']
         response['service_description'] = doc['service_description']
         response['duration_min'] = doc['duration_min']
