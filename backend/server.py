@@ -3225,6 +3225,70 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================
+# CENTRAL NOTIFICATION DISPATCHER
+# Used by BOTH massage AND SPA bookings
+# ============================================
+async def dispatch_booking_notifications(payload: dict) -> dict:
+    """
+    🔔 CENTRAL DISPATCHER - Send all booking notifications.
+    Used by BOTH massage AND SPA bookings.
+    
+    Args:
+        payload: Dict with booking details (type, appointment_id, service_name, etc.)
+    
+    Returns:
+        Dict with status: {"email_sent": bool, "notify_status": str}
+    """
+    booking_type = payload.get("type", "massage")
+    appointment_id = payload.get("appointment_id", "unknown")
+    client_email = payload.get("client_email")
+    
+    result = {
+        "email_sent": False,
+        "notify_status": "pending",
+        "notify_error": None
+    }
+    
+    try:
+        # 1) Send admin + client emails (uses existing send_booking_emails)
+        await send_booking_emails(payload)
+        result["email_sent"] = True
+        logger.info(f"📧 CLIENT_EMAIL_SENT type={booking_type} id={appointment_id}")
+        
+        # 2) Create dashboard notification
+        try:
+            notification = {
+                "id": str(uuid.uuid4()),
+                "type": f"{booking_type}_booking",
+                "appointment_id": appointment_id,
+                "title": f"Nova {booking_type.upper()} rezervacija",
+                "message": f"{payload.get('client_first_name', '')} {payload.get('client_last_name', '')} - {payload.get('service_name', 'Usluga')}",
+                "details": {
+                    "service_name": payload.get("service_name"),
+                    "duration_min": payload.get("duration_min"),
+                    "price": payload.get("price") or payload.get("final_total", 0),
+                    "start_time": payload.get("start_time"),
+                    "client_phone": payload.get("client_phone", "")
+                },
+                "is_read": False,
+                "created_at": datetime.now().isoformat()
+            }
+            await db.notifications.insert_one(notification)
+            logger.info(f"🔔 DASHBOARD_NOTIFY_SENT type={booking_type} id={appointment_id}")
+        except Exception as e:
+            logger.error(f"❌ Dashboard notification failed: {e}")
+        
+        result["notify_status"] = "sent"
+        
+    except Exception as e:
+        logger.error(f"❌ NOTIFICATION_DISPATCH_FAILED type={booking_type} id={appointment_id} error={e}")
+        result["notify_status"] = "failed"
+        result["notify_error"] = str(e)[:200]
+    
+    return result
+
+
+# ============================================
 # Email Notification Helper
 # ============================================
 # 🔒🔒🔒 LOCKED ZONE START - EMAIL NOTIFICATION 🔒🔒🔒
