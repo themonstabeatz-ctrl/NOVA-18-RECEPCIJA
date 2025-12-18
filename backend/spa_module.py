@@ -698,16 +698,41 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     doc['end_time'] = doc['end_time'].isoformat()
     doc['created_at'] = doc['created_at'].isoformat()
     
+    # Separate base services from addons
+    base_services = [s for s in services if s.get('category') != 'spa_addon']
+    addon_services = [s for s in services if s.get('category') == 'spa_addon']
+    addons_list = [{"code": s.get('id'), "name": s.get('name'), "price": s.get('price', 0)} for s in addon_services]
+    addons_total = sum(s.get('price', 0) for s in addon_services)
+    
+    # Add addons to doc
+    doc['addons'] = addons_list
+    doc['addons_total'] = addons_total
+    doc['spa_category'] = appointment.spa_category or 'spa_zone'
+    doc['service_name'] = base_services[0].get('name') if base_services else (services[0].get('name') if services else 'SPA')
+    
     await db.spa_appointments.insert_one(doc)
     
-    logger.info(f"✅ SPA Appointment created: {spa_apt.id}, total={final_total} RSD")
+    logger.info(f"✅ SPA Appointment created: {spa_apt.id}, total={final_total} RSD, addons_total={addons_total} RSD")
     
-    # Send email notification
+    # Send email notification with status tracking
     email_data = doc.copy()
-    email_data['spa_category'] = appointment.spa_category or 'spa_zone'
-    await send_spa_booking_email(email_data)
+    email_sent = await send_spa_booking_email(email_data)
     
-    return spa_apt
+    if email_sent:
+        logger.info(f"📧 SPA_EMAIL_SENT appointment_id={spa_apt.id} to={appointment.client_email}")
+    else:
+        logger.warning(f"⚠️ SPA_EMAIL_FAILED appointment_id={spa_apt.id} to={appointment.client_email}")
+    
+    # Return response with email status
+    response = spa_apt.model_dump()
+    response['email_sent'] = email_sent
+    response['email_error'] = None if email_sent else "Email not sent - check SMTP configuration"
+    response['warnings'] = [] if email_sent else ["EMAIL_FAILED"]
+    response['addons'] = addons_list
+    response['addons_total'] = addons_total
+    response['service_name'] = doc['service_name']
+    
+    return response
 
 @spa_router.get("/appointments")
 async def get_spa_appointments():
