@@ -18,7 +18,7 @@ from email.mime.multipart import MIMEMultipart
 from lockdown import assert_not_locked
 
 # 🧖 SPA MODULE IMPORT (separate from massage)
-from spa_module import spa_router, set_db as set_spa_db
+from spa_module import spa_router, set_db as set_spa_db, set_dispatcher as set_spa_dispatcher
 
 
 import re
