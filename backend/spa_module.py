@@ -749,37 +749,41 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         # LOG: Appointment created
         logger.info(f"✅ SPA BOOKED id={doc['id']} name={doc['service_name']} email={appointment.client_email} price={final_total}")
         
-        # 4) SEND NOTIFICATIONS
-        notify_status = "pending"
-        notify_error = None
+        # 4) SEND NOTIFICATIONS via CENTRAL DISPATCHER (same as massage)
+        notify_result = {"email_sent": False, "notify_status": "pending", "notify_error": None}
         
-        try:
-            email_sent = await send_spa_booking_email({
-                **doc,
-                "spa_category": "spa_special_couple"
-            })
-            
-            if email_sent:
-                logger.info(f"📧 SPA_EMAIL_SENT appointment_id={doc['id']} to={appointment.client_email}")
-            else:
-                logger.warning(f"⚠️ SPA_EMAIL_FAILED appointment_id={doc['id']} to={appointment.client_email}")
-            
-            # In-app notification
-            await create_in_app_notification(db, doc)
-            
-            notify_status = "sent" if email_sent else "partial"
-        except Exception as e:
-            logger.exception(f"❌ SPA NOTIFY/EMAIL FAILED id={doc['id']}")
-            notify_status = "failed"
-            notify_error = str(e)[:200]
-        
-        logger.info(f"📢 SPA NOTIFY status={notify_status} id={doc['id']}")
+        if _dispatch_notifications:
+            notification_payload = {
+                "type": "spa",
+                "appointment_id": doc["id"],
+                "service_name": doc["service_name"],
+                "service_description": doc.get("service_description", ""),
+                "duration_min": doc["duration_min"],
+                "spa_zone": doc.get("spa_zone", ""),
+                "start_time": doc.get("start_time"),
+                "end_time": doc.get("end_time"),
+                "price": doc.get("final_total", 0),
+                "final_total": doc.get("final_total", 0),
+                "client_first_name": doc.get("client_first_name", ""),
+                "client_last_name": doc.get("client_last_name", ""),
+                "client_email": doc.get("client_email", ""),
+                "client_phone": doc.get("client_phone", "")
+            }
+            notify_result = await _dispatch_notifications(notification_payload)
+        else:
+            logger.warning("⚠️ Central dispatcher not available, using local email")
+            try:
+                email_sent = await send_spa_booking_email({**doc, "spa_category": "spa_special_couple"})
+                await create_in_app_notification(db, doc)
+                notify_result = {"email_sent": email_sent, "notify_status": "sent" if email_sent else "partial"}
+            except Exception as e:
+                notify_result = {"email_sent": False, "notify_status": "failed", "notify_error": str(e)[:200]}
         
         # 5) BUILD RESPONSE
         response = spa_apt.model_dump()
-        response['email_sent'] = (notify_status in ["sent", "partial"])
-        response['email_error'] = notify_error
-        response['notify_status'] = notify_status
+        response['email_sent'] = notify_result.get("email_sent", False)
+        response['email_error'] = notify_result.get("notify_error")
+        response['notify_status'] = notify_result.get("notify_status", "unknown")
         response['warnings'] = [] if notify_status == "sent" else ["EMAIL_FAILED"]
         response['service_name'] = doc['service_name']
         response['service_description'] = doc['service_description']
