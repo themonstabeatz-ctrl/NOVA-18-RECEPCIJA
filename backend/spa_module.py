@@ -682,9 +682,17 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     discount_pct = min(appointment.discount_percentage or 0, 15)
     discount_amount, final_total, applied_discount = apply_spa_discount(original_total, discount_pct)
     
-    # Create snapshot
+    # Create COMPLETE snapshot with all required fields
     services_snapshot = [
-        {"id": s["id"], "name": s["name"], "price": s["price"], "duration": s["duration"]}
+        {
+            "id": s["id"], 
+            "name": s["name"], 
+            "price": s["price"], 
+            "duration": s["duration"],
+            "duration_min": s["duration"],  # Explicit duration_min
+            "description": s.get("description", ""),
+            "category": s.get("category", "spa_zone")
+        }
         for s in services
     ]
     
