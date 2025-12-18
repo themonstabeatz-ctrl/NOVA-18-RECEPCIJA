@@ -1026,9 +1026,9 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     
     # 5) BUILD RESPONSE with all normalized fields
     response = spa_apt.model_dump()
-    response['email_sent'] = (notify_status in ["sent", "partial"])
-    response['email_error'] = notify_error
-    response['notify_status'] = notify_status
+    response['email_sent'] = notify_result.get("email_sent", False)
+    response['email_error'] = notify_result.get("notify_error")
+    response['notify_status'] = notify_result.get("notify_status", "unknown")
     response['warnings'] = [] if notify_status == "sent" else ["EMAIL_FAILED"]
     response['addons'] = addons_list
     response['addons_total'] = addons_total
