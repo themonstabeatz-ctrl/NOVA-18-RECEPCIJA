@@ -704,9 +704,35 @@ const Appointments = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
+                          {/* Type indicator badge */}
+                          {appointment.type === 'spa' && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800 border border-teal-200">
+                              🧖 SPA
+                            </span>
+                          )}
                           <div className="flex-1">
-                            {/* COUPLES BOOKING: Show all services from snapshot */}
-                            {appointment.is_couples_booking && (appointment.person1_services_snapshot || appointment.person2_services_snapshot) ? (
+                            {/* SPA BOOKING: Show service directly */}
+                            {appointment.type === 'spa' ? (
+                              <div>
+                                <div className="text-sm text-gray-900 font-medium">
+                                  {appointment.service_name || 'SPA'}
+                                </div>
+                                {appointment.service_category && (
+                                  <div className="text-xs text-teal-600 mt-1">
+                                    {appointment.service_category === 'spa_special_couple' ? 'Paket za parove' : 
+                                     appointment.service_category === 'spa_ritual' ? 'SPA Ritual' :
+                                     appointment.service_category === 'spa_zone' ? 'SPA Zona' :
+                                     appointment.service_category}
+                                  </div>
+                                )}
+                                {appointment.service_duration && (
+                                  <div className="text-xs text-gray-500">
+                                    ⏱️ {appointment.service_duration} min
+                                  </div>
+                                )}
+                              </div>
+                            ) : appointment.is_couples_booking && (appointment.person1_services_snapshot || appointment.person2_services_snapshot) ? (
+                              /* COUPLES BOOKING: Show all services from snapshot */
                               <div className="space-y-1">
                                 {appointment.person1_services_snapshot && appointment.person1_services_snapshot.length > 0 && (
                                   <div>
@@ -733,11 +759,11 @@ const Appointments = () => {
                             ) : (
                               <div>
                                 <div className="text-sm text-gray-900">
-                                  {getServiceName(appointment.service_id)}
+                                  {getServiceName(appointment.service_id, appointment)}
                                 </div>
-                                {getServiceDescription(appointment.service_id) && (
+                                {getServiceDescription(appointment.service_id, appointment) && (
                                   <div className="text-xs text-gray-600 mt-1">
-                                    {getServiceDescription(appointment.service_id)}
+                                    {getServiceDescription(appointment.service_id, appointment)}
                                   </div>
                                 )}
                               </div>
