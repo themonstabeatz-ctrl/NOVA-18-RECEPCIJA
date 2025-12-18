@@ -1516,6 +1516,238 @@ def test_services_discount_endpoint():
     print("=" * 80)
     return all_tests_passed
 
+def test_spa_booking_with_notifications():
+    """
+    Test SPA booking with notifications (with client email)
+    POST /api/spa/appointments
+    Expected: notify_status: "sent", email_sent: true, email_sent_admin: true, email_sent_client: true, notification_created: true
+    """
+    print("=" * 80)
+    print("TEST: SPA BOOKING WITH NOTIFICATIONS (WITH CLIENT EMAIL)")
+    print("=" * 80)
+    
+    # Test payload as specified in review request
+    payload = {
+        "client_email": "test-agent@example.com",
+        "client_first_name": "TestAgent",
+        "client_last_name": "Verification",
+        "client_phone": "+381600000001",
+        "spa_category": "spa_ritual",
+        "notes": "SPA paket: Gentle Touch Ritual Ukupno trajanje: 180 min",
+        "total_original": 10400,
+        "final_price": 10400
+    }
+    
+    print(f"Request payload:")
+    print(json.dumps(payload, indent=2))
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/spa/appointments",
+            json=payload,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        try:
+            data = response.json()
+            
+            # Check for required notification fields
+            expected_fields = {
+                "notify_status": "sent",
+                "email_sent": True,
+                "email_sent_admin": True,
+                "email_sent_client": True,
+                "notification_created": True
+            }
+            
+            all_checks_passed = True
+            
+            for field, expected_value in expected_fields.items():
+                actual_value = data.get(field)
+                if actual_value == expected_value:
+                    print(f"✅ {field}: {actual_value}")
+                else:
+                    print(f"❌ {field}: Expected {expected_value}, got {actual_value}")
+                    all_checks_passed = False
+            
+            # Check for appointment ID
+            appointment_id = data.get("id")
+            if appointment_id:
+                print(f"✅ SPA appointment created with ID: {appointment_id}")
+            else:
+                print(f"❌ FAILED: Response missing required 'id' field")
+                all_checks_passed = False
+            
+            return all_checks_passed
+            
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Response is not valid JSON")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ ERROR during SPA booking with notifications: {e}")
+        return False
+
+def test_spa_booking_without_client_email():
+    """
+    Test SPA booking without client email
+    POST /api/spa/appointments
+    Expected: email_sent_client: false, email_sent_admin: true, notification_created: true
+    """
+    print("=" * 80)
+    print("TEST: SPA BOOKING WITHOUT CLIENT EMAIL")
+    print("=" * 80)
+    
+    # Test payload without client_email (empty string)
+    payload = {
+        "client_email": "",
+        "client_first_name": "TestAgent",
+        "client_last_name": "NoEmail",
+        "client_phone": "+381600000002",
+        "spa_category": "spa_ritual",
+        "notes": "SPA paket: Gentle Touch Ritual Ukupno trajanje: 180 min",
+        "total_original": 10400,
+        "final_price": 10400
+    }
+    
+    print(f"Request payload:")
+    print(json.dumps(payload, indent=2))
+    
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/spa/appointments",
+            json=payload,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        try:
+            data = response.json()
+            
+            # Check for required notification fields (no client email)
+            expected_fields = {
+                "email_sent_client": False,
+                "email_sent_admin": True,
+                "notification_created": True
+            }
+            
+            all_checks_passed = True
+            
+            for field, expected_value in expected_fields.items():
+                actual_value = data.get(field)
+                if actual_value == expected_value:
+                    print(f"✅ {field}: {actual_value}")
+                else:
+                    print(f"❌ {field}: Expected {expected_value}, got {actual_value}")
+                    all_checks_passed = False
+            
+            # Check for appointment ID
+            appointment_id = data.get("id")
+            if appointment_id:
+                print(f"✅ SPA appointment created with ID: {appointment_id}")
+            else:
+                print(f"❌ FAILED: Response missing required 'id' field")
+                all_checks_passed = False
+            
+            return all_checks_passed
+            
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Response is not valid JSON")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ ERROR during SPA booking without client email: {e}")
+        return False
+
+def check_backend_logs():
+    """
+    Check backend logs for notification messages
+    Expected: SPA_BOOKED, ADMIN_EMAIL_SENT, CLIENT_EMAIL_SENT/CLIENT_EMAIL_SKIPPED, NOTIFICATION_CREATED
+    """
+    print("=" * 80)
+    print("TEST: CHECK BACKEND LOGS FOR NOTIFICATIONS")
+    print("=" * 80)
+    
+    try:
+        # Check supervisor backend logs
+        result = subprocess.run(
+            ["tail", "-n", "100", "/var/log/supervisor/backend.out.log"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode != 0:
+            print(f"❌ FAILED: Could not read backend logs (exit code: {result.returncode})")
+            print(f"Error: {result.stderr}")
+            return False
+        
+        log_content = result.stdout
+        print(f"✅ Successfully read backend logs ({len(log_content.splitlines())} lines)")
+        
+        # Check for expected log messages
+        expected_patterns = [
+            "✅ SPA_BOOKED",
+            "📧 ADMIN_EMAIL_SENT to=bualuangthailandspa@gmail.com",
+            "📧 CLIENT_EMAIL_SENT",
+            "ℹ️ CLIENT_EMAIL_SKIPPED",
+            "🔔 NOTIFICATION_CREATED"
+        ]
+        
+        found_patterns = []
+        
+        for pattern in expected_patterns:
+            if pattern in log_content:
+                found_patterns.append(pattern)
+                print(f"✅ Found log pattern: {pattern}")
+            else:
+                print(f"⚠️  Log pattern not found: {pattern}")
+        
+        # Show recent relevant log lines
+        print(f"\nRecent relevant log lines:")
+        lines = log_content.splitlines()
+        relevant_lines = []
+        
+        for line in lines[-50:]:  # Check last 50 lines
+            if any(keyword in line for keyword in ["SPA_BOOKED", "EMAIL_SENT", "EMAIL_SKIPPED", "NOTIFICATION_CREATED"]):
+                relevant_lines.append(line)
+        
+        if relevant_lines:
+            for line in relevant_lines[-10:]:  # Show last 10 relevant lines
+                print(f"  {line}")
+        else:
+            print("  No relevant notification logs found in recent entries")
+        
+        # Return success if we found at least some notification patterns
+        if len(found_patterns) >= 2:
+            print(f"✅ SUCCESS: Found {len(found_patterns)} notification patterns in logs")
+            return True
+        else:
+            print(f"❌ FAILED: Only found {len(found_patterns)} notification patterns (expected at least 2)")
+            return False
+        
+    except subprocess.TimeoutExpired:
+        print(f"❌ ERROR: Timeout reading backend logs")
+        return False
+    except Exception as e:
+        print(f"❌ ERROR checking backend logs: {e}")
+        return False
+
 def test_website_couple_booking_endpoint():
     """
     Test the specific website couple booking endpoint that's failing on production
