@@ -2059,9 +2059,10 @@ async def get_appointments(
         else:
             service_map = {}
         
-        # Normalize SPA appointments to match Appointment format for calendar
+        # Normalize SPA appointments using the unified normalizer
         for spa in spa_appointments:
-            services_snapshot = spa.get('services_snapshot', [])
+            # Use normalize_spa_appt for consistent data across ALL endpoints
+            normalized = normalize_spa_appt(spa)
             
             # ============================================
             # SERVICE NAME - MUST NOT be generic "SPA"
