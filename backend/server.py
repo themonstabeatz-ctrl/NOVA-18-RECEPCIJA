@@ -2506,9 +2506,10 @@ async def update_appointment_status(appointment_id: str, status: AppointmentStat
 
 @api_router.get("/appointments/unviewed/count")
 async def get_unviewed_appointments_count():
-    """Get count of unviewed appointments"""
-    count = await db.appointments.count_documents({"is_viewed": False})
-    return {"count": count}
+    """Get count of unviewed appointments (massage + SPA)"""
+    massage_count = await db.appointments.count_documents({"is_viewed": False})
+    spa_count = await db.spa_appointments.count_documents({"is_viewed": False})
+    return {"count": massage_count + spa_count}
 
 @api_router.get("/appointments/unviewed/list")
 async def get_unviewed_appointments():
