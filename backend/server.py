@@ -3374,7 +3374,7 @@ async def dispatch_booking_notifications(payload: dict) -> dict:
             result["notification_created"] = True
             
             # 🔥 BRUTALNI LOG - notification created
-            logger.info(f"🔔 NOTIFICATION_CREATED id={notification_id}")
+            logger.info(f"🔔 NOTIFICATION_CREATED appt_id={appointment_id}")
         except Exception as e:
             logger.error(f"❌ NOTIFICATION_FAILED id={notification_id} error={e}")
         
