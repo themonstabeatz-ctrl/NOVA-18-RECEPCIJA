@@ -998,6 +998,7 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     
     # Duration in minutes - MUST be set (NO N/A)
     doc['duration_min'] = total_duration if total_duration > 0 else 120  # Default 120 min if not calculated
+    doc['is_viewed'] = False  # For notification badge on dashboard
     
     # 1) INSERT into DB first
     await db.spa_appointments.insert_one(doc)
