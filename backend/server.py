@@ -2513,10 +2513,20 @@ async def get_unviewed_appointments_count():
 
 @api_router.get("/appointments/unviewed/list")
 async def get_unviewed_appointments():
-    """Get list of unviewed appointments with service details"""
-    appointments = await db.appointments.find(
+    """Get list of unviewed appointments with service details (massage + SPA)"""
+    # Get massage appointments
+    massage_appointments = await db.appointments.find(
         {"is_viewed": False}, {"_id": 0}
     ).sort("created_at", -1).to_list(100)
+    
+    # Get SPA appointments
+    spa_appointments = await db.spa_appointments.find(
+        {"is_viewed": False}, {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    # Combine and sort by created_at
+    appointments = massage_appointments + spa_appointments
+    appointments.sort(key=lambda x: x.get('created_at', ''), reverse=True)
     
     # Get all services for lookup
     services = await db.services.find({}, {"_id": 0}).to_list(1000)
