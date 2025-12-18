@@ -663,6 +663,13 @@ async def get_spa_quote(request: SpaQuoteRequest):
 async def create_spa_appointment(appointment: SpaAppointmentCreate):
     """Create a SPA appointment - supports multiple formats including special couple packages"""
     
+    # 🔒 VALIDATION: client_email is REQUIRED for SPA booking
+    if not appointment.client_email or not appointment.client_email.strip():
+        raise HTTPException(
+            status_code=422, 
+            detail="client_email is required for SPA booking. Please provide a valid email address."
+        )
+    
     # Parse start_time from various formats
     def get_start_time():
         if appointment.start_time:
