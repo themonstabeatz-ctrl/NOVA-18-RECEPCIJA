@@ -886,27 +886,67 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     # Duration in minutes - MUST be set (NO N/A)
     doc['duration_min'] = total_duration if total_duration > 0 else 120  # Default 120 min if not calculated
     
+    # 1) INSERT into DB first
     await db.spa_appointments.insert_one(doc)
     
-    logger.info(f"✅ SPA Appointment created: {spa_apt.id}, total={final_total} RSD, addons_total={addons_total} RSD")
+    # 2) NORMALIZE - ensure all fields are set (uses notes parsing as fallback)
+    doc = normalize_spa_appt(doc)
     
-    # Send email notification with status tracking
-    email_data = doc.copy()
-    email_sent = await send_spa_booking_email(email_data)
+    # 3) UPDATE DB with normalized fields (so they persist, not just in response!)
+    await db.spa_appointments.update_one(
+        {"id": doc["id"]},
+        {"$set": {
+            "service_name": doc["service_name"],
+            "service_description": doc["service_description"],
+            "duration_min": doc["duration_min"],
+            "spa_zone": doc.get("spa_zone", ""),
+            "services_snapshot": doc["services_snapshot"]
+        }}
+    )
     
-    if email_sent:
-        logger.info(f"📧 SPA_EMAIL_SENT appointment_id={spa_apt.id} to={appointment.client_email}")
-    else:
-        logger.warning(f"⚠️ SPA_EMAIL_FAILED appointment_id={spa_apt.id} to={appointment.client_email}")
+    # LOG: Appointment created with normalized fields
+    logger.info(f"✅ SPA BOOKED id={doc['id']} name={doc['service_name']} email={appointment.client_email} price={final_total}")
     
-    # Return response with email status
+    # 4) SEND NOTIFICATIONS
+    notify_status = "pending"
+    notify_error = None
+    
+    try:
+        # a) Admin email
+        email_data = doc.copy()
+        email_sent = await send_spa_booking_email(email_data)
+        
+        if email_sent:
+            logger.info(f"📧 SPA_EMAIL_SENT appointment_id={doc['id']} to={appointment.client_email}")
+        else:
+            logger.warning(f"⚠️ SPA_EMAIL_FAILED appointment_id={doc['id']} to={appointment.client_email}")
+        
+        # b) In-app notification
+        await create_in_app_notification(db, doc)
+        
+        notify_status = "sent" if email_sent else "partial"
+    except Exception as e:
+        logger.exception(f"❌ SPA NOTIFY/EMAIL FAILED id={doc['id']}")
+        notify_status = "failed"
+        notify_error = str(e)[:200]
+    
+    # LOG: Notification status
+    logger.info(f"📢 SPA NOTIFY status={notify_status} id={doc['id']}")
+    
+    # 5) BUILD RESPONSE with all normalized fields
     response = spa_apt.model_dump()
-    response['email_sent'] = email_sent
-    response['email_error'] = None if email_sent else "Email not sent - check SMTP configuration"
-    response['warnings'] = [] if email_sent else ["EMAIL_FAILED"]
+    response['email_sent'] = (notify_status in ["sent", "partial"])
+    response['email_error'] = notify_error
+    response['notify_status'] = notify_status
+    response['warnings'] = [] if notify_status == "sent" else ["EMAIL_FAILED"]
     response['addons'] = addons_list
     response['addons_total'] = addons_total
+    # Include normalized fields in response
     response['service_name'] = doc['service_name']
+    response['service_description'] = doc['service_description']
+    response['duration_min'] = doc['duration_min']
+    response['spa_zone'] = doc.get('spa_zone', '')
+    response['services_snapshot'] = doc['services_snapshot']
     
     return response
 
