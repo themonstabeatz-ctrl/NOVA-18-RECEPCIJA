@@ -1931,29 +1931,71 @@ async def get_appointments(
         
         # Normalize SPA appointments to match Appointment format for calendar
         for spa in spa_appointments:
-            # Get service name from various sources
+            services_snapshot = spa.get('services_snapshot', [])
+            
+            # ============================================
+            # SERVICE NAME - MUST NOT be generic "SPA"
+            # ============================================
             service_name = spa.get('service_name')
-            if not service_name:
-                services_snapshot = spa.get('services_snapshot', [])
+            if not service_name or service_name == 'SPA':
+                # Try from snapshot
                 if services_snapshot:
                     base_services = [s for s in services_snapshot if 'addon' not in s.get('category', '').lower()]
-                    service_name = base_services[0].get('name') if base_services else services_snapshot[0].get('name', 'SPA')
-            if not service_name:
+                    service_name = base_services[0].get('name') if base_services else services_snapshot[0].get('name')
+            if not service_name or service_name == 'SPA':
+                # Fallback to category-based name
                 category = spa.get('spa_category', 'spa_zone')
                 category_names = {
-                    'spa_zone': 'SPA Zona',
-                    'spa_ritual': 'SPA Ritual',
-                    'spa_special_couple': 'SPA Paket za parove'
+                    'spa_zone': 'SPA Zona Tretman',
+                    'spa_ritual': 'SPA Ritual Tretman',
+                    'spa_special_couple': 'SPA Romantični Paket'
                 }
-                service_name = category_names.get(category, 'SPA')
+                service_name = category_names.get(category, 'SPA Tretman')
             
-            # Calculate duration
-            total_duration = 0
-            services_snapshot = spa.get('services_snapshot', [])
-            if services_snapshot:
-                total_duration = sum(s.get('duration', 0) for s in services_snapshot)
-            if not total_duration:
-                total_duration = 120  # Default 2 hours for SPA
+            # ============================================
+            # SERVICE DESCRIPTION - MUST be set
+            # ============================================
+            service_description = spa.get('service_description', '')
+            if not service_description:
+                # Try from snapshot
+                if services_snapshot:
+                    for s in services_snapshot:
+                        if s.get('description'):
+                            service_description = s.get('description')
+                            break
+                    if not service_description:
+                        # Build from service names
+                        service_description = ', '.join([s.get('name', '') for s in services_snapshot if s.get('name')])
+            if not service_description:
+                # Ultimate fallback
+                service_description = spa.get('notes', '') or f"{service_name}"
+            
+            # ============================================
+            # DURATION - MUST NOT be N/A or 0
+            # ============================================
+            # Priority 1: Direct duration_min field
+            duration_min = spa.get('duration_min', 0)
+            
+            # Priority 2: From services_snapshot
+            if not duration_min and services_snapshot:
+                duration_min = sum(s.get('duration_min', s.get('duration', 0)) for s in services_snapshot)
+            
+            # Priority 3: Calculate from start/end times
+            if not duration_min:
+                start_str = spa.get('start_time')
+                end_str = spa.get('end_time')
+                if start_str and end_str:
+                    try:
+                        start_dt = datetime.fromisoformat(str(start_str).replace('Z', '+00:00'))
+                        end_dt = datetime.fromisoformat(str(end_str).replace('Z', '+00:00'))
+                        duration_min = int((end_dt - start_dt).total_seconds() / 60)
+                    except:
+                        pass
+            
+            # Priority 4: Default (NEVER N/A)
+            if not duration_min or duration_min <= 0:
+                duration_min = 120  # Default 2 hours
+                logger.warning(f"SPA appointment {spa.get('id')} missing duration, using default 120 min")
             
             # Parse start_time
             start_time = spa.get('start_time')
@@ -1965,9 +2007,9 @@ async def get_appointments(
             if end_time and isinstance(end_time, str):
                 end_time = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
             elif not end_time and start_time:
-                end_time = start_time + timedelta(minutes=total_duration)
+                end_time = start_time + timedelta(minutes=duration_min)
             
-            # Create normalized appointment object
+            # Create normalized appointment object with COMPLETE data
             normalized_spa = {
                 'id': spa.get('id'),
                 'type': 'spa',
@@ -1975,10 +2017,13 @@ async def get_appointments(
                 'client_last_name': spa.get('client_last_name', ''),
                 'client_phone': spa.get('client_phone', ''),
                 'client_email': spa.get('client_email', ''),
-                'service_id': spa.get('spa_package_id') or spa.get('id'),  # Use package ID or appointment ID
-                'service_name': service_name,  # Extra field for display
-                'service_duration': total_duration,  # Extra field for display
-                'service_category': spa.get('spa_category', 'spa_zone'),  # Extra field
+                'service_id': spa.get('spa_package_id') or spa.get('id'),
+                # COMPLETE SERVICE DATA (NO N/A)
+                'service_name': service_name,
+                'service_description': service_description,
+                'service_duration': duration_min,  # Legacy field name
+                'duration_min': duration_min,  # Explicit duration_min
+                'service_category': spa.get('spa_category', 'spa_zone'),
                 'start_time': start_time,
                 'end_time': end_time,
                 'created_at': datetime.fromisoformat(spa.get('created_at')) if spa.get('created_at') else datetime.now(),
