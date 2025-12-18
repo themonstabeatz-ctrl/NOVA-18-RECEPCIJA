@@ -207,14 +207,14 @@ def test_spa_appointments():
 def test_cors_verification():
     """
     Test 4: CORS Verification
-    OPTIONS preflight request with Origin: https://spa-booking-api.preview.emergentagent.com
+    OPTIONS preflight request with Origin: https://massage-app-4.preview.emergentagent.com
     Expected: access-control-allow-origin header
     """
     print("=" * 80)
     print("TEST 4: CORS VERIFICATION")
     print("=" * 80)
     
-    origin = "https://spa-booking-api.preview.emergentagent.com"
+    origin = "https://massage-app-4.preview.emergentagent.com"
     
     try:
         # Test OPTIONS preflight request
