@@ -2003,15 +2003,48 @@ async def get_unified_appointments_list(
     spa_appointments = await db.spa_appointments.find(spa_query, {"_id": 0}).to_list(10000)
     
     for apt in spa_appointments:
-        # Get service names from snapshot
+        # Priority for service_name: 
+        # 1. Direct service_name field (new)
+        # 2. From services_snapshot
+        # 3. Fallback to spa_category
+        service_name = apt.get('service_name')
+        
         services_snapshot = apt.get('services_snapshot', [])
+        if not service_name and services_snapshot:
+            # Get primary service (non-addon) name
+            base_services = [s for s in services_snapshot if 'addon' not in s.get('category', '').lower()]
+            if base_services:
+                service_name = base_services[0].get('name', '')
+            else:
+                service_name = services_snapshot[0].get('name', '')
+        
+        if not service_name:
+            # Map spa_category to readable name
+            category = apt.get('spa_category', 'spa_zone')
+            category_names = {
+                'spa_zone': 'SPA Zona',
+                'spa_ritual': 'SPA Ritual',
+                'spa_special_couple': 'SPA Paket za parove',
+                'spa_addon': 'SPA Dodatak'
+            }
+            service_name = category_names.get(category, category)
+        
+        # Calculate duration
         if services_snapshot:
-            service_names = [s.get('name', '') for s in services_snapshot]
-            service_name = ', '.join(service_names)
             total_duration = sum(s.get('duration', 0) for s in services_snapshot)
         else:
-            service_name = apt.get('spa_category', 'SPA')
             total_duration = 0
+        
+        # Get addons info
+        addons = apt.get('addons', [])
+        addons_total = apt.get('addons_total', 0)
+        addon_names = ', '.join([a.get('name', '') for a in addons]) if addons else ''
+        
+        # Build service description including addons
+        spa_category = apt.get('spa_category', 'spa_zone')
+        service_description = spa_category
+        if addon_names:
+            service_description = f"{spa_category} + {addon_names}"
         
         items.append({
             "id": apt.get('id'),
@@ -2024,14 +2057,16 @@ async def get_unified_appointments_list(
             "client_phone": apt.get('client_phone', ''),
             "service_name": service_name,
             "service_duration": total_duration,
-            "service_description": apt.get('spa_category', ''),
+            "service_description": service_description,
             "original_price": apt.get('original_total', 0),
             "final_total": apt.get('final_total', 0),
             "total_price": apt.get('final_total', 0),
             "discount_percentage": apt.get('discount_percentage', 0) or 0,
             "discount_amount": apt.get('discount_amount', 0) or 0,
             "is_couples_booking": False,
-            "status": apt.get('status', 'scheduled')
+            "status": apt.get('status', 'scheduled'),
+            "addons": addons,
+            "addons_total": addons_total
         })
     
     # Sort by start_time
