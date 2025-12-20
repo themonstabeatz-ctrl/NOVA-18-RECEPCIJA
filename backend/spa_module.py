@@ -801,10 +801,18 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         start_time = get_start_time()
         end_time = start_time + timedelta(minutes=pkg["duration"])
         
-        # Apply discount if any
+        # Apply discount using discount engine (SINGLE SOURCE OF TRUTH)
         original_total = pkg["price"]
         discount_pct = min(appointment.discount_percentage or 0, 15)
-        discount_amount, final_total, applied_discount = apply_spa_discount(original_total, discount_pct)
+        pricing = apply_spa_discount_v2(original_total, discount_pct)
+        
+        # Create pricing snapshot for immutable record
+        pricing_snapshot = create_pricing_snapshot(
+            original_price=original_total,
+            discount_percent=discount_pct,
+            reason="SPA_SPECIAL_COUPLE_BOOKING"
+        )
+        pricing_snapshot["snapshot_at"] = datetime.now().isoformat()
         
         spa_apt = SpaAppointment(
             client_first_name=appointment.client_first_name,
@@ -823,10 +831,10 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
             }],
             start_time=start_time,
             end_time=end_time,
-            original_total=original_total,
-            discount_percentage=applied_discount,
-            discount_amount=discount_amount,
-            final_total=final_total,
+            original_total=pricing["original_price"],
+            discount_percentage=pricing["discount_percent"],
+            discount_amount=pricing["discount_amount"],
+            final_total=pricing["final_price"],
             notes=appointment.message or appointment.notes
         )
         
@@ -837,6 +845,9 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         doc['created_at'] = doc['created_at'].isoformat()
         doc['spa_category'] = "spa_special_couple"
         doc['guests'] = appointment.guests or 2
+        
+        # 🔐 PRICING SNAPSHOT - immutable record of prices at booking time
+        doc['pricing'] = pricing_snapshot
         
         # Add COMPLETE service data for listing (NO N/A allowed)
         doc['service_name'] = pkg['name']
@@ -864,8 +875,8 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
             }}
         )
         
-        # LOG: Appointment created
-        logger.info(f"✅ SPA BOOKED id={doc['id']} name={doc['service_name']} email={appointment.client_email} price={final_total}")
+        # LOG: Appointment created with pricing snapshot
+        logger.info(f"✅ SPA BOOKED id={doc['id']} name={doc['service_name']} email={appointment.client_email} pricing={pricing_snapshot}")
         
         # 4) SEND NOTIFICATIONS via CENTRAL DISPATCHER (same as massage)
         notify_result = {"email_sent": False, "notify_status": "pending", "notify_error": None}
