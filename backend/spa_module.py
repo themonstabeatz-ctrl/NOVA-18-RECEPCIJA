@@ -1098,10 +1098,10 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         services_snapshot=services_snapshot,
         start_time=start_time,
         end_time=end_time,
-        original_total=original_total,
-        discount_percentage=applied_discount,
-        discount_amount=discount_amount,
-        final_total=final_total,
+        original_total=pricing["original_price"],
+        discount_percentage=pricing["discount_percent"],
+        discount_amount=pricing["discount_amount"],
+        final_total=pricing["final_price"],
         notes=appointment.notes
     )
     
