@@ -429,6 +429,67 @@ async def get_spa_services(category: Optional[str] = None):
     
     return enriched_services
 
+
+@spa_router.patch("/services/{service_id}/discount")
+async def update_spa_service_discount(service_id: str, discount: int = Query(...)):
+    """
+    🔐 ADMIN ENDPOINT: Update discount for a SPA service.
+    
+    Allowed values: 0, 5, 10, 15
+    Returns computed pricing fields: original_price, discount_percent, has_discount, final_price
+    
+    Usage: PATCH /api/spa/services/{service_id}/discount?discount=15
+    """
+    ALLOWED_DISCOUNTS = {0, 5, 10, 15}
+    if discount not in ALLOWED_DISCOUNTS:
+        raise HTTPException(status_code=400, detail=f"INVALID_DISCOUNT_PERCENT. Allowed: {ALLOWED_DISCOUNTS}")
+    
+    # Find service in spa_services collection
+    existing = await db.spa_services.find_one({"id": service_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="SPA_SERVICE_NOT_FOUND")
+    
+    # Get original price - never loses the original
+    original_price = existing.get("original_price") or existing.get("price", 0)
+    original_price = int(original_price)
+    
+    # Calculate final price using discount engine
+    pricing = apply_spa_discount_v2(original_price, discount)
+    
+    # Update service with discount
+    update_data = {
+        "original_price": original_price,
+        "discount_percent": discount,
+        "final_price": pricing["final_price"],
+        "has_discount": discount > 0
+    }
+    
+    logger.info(f"💸 SPA_DISCOUNT_APPLIED service_id={service_id} original={original_price} pct={discount} final={pricing['final_price']}")
+    
+    await db.spa_services.update_one(
+        {"id": service_id},
+        {"$set": update_data}
+    )
+    
+    updated = await db.spa_services.find_one({"id": service_id}, {"_id": 0})
+    
+    # Return with computed pricing fields (admin UI expects these)
+    return {
+        "id": updated.get("id"),
+        "name": updated.get("name"),
+        "category": updated.get("category"),
+        "duration": updated.get("duration"),
+        "booking_type": updated.get("booking_type"),
+        # Pricing fields (required by admin UI and frontend)
+        "original_price": original_price,
+        "discount_percent": discount,
+        "has_discount": discount > 0,
+        "final_price": pricing["final_price"],
+        # Legacy field
+        "price": pricing["final_price"]
+    }
+
+
 @spa_router.post("/quote", response_model=SpaQuoteResponse)
 async def get_spa_quote(request: SpaQuoteRequest):
     """Calculate SPA quote with optional discount and add-ons"""
