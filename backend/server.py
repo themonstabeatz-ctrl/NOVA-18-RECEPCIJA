@@ -3397,8 +3397,15 @@ async def dispatch_booking_notifications(payload: dict) -> dict:
 async def send_booking_emails_tracked(appointment_data: dict) -> dict:
     """
     Send booking confirmation emails with tracking.
+    Uses SEPARATE templates for admin and client!
     Returns: {"admin_sent": bool, "client_sent": bool}
     """
+    import hashlib
+    from email_templates import BookingEmailData, render_admin_email, render_client_email
+    
+    def _hash(s: str) -> str:
+        return hashlib.md5(s.encode("utf-8")).hexdigest()[:8]
+    
     result = {"admin_sent": False, "client_sent": False}
     
     try:
@@ -3416,11 +3423,22 @@ async def send_booking_emails_tracked(appointment_data: dict) -> dict:
             return result
         
         # Extract appointment details
-        client_name = f"{appointment_data.get('client_first_name', '')} {appointment_data.get('client_last_name', '')}"
+        client_name = f"{appointment_data.get('client_first_name', '')} {appointment_data.get('client_last_name', '')}".strip()
         client_phone = appointment_data.get('client_phone', 'N/A')
-        client_email = appointment_data.get('client_email')
+        client_email = appointment_data.get('client_email', '')
         start_time = appointment_data.get('start_time')
-        service_name = appointment_data.get('service_name', 'N/A')
+        service_name = appointment_data.get('service_name', 'Rezervacija')
+        booking_type = appointment_data.get('type', 'spa')
+        duration_min = appointment_data.get('duration_min')
+        price = appointment_data.get('price') or appointment_data.get('final_total')
+        
+        # Build service details (spa_zone, variants, etc.)
+        service_details_parts = []
+        if appointment_data.get('service_description'):
+            service_details_parts.append(appointment_data['service_description'])
+        if appointment_data.get('spa_zone'):
+            service_details_parts.append(f"SPA zona: {appointment_data['spa_zone']}")
+        service_details = " | ".join(service_details_parts) if service_details_parts else None
         
         # Format datetime
         if isinstance(start_time, str):
@@ -3435,26 +3453,35 @@ async def send_booking_emails_tracked(appointment_data: dict) -> dict:
             formatted_date = start_time.strftime('%d.%m.%Y') if start_time else 'N/A'
             formatted_time_only = start_time.strftime('%H:%M') if start_time else ''
         
-        # Simple email body
-        email_body = f"""
-Nova rezervacija - {service_name}
-
-Klijent: {client_name}
-Telefon: {client_phone}
-Email: {client_email or 'N/A'}
-Datum: {formatted_date}
-Vreme: {formatted_time_only}
-
-Bua Luang Thai Spa
-"""
+        # Build email data object
+        email_data = BookingEmailData(
+            salon_name="Bua Luang Thai Spa",
+            client_full_name=client_name,
+            client_phone=client_phone,
+            client_email=client_email,
+            service_title=service_name,
+            service_details=service_details,
+            date_str=formatted_date,
+            time_str=formatted_time_only,
+            duration_min=duration_min,
+            price=price,
+            address_line="Abebe Bikile 10A, Beograd",
+            contact_email="bualuangthailandspa@gmail.com",
+            contact_phone="+381 62 625 500",
+            booking_type=booking_type
+        )
         
-        # 1) Send to ADMIN (ALWAYS)
+        # Render SEPARATE templates
+        admin_subject, admin_html = render_admin_email(email_data)
+        client_subject, client_html = render_client_email(email_data)
+        
+        # 1) Send to ADMIN (internal notification)
         try:
             admin_msg = MIMEMultipart()
             admin_msg['From'] = smtp_from
             admin_msg['To'] = smtp_to_owner
-            admin_msg['Subject'] = f"🔔 Nova rezervacija — {formatted_date} {formatted_time_only} — {service_name}"
-            admin_msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
+            admin_msg['Subject'] = admin_subject
+            admin_msg.attach(MIMEText(admin_html, 'html', 'utf-8'))
             
             await aiosmtplib.send(
                 admin_msg,
@@ -3465,17 +3492,36 @@ Bua Luang Thai Spa
                 start_tls=True
             )
             result["admin_sent"] = True
+            logger.info(f"📧 ADMIN_EMAIL_SENT to={smtp_to_owner} subj=\"{admin_subject}\" body_hash={_hash(admin_html)}")
         except Exception as e:
             logger.error(f"❌ ADMIN_EMAIL_EXCEPTION: {e}")
         
-        # 2) Send to CLIENT (only if email provided)
+        # 2) Send to CLIENT (beautiful confirmation - DIFFERENT TEMPLATE!)
         if client_email and client_email.strip():
             try:
                 client_msg = MIMEMultipart()
                 client_msg['From'] = smtp_from
                 client_msg['To'] = client_email
-                client_msg['Subject'] = f"✨ Potvrda rezervacije — Bua Luang Thai Spa"
-                client_msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
+                client_msg['Subject'] = client_subject
+                client_msg.attach(MIMEText(client_html, 'html', 'utf-8'))
+                
+                await aiosmtplib.send(
+                    client_msg,
+                    hostname=smtp_host,
+                    port=smtp_port,
+                    username=smtp_user,
+                    password=smtp_password,
+                    start_tls=True
+                )
+                result["client_sent"] = True
+                logger.info(f"📧 CLIENT_EMAIL_SENT to={client_email} subj=\"{client_subject}\" body_hash={_hash(client_html)}")
+            except Exception as e:
+                logger.error(f"❌ CLIENT_EMAIL_EXCEPTION to={client_email}: {e}")
+    
+    except Exception as e:
+        logger.error(f"❌ EMAIL_GENERAL_EXCEPTION: {e}")
+    
+    return result
                 
                 await aiosmtplib.send(
                     client_msg,
