@@ -405,10 +405,12 @@ const Services = () => {
                   }
                   
                   return displayServices.map((service) => {
-                    const discount = service.discount_percentage || 0;
-                    // CRITICAL: Always show ORIGINAL price in "Cena" column
-                    const originalPrice = service.metadata?.original_price || service.price;
-                    const discountedPrice = originalPrice * (1 - discount / 100);
+                    // SPA uses discount_percent, massage uses discount_percentage
+                    const discount = service.discount_percent ?? service.discount_percentage ?? 0;
+                    // CRITICAL: Always show ORIGINAL price in "Cena" column (backend sends original_price)
+                    const originalPrice = service.original_price || service.metadata?.original_price || service.price;
+                    // CRITICAL: Use final_price from backend - NO frontend calculation
+                    const discountedPrice = service.final_price || originalPrice * (1 - discount / 100);
                     const isPozovite = service.booking_type === 'POZOVITE';
                     
                     return (
