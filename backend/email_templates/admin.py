@@ -72,9 +72,26 @@ def render_admin_email(d: BookingEmailData) -> tuple:
           <td style="{S['tdR']}">{d.duration_min} min</td>
         </tr>'''
     
+    # Price display with discount
     price_row = ""
-    if d.price:
-        price_row = f'''<tr>
+    if d.price or d.original_price:
+        if d.discount_percent and d.discount_percent > 0 and d.original_price:
+            # Show original (strikethrough) + discount + final
+            price_row = f'''<tr>
+          <td style="{S['tdL']}">Cena (orig):</td>
+          <td style="{S['tdR']} {S['strikethrough']}">{d.original_price:,.0f} RSD</td>
+        </tr>
+        <tr>
+          <td style="{S['tdL']}">Popust:</td>
+          <td style="{S['tdR']} {S['discount']}">-{d.discount_percent}%</td>
+        </tr>
+        <tr>
+          <td style="{S['tdL']}">Za naplatu:</td>
+          <td style="{S['tdR']} {S['final']}">{d.price:,.0f} RSD</td>
+        </tr>'''
+        else:
+            # No discount - just show price
+            price_row = f'''<tr>
           <td style="{S['tdL']}">Cena:</td>
           <td style="{S['tdR']}">{d.price:,.0f} RSD</td>
         </tr>'''
