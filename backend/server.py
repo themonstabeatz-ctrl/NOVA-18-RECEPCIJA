@@ -3293,10 +3293,16 @@ async def api_root():
     return {"message": "Spa & Massage Booking System API", "version": "1.0"}
 
 
+# ============================================
+# 🔐 HARD-LOCKED URLs - ONLY THESE ARE VALID
+# ============================================
+BACKEND_PUBLIC_URL = "https://spa-integration.preview.emergentagent.com"
+FRONTEND_PUBLIC_URL = "https://massage-app-4.preview.emergentagent.com"
+
 # Root endpoint - returns JSON to confirm this is API server
 @app.get("/")
 async def root():
-    return JSONResponse({"ok": True, "service": "spa-booking-api", "mode": "api-only", "hint": "Use /api/health"})
+    return JSONResponse({"ok": True, "service": "spa-integration", "mode": "api-only", "hint": "Use /api/health"})
 
 
 # Include the router in the main app
@@ -3325,8 +3331,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(SecurityHeadersMiddleware)
 
+# 🔐 HARD-LOCK: Log locked URLs on startup
+print(f"🔐 LOCKED BACKEND_PUBLIC_URL = {BACKEND_PUBLIC_URL}")
+print(f"🔐 LOCKED FRONTEND_PUBLIC_URL = {FRONTEND_PUBLIC_URL}")
+
 # Log allowed CORS origins on startup
-cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
+cors_origins = os.environ.get('CORS_ORIGINS', FRONTEND_PUBLIC_URL).split(',')
 print(f"🔒 CORS LOCK: Allowed origins = {cors_origins}")
 
 # Configure logging
