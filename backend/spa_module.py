@@ -377,7 +377,14 @@ SPA_DEFAULT_SERVICES = [
 # ============================================
 @spa_router.get("/services")
 async def get_spa_services(category: Optional[str] = None):
-    """Get all SPA services, optionally filtered by category"""
+    """Get all SPA services, optionally filtered by category.
+    
+    Returns services with pricing fields:
+    - original_price: Base price
+    - discount_percent: Active discount (from settings)
+    - final_price: Price after discount
+    - has_discount: Boolean
+    """
     query = {}
     if category:
         query["category"] = category
@@ -392,7 +399,26 @@ async def get_spa_services(category: Optional[str] = None):
             await db.spa_services.insert_one(svc.model_dump())
         services = await db.spa_services.find(query, {"_id": 0}).to_list(100)
     
-    return services
+    # Get active discount from settings
+    settings = await db.spa_settings.find_one({"id": "global"}, {"_id": 0})
+    active_discount = settings.get("discount_percentage", 0) if settings else 0
+    
+    # Enrich each service with pricing fields
+    enriched_services = []
+    for svc in services:
+        original_price = svc.get("price", 0)
+        pricing = apply_spa_discount_v2(original_price, active_discount)
+        
+        enriched_services.append({
+            **svc,
+            "original_price": pricing["original_price"],
+            "discount_percent": pricing["discount_percent"],
+            "discount_amount": pricing["discount_amount"],
+            "final_price": pricing["final_price"],
+            "has_discount": pricing["has_discount"]
+        })
+    
+    return enriched_services
 
 @spa_router.post("/quote", response_model=SpaQuoteResponse)
 async def get_spa_quote(request: SpaQuoteRequest):
