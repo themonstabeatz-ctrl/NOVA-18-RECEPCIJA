@@ -66,7 +66,592 @@ def test_cors_configuration():
         print(f"❌ ERROR during CORS test: {e}")
         return False
 
-def test_health_endpoint():
+def test_services_pricing_fields():
+    """
+    Test 2: GET /api/services (massage) pricing fields
+    Proveri da svaki servis ima: final_price, discount_percentage
+    """
+    print("=" * 80)
+    print("TEST 2: GET /api/services PRICING FIELDS")
+    print("=" * 80)
+    
+    try:
+        response = requests.get(f"{API_BASE_URL}/services")
+        print(f"Request URL: {API_BASE_URL}/services")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        try:
+            services = response.json()
+            if not isinstance(services, list):
+                print(f"❌ FAILED: Response is not a JSON array, got {type(services)}")
+                return False
+            
+            print(f"✅ SUCCESS: Got {len(services)} services")
+            
+            # Check required pricing fields
+            required_fields = ['final_price', 'discount_percentage']
+            services_missing_fields = []
+            
+            for i, service in enumerate(services):
+                missing_fields = []
+                for field in required_fields:
+                    if field not in service:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    services_missing_fields.append({
+                        'index': i,
+                        'name': service.get('name', 'unknown'),
+                        'id': service.get('id', 'unknown'),
+                        'missing_fields': missing_fields
+                    })
+            
+            if services_missing_fields:
+                print(f"❌ FAILED: {len(services_missing_fields)} services missing required pricing fields:")
+                for svc in services_missing_fields[:5]:  # Show first 5
+                    print(f"  Service: {svc['name']} (ID: {svc['id']}) - Missing: {svc['missing_fields']}")
+                return False
+            else:
+                print(f"✅ SUCCESS: All services have required pricing fields (final_price, discount_percentage)")
+                
+                # Show sample services with pricing
+                print(f"\nSample services with pricing:")
+                for service in services[:3]:
+                    print(f"  {service.get('name')}: final_price={service.get('final_price')}, discount_percentage={service.get('discount_percentage')}%")
+                
+                return True
+                
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Response is not valid JSON")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ ERROR during services pricing test: {e}")
+        return False
+
+def test_spa_services_pricing_fields():
+    """
+    Test 3: GET /api/spa/services pricing fields
+    Proveri da svaki servis ima: original_price, discount_percent, final_price, has_discount
+    """
+    print("=" * 80)
+    print("TEST 3: GET /api/spa/services PRICING FIELDS")
+    print("=" * 80)
+    
+    try:
+        response = requests.get(f"{API_BASE_URL}/spa/services")
+        print(f"Request URL: {API_BASE_URL}/spa/services")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        try:
+            spa_services = response.json()
+            if not isinstance(spa_services, list):
+                print(f"❌ FAILED: Response is not a JSON array, got {type(spa_services)}")
+                return False
+            
+            print(f"✅ SUCCESS: Got {len(spa_services)} SPA services")
+            
+            # Check required pricing fields for SPA services
+            required_fields = ['original_price', 'discount_percent', 'final_price', 'has_discount']
+            services_missing_fields = []
+            
+            for i, service in enumerate(spa_services):
+                missing_fields = []
+                for field in required_fields:
+                    if field not in service:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    services_missing_fields.append({
+                        'index': i,
+                        'name': service.get('name', 'unknown'),
+                        'id': service.get('id', 'unknown'),
+                        'missing_fields': missing_fields
+                    })
+            
+            if services_missing_fields:
+                print(f"❌ FAILED: {len(services_missing_fields)} SPA services missing required pricing fields:")
+                for svc in services_missing_fields[:5]:  # Show first 5
+                    print(f"  Service: {svc['name']} (ID: {svc['id']}) - Missing: {svc['missing_fields']}")
+                return False
+            else:
+                print(f"✅ SUCCESS: All SPA services have required pricing fields (original_price, discount_percent, final_price, has_discount)")
+                
+                # Show sample SPA services with pricing
+                print(f"\nSample SPA services with pricing:")
+                for service in spa_services[:3]:
+                    print(f"  {service.get('name')}: original_price={service.get('original_price')}, discount_percent={service.get('discount_percent')}%, final_price={service.get('final_price')}, has_discount={service.get('has_discount')}")
+                
+                return True
+                
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Response is not valid JSON")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ ERROR during SPA services pricing test: {e}")
+        return False
+
+def test_massage_service_discount_patch():
+    """
+    Test 4: PATCH /api/services/{service_id}/discount?discount=X (massage)
+    Dozvoljene vrednosti: 0, 5, 10, 15
+    Test: Primeni 10% popust i proveri response ima original_price, discount_percent, final_price, has_discount
+    Test: Reset na 0% i proveri da je final_price == original_price
+    Test: Pokušaj invalid vrednost (7%) i očekuj error
+    """
+    print("=" * 80)
+    print("TEST 4: PATCH /api/services/{service_id}/discount MASSAGE SERVICES")
+    print("=" * 80)
+    
+    try:
+        # First get a massage service to test with
+        response = requests.get(f"{API_BASE_URL}/services")
+        if response.status_code != 200:
+            print(f"❌ FAILED: Could not get services list")
+            return False
+        
+        services = response.json()
+        if not services:
+            print(f"❌ FAILED: No services found")
+            return False
+        
+        # Find a suitable massage service (not couple service)
+        test_service = None
+        for service in services:
+            if not service.get('is_couple', False):
+                test_service = service
+                break
+        
+        if not test_service:
+            print(f"❌ FAILED: No suitable massage service found")
+            return False
+        
+        service_id = test_service['id']
+        service_name = test_service['name']
+        original_price = test_service.get('price', 0)
+        
+        print(f"Testing with service: {service_name} (ID: {service_id})")
+        print(f"Original price: {original_price} RSD")
+        
+        all_tests_passed = True
+        
+        # Test 1: Apply 10% discount
+        print(f"\n4.1 Testing 10% discount application...")
+        response = requests.patch(f"{API_BASE_URL}/services/{service_id}/discount?discount=10")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            all_tests_passed = False
+        else:
+            try:
+                discount_response = response.json()
+                
+                # Check required fields in response
+                required_fields = ['original_price', 'discount_percent', 'final_price', 'has_discount']
+                missing_fields = [field for field in required_fields if field not in discount_response]
+                
+                if missing_fields:
+                    print(f"❌ FAILED: Response missing fields: {missing_fields}")
+                    all_tests_passed = False
+                else:
+                    resp_original = discount_response.get('original_price')
+                    resp_discount = discount_response.get('discount_percent')
+                    resp_final = discount_response.get('final_price')
+                    resp_has_discount = discount_response.get('has_discount')
+                    
+                    print(f"✅ Response has all required fields:")
+                    print(f"  original_price: {resp_original}")
+                    print(f"  discount_percent: {resp_discount}")
+                    print(f"  final_price: {resp_final}")
+                    print(f"  has_discount: {resp_has_discount}")
+                    
+                    # Verify discount calculation
+                    expected_final = int(resp_original * 0.9)
+                    if resp_discount == 10 and resp_has_discount == True and resp_final == expected_final:
+                        print(f"✅ 10% discount applied correctly: {resp_original} → {resp_final} RSD")
+                    else:
+                        print(f"❌ FAILED: Discount calculation incorrect")
+                        all_tests_passed = False
+                        
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON response")
+                all_tests_passed = False
+        
+        # Test 2: Reset to 0% discount
+        print(f"\n4.2 Testing 0% discount reset...")
+        response = requests.patch(f"{API_BASE_URL}/services/{service_id}/discount?discount=0")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            all_tests_passed = False
+        else:
+            try:
+                reset_response = response.json()
+                resp_original = reset_response.get('original_price')
+                resp_discount = reset_response.get('discount_percent')
+                resp_final = reset_response.get('final_price')
+                resp_has_discount = reset_response.get('has_discount')
+                
+                if resp_discount == 0 and resp_has_discount == False and resp_final == resp_original:
+                    print(f"✅ 0% discount reset correctly: final_price ({resp_final}) == original_price ({resp_original})")
+                else:
+                    print(f"❌ FAILED: Reset to 0% discount failed")
+                    print(f"  discount_percent: {resp_discount}, has_discount: {resp_has_discount}, final_price: {resp_final}, original_price: {resp_original}")
+                    all_tests_passed = False
+                    
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON response")
+                all_tests_passed = False
+        
+        # Test 3: Try invalid discount value (7%)
+        print(f"\n4.3 Testing invalid discount value (7%)...")
+        response = requests.patch(f"{API_BASE_URL}/services/{service_id}/discount?discount=7")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code == 400:
+            try:
+                error_response = response.json()
+                if "INVALID_DISCOUNT_PERCENT" in str(error_response):
+                    print(f"✅ Invalid discount correctly rejected: {error_response}")
+                else:
+                    print(f"❌ FAILED: Expected INVALID_DISCOUNT_PERCENT error, got: {error_response}")
+                    all_tests_passed = False
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON error response")
+                all_tests_passed = False
+        else:
+            print(f"❌ FAILED: Expected HTTP 400 for invalid discount, got {response.status_code}")
+            all_tests_passed = False
+        
+        return all_tests_passed
+        
+    except Exception as e:
+        print(f"❌ ERROR during massage service discount test: {e}")
+        return False
+
+def test_spa_service_discount_patch():
+    """
+    Test 5: PATCH /api/spa/services/{service_id}/discount?discount=X (SPA)
+    Test: Primeni 15% popust i proveri response
+    Test: Proveri da GET /api/spa/services prikazuje ažuriranu cenu
+    Test: Reset na 0%
+    """
+    print("=" * 80)
+    print("TEST 5: PATCH /api/spa/services/{service_id}/discount SPA SERVICES")
+    print("=" * 80)
+    
+    try:
+        # First get a SPA service to test with
+        response = requests.get(f"{API_BASE_URL}/spa/services")
+        if response.status_code != 200:
+            print(f"❌ FAILED: Could not get SPA services list")
+            return False
+        
+        spa_services = response.json()
+        if not spa_services:
+            print(f"❌ FAILED: No SPA services found")
+            return False
+        
+        test_service = spa_services[0]  # Use first SPA service
+        service_id = test_service['id']
+        service_name = test_service['name']
+        original_price = test_service.get('original_price', test_service.get('price', 0))
+        
+        print(f"Testing with SPA service: {service_name} (ID: {service_id})")
+        print(f"Original price: {original_price} RSD")
+        
+        all_tests_passed = True
+        
+        # Test 1: Apply 15% discount
+        print(f"\n5.1 Testing 15% discount application...")
+        response = requests.patch(f"{API_BASE_URL}/spa/services/{service_id}/discount?discount=15")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            all_tests_passed = False
+        else:
+            try:
+                discount_response = response.json()
+                
+                # Check required fields in response
+                required_fields = ['original_price', 'discount_percent', 'final_price', 'has_discount']
+                missing_fields = [field for field in required_fields if field not in discount_response]
+                
+                if missing_fields:
+                    print(f"❌ FAILED: Response missing fields: {missing_fields}")
+                    all_tests_passed = False
+                else:
+                    resp_original = discount_response.get('original_price')
+                    resp_discount = discount_response.get('discount_percent')
+                    resp_final = discount_response.get('final_price')
+                    resp_has_discount = discount_response.get('has_discount')
+                    
+                    print(f"✅ Response has all required fields:")
+                    print(f"  original_price: {resp_original}")
+                    print(f"  discount_percent: {resp_discount}")
+                    print(f"  final_price: {resp_final}")
+                    print(f"  has_discount: {resp_has_discount}")
+                    
+                    # Verify discount calculation
+                    expected_final = int(resp_original * 0.85)
+                    if resp_discount == 15 and resp_has_discount == True and resp_final == expected_final:
+                        print(f"✅ 15% discount applied correctly: {resp_original} → {resp_final} RSD")
+                    else:
+                        print(f"❌ FAILED: Discount calculation incorrect")
+                        all_tests_passed = False
+                        
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON response")
+                all_tests_passed = False
+        
+        # Test 2: Verify GET /api/spa/services shows updated price
+        print(f"\n5.2 Verifying GET /api/spa/services shows updated price...")
+        response = requests.get(f"{API_BASE_URL}/spa/services")
+        if response.status_code != 200:
+            print(f"❌ FAILED: Could not get updated SPA services list")
+            all_tests_passed = False
+        else:
+            try:
+                updated_services = response.json()
+                updated_service = None
+                
+                for service in updated_services:
+                    if service.get('id') == service_id:
+                        updated_service = service
+                        break
+                
+                if not updated_service:
+                    print(f"❌ FAILED: Could not find updated service in list")
+                    all_tests_passed = False
+                else:
+                    upd_discount = updated_service.get('discount_percent', 0)
+                    upd_final = updated_service.get('final_price')
+                    upd_has_discount = updated_service.get('has_discount')
+                    
+                    if upd_discount == 15 and upd_has_discount == True:
+                        print(f"✅ GET /api/spa/services shows updated discount: {upd_discount}%, final_price: {upd_final}")
+                    else:
+                        print(f"❌ FAILED: GET /api/spa/services does not show updated discount")
+                        print(f"  discount_percent: {upd_discount}, has_discount: {upd_has_discount}")
+                        all_tests_passed = False
+                        
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON response from GET")
+                all_tests_passed = False
+        
+        # Test 3: Reset to 0% discount
+        print(f"\n5.3 Testing 0% discount reset...")
+        response = requests.patch(f"{API_BASE_URL}/spa/services/{service_id}/discount?discount=0")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            all_tests_passed = False
+        else:
+            try:
+                reset_response = response.json()
+                resp_original = reset_response.get('original_price')
+                resp_discount = reset_response.get('discount_percent')
+                resp_final = reset_response.get('final_price')
+                resp_has_discount = reset_response.get('has_discount')
+                
+                if resp_discount == 0 and resp_has_discount == False and resp_final == resp_original:
+                    print(f"✅ 0% discount reset correctly: final_price ({resp_final}) == original_price ({resp_original})")
+                else:
+                    print(f"❌ FAILED: Reset to 0% discount failed")
+                    print(f"  discount_percent: {resp_discount}, has_discount: {resp_has_discount}, final_price: {resp_final}, original_price: {resp_original}")
+                    all_tests_passed = False
+                    
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON response")
+                all_tests_passed = False
+        
+        return all_tests_passed
+        
+    except Exception as e:
+        print(f"❌ ERROR during SPA service discount test: {e}")
+        return False
+
+def test_anti_duplicate_discount_verification():
+    """
+    Test 6: Anti-dupli-popust verifikacija
+    Nakon primene popusta, proveri da se ista vrednost vidi i u PATCH response i u GET response
+    Nema duplog obračuna
+    """
+    print("=" * 80)
+    print("TEST 6: ANTI-DUPLICATE DISCOUNT VERIFICATION")
+    print("=" * 80)
+    
+    try:
+        # Get a massage service for testing
+        response = requests.get(f"{API_BASE_URL}/services")
+        if response.status_code != 200:
+            print(f"❌ FAILED: Could not get services list")
+            return False
+        
+        services = response.json()
+        if not services:
+            print(f"❌ FAILED: No services found")
+            return False
+        
+        # Find a suitable massage service
+        test_service = None
+        for service in services:
+            if not service.get('is_couple', False):
+                test_service = service
+                break
+        
+        if not test_service:
+            print(f"❌ FAILED: No suitable massage service found")
+            return False
+        
+        service_id = test_service['id']
+        service_name = test_service['name']
+        
+        print(f"Testing anti-duplicate discount with service: {service_name} (ID: {service_id})")
+        
+        all_tests_passed = True
+        
+        # Step 1: Apply 15% discount and capture PATCH response
+        print(f"\n6.1 Applying 15% discount and capturing PATCH response...")
+        patch_response = requests.patch(f"{API_BASE_URL}/services/{service_id}/discount?discount=15")
+        
+        if patch_response.status_code != 200:
+            print(f"❌ FAILED: PATCH request failed with status {patch_response.status_code}")
+            return False
+        
+        try:
+            patch_data = patch_response.json()
+            patch_original = patch_data.get('original_price')
+            patch_discount = patch_data.get('discount_percent')
+            patch_final = patch_data.get('final_price')
+            patch_has_discount = patch_data.get('has_discount')
+            
+            print(f"PATCH response:")
+            print(f"  original_price: {patch_original}")
+            print(f"  discount_percent: {patch_discount}")
+            print(f"  final_price: {patch_final}")
+            print(f"  has_discount: {patch_has_discount}")
+            
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Invalid JSON in PATCH response")
+            return False
+        
+        # Step 2: Get the same service via GET and compare
+        print(f"\n6.2 Getting service via GET and comparing...")
+        get_response = requests.get(f"{API_BASE_URL}/services/{service_id}")
+        
+        if get_response.status_code != 200:
+            print(f"❌ FAILED: GET request failed with status {get_response.status_code}")
+            return False
+        
+        try:
+            get_data = get_response.json()
+            get_original = get_data.get('price')  # In GET, original price might be in 'price' field
+            get_discount = get_data.get('discount_percentage')
+            get_final = get_data.get('final_price')
+            
+            print(f"GET response:")
+            print(f"  price (original): {get_original}")
+            print(f"  discount_percentage: {get_discount}")
+            print(f"  final_price: {get_final}")
+            
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Invalid JSON in GET response")
+            return False
+        
+        # Step 3: Verify consistency between PATCH and GET responses
+        print(f"\n6.3 Verifying consistency between PATCH and GET responses...")
+        
+        # Check discount percentage consistency
+        if patch_discount == get_discount == 15:
+            print(f"✅ Discount percentage consistent: PATCH={patch_discount}%, GET={get_discount}%")
+        else:
+            print(f"❌ FAILED: Discount percentage inconsistent: PATCH={patch_discount}%, GET={get_discount}%")
+            all_tests_passed = False
+        
+        # Check final price consistency
+        if patch_final == get_final:
+            print(f"✅ Final price consistent: PATCH={patch_final}, GET={get_final}")
+        else:
+            print(f"❌ FAILED: Final price inconsistent: PATCH={patch_final}, GET={get_final}")
+            all_tests_passed = False
+        
+        # Step 4: Verify no double discount calculation
+        print(f"\n6.4 Verifying no double discount calculation...")
+        
+        # Calculate expected final price from original
+        if patch_original:
+            expected_final = int(patch_original * 0.85)  # 15% discount
+            
+            if patch_final == expected_final:
+                print(f"✅ No double discount: {patch_original} * 0.85 = {expected_final} (matches final_price)")
+            else:
+                print(f"❌ FAILED: Possible double discount: Expected {expected_final}, got {patch_final}")
+                all_tests_passed = False
+        
+        # Step 5: Test with GET /api/services (list endpoint)
+        print(f"\n6.5 Verifying consistency in services list...")
+        list_response = requests.get(f"{API_BASE_URL}/services")
+        
+        if list_response.status_code == 200:
+            try:
+                services_list = list_response.json()
+                list_service = None
+                
+                for service in services_list:
+                    if service.get('id') == service_id:
+                        list_service = service
+                        break
+                
+                if list_service:
+                    list_discount = list_service.get('discount_percentage')
+                    list_final = list_service.get('final_price')
+                    
+                    print(f"Services list response:")
+                    print(f"  discount_percentage: {list_discount}")
+                    print(f"  final_price: {list_final}")
+                    
+                    if list_discount == patch_discount and list_final == patch_final:
+                        print(f"✅ Services list consistent with PATCH response")
+                    else:
+                        print(f"❌ FAILED: Services list inconsistent with PATCH response")
+                        all_tests_passed = False
+                else:
+                    print(f"❌ FAILED: Service not found in services list")
+                    all_tests_passed = False
+                    
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON in services list response")
+                all_tests_passed = False
+        
+        # Clean up: Reset discount to 0%
+        print(f"\n6.6 Cleaning up: Resetting discount to 0%...")
+        requests.patch(f"{API_BASE_URL}/services/{service_id}/discount?discount=0")
+        
+        return all_tests_passed
+        
+    except Exception as e:
+        print(f"❌ ERROR during anti-duplicate discount verification: {e}")
+        return False
     """
     Test 2: Health Endpoint
     GET /api/health mora da vrati {"status":"healthy"}
