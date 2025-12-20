@@ -1162,7 +1162,7 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     )
     
     # LOG: Appointment created with normalized fields
-    logger.info(f"✅ SPA BOOKED id={doc['id']} name={doc['service_name']} email={appointment.client_email} price={final_total}")
+    logger.info(f"✅ SPA BOOKED id={doc['id']} name={doc['service_name']} email={appointment.client_email} pricing={pricing_snapshot}")
     
     # 4) SEND NOTIFICATIONS via CENTRAL DISPATCHER (same as massage)
     notify_result = {"email_sent": False, "notify_status": "pending", "notify_error": None}
