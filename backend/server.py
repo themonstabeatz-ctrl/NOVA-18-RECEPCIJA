@@ -3314,7 +3314,7 @@ app.include_router(spa_router, prefix="/api")
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=os.environ.get('CORS_ORIGINS', FRONTEND_PUBLIC_URL).split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
