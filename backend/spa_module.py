@@ -1058,9 +1058,17 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     original_total = sum(svc["price"] for svc in services)
     total_duration = sum(svc["duration"] for svc in services)
     
-    # Apply discount
+    # Apply discount using discount engine (SINGLE SOURCE OF TRUTH)
     discount_pct = min(appointment.discount_percentage or 0, 15)
-    discount_amount, final_total, applied_discount = apply_spa_discount(original_total, discount_pct)
+    pricing = apply_spa_discount_v2(original_total, discount_pct)
+    
+    # Create pricing snapshot for immutable record
+    pricing_snapshot = create_pricing_snapshot(
+        original_price=original_total,
+        discount_percent=discount_pct,
+        reason="SPA_ZONE_RITUAL_BOOKING"
+    )
+    pricing_snapshot["snapshot_at"] = datetime.now().isoformat()
     
     # Create COMPLETE snapshot with all required fields
     services_snapshot = [
