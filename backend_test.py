@@ -886,8 +886,8 @@ def run_discount_system_tests():
         return False
 
 if __name__ == "__main__":
-    """Main execution - run the review request tests"""
-    success = run_review_request_tests()
+    """Main execution - run the discount system tests"""
+    success = run_discount_system_tests()
     sys.exit(0 if success else 1)
 
 def test_couples_4_services_no_therapist():
