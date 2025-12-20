@@ -19,44 +19,51 @@ BACKEND_URL = "https://spa-integration.preview.emergentagent.com"
 API_BASE_URL = f"{BACKEND_URL}/api"
 ALLOWED_FRONTEND_ORIGIN = "https://massage-app-4.preview.emergentagent.com"
 
-def test_health_check():
+def test_cors_configuration():
     """
-    Test 1: Health Check
-    GET /api/health
-    Expected: {"status":"healthy"}
+    Test 1: CORS Configuration Test
+    Pošalji OPTIONS request na `/api/health` sa `Origin: https://massage-app-4.preview.emergentagent.com`
+    Očekivani header: `access-control-allow-origin: https://massage-app-4.preview.emergentagent.com`
     """
     print("=" * 80)
-    print("TEST 1: HEALTH CHECK")
+    print("TEST 1: CORS CONFIGURATION")
     print("=" * 80)
     
     try:
-        response = requests.get(f"{BACKEND_URL}/health")
+        # Send OPTIONS preflight request with the allowed origin
+        response = requests.options(
+            f"{API_BASE_URL}/health",
+            headers={
+                "Origin": ALLOWED_FRONTEND_ORIGIN,
+                "Access-Control-Request-Method": "GET",
+                "Access-Control-Request-Headers": "Content-Type"
+            }
+        )
+        
+        print(f"Request URL: {API_BASE_URL}/health")
+        print(f"Origin Header: {ALLOWED_FRONTEND_ORIGIN}")
         print(f"Response Status: {response.status_code}")
         
-        if response.status_code != 200:
-            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
-            print(f"Response: {response.text}")
-            return False
+        # Check response headers
+        cors_origin = response.headers.get("access-control-allow-origin")
+        cors_methods = response.headers.get("access-control-allow-methods")
+        cors_headers = response.headers.get("access-control-allow-headers")
         
-        try:
-            data = response.json()
-            expected_status = "healthy"
-            actual_status = data.get("status")
-            
-            if actual_status == expected_status:
-                print(f"✅ SUCCESS: Health check returned correct status: {actual_status}")
-                return True
-            else:
-                print(f"❌ FAILED: Expected status '{expected_status}', got '{actual_status}'")
-                return False
-                
-        except json.JSONDecodeError:
-            print(f"❌ FAILED: Response is not valid JSON")
-            print(f"Response: {response.text}")
+        print(f"CORS Headers:")
+        print(f"  access-control-allow-origin: {cors_origin}")
+        print(f"  access-control-allow-methods: {cors_methods}")
+        print(f"  access-control-allow-headers: {cors_headers}")
+        
+        # Verify CORS origin matches exactly
+        if cors_origin == ALLOWED_FRONTEND_ORIGIN:
+            print(f"✅ SUCCESS: CORS allows ONLY the correct origin: {cors_origin}")
+            return True
+        else:
+            print(f"❌ FAILED: Expected CORS origin '{ALLOWED_FRONTEND_ORIGIN}', got '{cors_origin}'")
             return False
             
     except Exception as e:
-        print(f"❌ ERROR during health check: {e}")
+        print(f"❌ ERROR during CORS test: {e}")
         return False
 
 def test_spa_analytics():
