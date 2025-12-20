@@ -198,8 +198,10 @@ metadata:
 test_plan:
   current_focus:
     - "CEO Dashboard Analytics"
+    - "Discount System - Anti-Duplicate Verification"
   stuck_tasks:
     - "CEO Dashboard Analytics"
+    - "Discount System - Anti-Duplicate Verification"
   test_all: false
   test_priority: "high_first"
   completed_tests:
@@ -207,6 +209,11 @@ test_plan:
     - "CORS Configuration"
     - "API Endpoints Verification"
     - "Static Files Blocking"
+    - "Discount System - CORS Configuration"
+    - "Discount System - Services Pricing Fields"
+    - "Discount System - SPA Services Pricing Fields"
+    - "Discount System - Massage Service Discount PATCH"
+    - "Discount System - SPA Service Discount PATCH"
 
 agent_communication:
   - agent: "testing"
