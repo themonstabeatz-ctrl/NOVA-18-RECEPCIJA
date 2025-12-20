@@ -17,11 +17,15 @@ class BookingEmailData:
     date_str: str
     time_str: str
     duration_min: Optional[int]
-    price: Optional[float]
+    price: Optional[float]  # final_price (for backwards compatibility)
     address_line: str
     contact_email: str
     contact_phone: str
     booking_type: str = "spa"  # spa or massage
+    # Pricing fields for discount display
+    original_price: Optional[float] = None
+    discount_percent: Optional[int] = 0
+    discount_amount: Optional[float] = None
 
 
 # COMPACT ADMIN STYLES - minimal spacing
@@ -38,6 +42,9 @@ ADMIN_STYLES = {
     "tdL": "padding:4px 8px; vertical-align:top; font-weight:700; width:34%; color:#555; font-size:13px;",
     "tdR": "padding:4px 8px; vertical-align:top; font-size:13px;",
     "subheader": "font-size:13px; font-weight:700; margin:0 0 6px 0; color:#666;",
+    "strikethrough": "text-decoration:line-through; color:#999;",
+    "discount": "color:#e53935; font-weight:700;",
+    "final": "color:#2e7d32; font-weight:700;",
 }
 
 
