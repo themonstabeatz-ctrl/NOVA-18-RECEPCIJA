@@ -3397,11 +3397,13 @@ async def dispatch_booking_notifications(payload: dict) -> dict:
 async def send_booking_emails_tracked(appointment_data: dict) -> dict:
     """
     Send booking confirmation emails with tracking.
-    Uses SEPARATE templates for admin and client!
+    - ADMIN: Separate internal template
+    - CLIENT: SHARED template (same for SPA and MASSAGE!)
     Returns: {"admin_sent": bool, "client_sent": bool}
     """
     import hashlib
-    from email_templates import BookingEmailData, render_admin_email, render_client_email
+    from email_templates import render_admin_email, BookingEmailData
+    from email_templates.adapters import build_client_email_for_spa, build_client_email_for_massage
     
     def _hash(s: str) -> str:
         return hashlib.md5(s.encode("utf-8")).hexdigest()[:8]
