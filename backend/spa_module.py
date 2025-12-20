@@ -1137,19 +1137,11 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     doc['is_viewed'] = False  # For notification badge on dashboard
     
     # 💰 PRICING SNAPSHOT - Immutable record of price at booking time
-    doc['pricing'] = {
-        "original_price": int(original_total),
-        "discount_percent": int(applied_discount),
-        "discount_amount": int(discount_amount),
-        "final_price": int(final_total),
-        "discount_id": f"SPA_{int(applied_discount)}" if applied_discount > 0 else None,
-        "discount_reason": f"SPA promo {applied_discount}%" if applied_discount > 0 else None,
-        "snapshot_at": datetime.now().isoformat()
-    }
+    doc['pricing'] = pricing_snapshot
     
     # Log discount if applied
-    if applied_discount > 0:
-        logger.info(f"💰 DISCOUNT_APPLIED type=SPA item={doc['service_name']} original={original_total} pct={applied_discount} final={final_total}")
+    if pricing["discount_percent"] > 0:
+        logger.info(f"💰 DISCOUNT_APPLIED type=SPA item={doc['service_name']} pricing={pricing_snapshot}")
     
     # 1) INSERT into DB first
     await db.spa_appointments.insert_one(doc)
