@@ -3473,9 +3473,14 @@ async def send_booking_emails_tracked(appointment_data: dict) -> dict:
             booking_type=booking_type
         )
         
-        # Render SEPARATE templates
+        # Render ADMIN template (internal, plain)
         admin_subject, admin_html = render_admin_email(email_data)
-        client_subject, client_html = render_client_email(email_data)
+        
+        # Render CLIENT template using SHARED template (same for SPA and MASSAGE!)
+        if booking_type == "spa":
+            client_subject, client_html = build_client_email_for_spa(appointment_data)
+        else:
+            client_subject, client_html = build_client_email_for_massage(appointment_data)
         
         # 1) Send to ADMIN (internal notification)
         try:
@@ -3498,7 +3503,7 @@ async def send_booking_emails_tracked(appointment_data: dict) -> dict:
         except Exception as e:
             logger.error(f"❌ ADMIN_EMAIL_EXCEPTION: {e}")
         
-        # 2) Send to CLIENT (beautiful confirmation - DIFFERENT TEMPLATE!)
+        # 2) Send to CLIENT (SHARED template - same design for SPA and MASSAGE!)
         if client_email and client_email.strip():
             try:
                 client_msg = MIMEMultipart()
