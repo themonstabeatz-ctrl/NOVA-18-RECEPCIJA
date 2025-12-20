@@ -70,15 +70,18 @@ backend:
 
   - task: "CEO Dashboard Analytics"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL ISSUE: GET /api/analytics/detailed?period=week returns SPA categories ['SPA', 'SPA Special kartica'] in massage analytics. According to review request, 'Pregled Po Kategorijama (Masaže)' should NOT contain SPA cards - only massage categories like 'Obicne masaze'. Lines 2553-2568 in server.py hardcode SPA categories in massage analytics. SPA analytics endpoint works correctly with proper categories (spa_zone, spa_ritual, spa_special_couple, spa_addons)."
+      - working: true
+        agent: "testing"
+        comment: "✅ RESOLVED: GET /api/analytics/detailed?period=week now correctly returns only massage categories ['Obicne masaze'] in massage analytics. SPA categories are no longer incorrectly included in massage analytics section. Issue has been fixed by main agent."
 
   - task: "API Endpoints Verification"
     implemented: true
