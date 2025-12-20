@@ -133,9 +133,13 @@ test_plan:
   completed_tests:
     - "SPA Central Notification System"
     - "CORS Configuration"
+    - "API Endpoints Verification"
+    - "Static Files Blocking"
 
 agent_communication:
   - agent: "testing"
     message: "❌ CRITICAL ISSUE FOUND: CEO Dashboard Analytics has a major problem. The massage analytics endpoint (GET /api/analytics/detailed?period=week) incorrectly includes SPA categories ['SPA', 'SPA Special kartica'] which should NOT appear in 'Pregled Po Kategorijama (Masaže)' section. Only massage categories like 'Obicne masaze' should be present. This is hardcoded in backend/server.py lines 2553-2568. SPA analytics endpoint works correctly. 4/5 backend tests passed, 1 critical issue needs fixing."
   - agent: "testing"
     message: "✅ SPA NOTIFICATION SYSTEM TESTING COMPLETE: Comprehensive testing of SPA booking notification system completed successfully. CORS verification passed for https://spa-integration.preview.emergentagent.com origin. SPA booking with notifications works correctly - both with and without client email. All notification response fields verified (notify_status: sent, email_sent: true, email_sent_admin: true, email_sent_client: true/false, notification_created: true). Backend logs confirmed all notification patterns: SPA_BOOKED, ADMIN_EMAIL_SENT, CLIENT_EMAIL_SENT/CLIENT_EMAIL_SKIPPED, NOTIFICATION_CREATED. System ready for production use."
+  - agent: "testing"
+    message: "✅ REVIEW REQUEST TESTING COMPLETE: All 4 tests from review request PASSED successfully. 1) CORS Configuration: OPTIONS /api/health with Origin https://massage-app-4.preview.emergentagent.com returns exact match access-control-allow-origin header. 2) Health Endpoint: GET /api/health returns {'status':'healthy'}. 3) API Endpoints: All 4 endpoints (/api/appointments, /api/spa/appointments, /api/appointments/unviewed/count, /api/services) return HTTP 200 with valid JSON. 4) Static Files Blocked: GET /static/test.js returns correct error response {'ok':false,'error':'STATIC_DISABLED_ON_API_DOMAIN'}. Backend configuration is correct for production deployment."
