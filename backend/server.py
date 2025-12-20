@@ -3682,6 +3682,12 @@ async def send_booking_emails(appointment_data: dict):
         # ============================================
         # ADMIN EMAIL - Uses ADMIN template (plain, internal)
         # ============================================
+        # 💰 Get pricing from snapshot
+        pricing = appointment_data.get('pricing', {})
+        original_price = pricing.get('original_price') or appointment_data.get('snapshot_original_price') or appointment_data.get('original_total_price')
+        discount_percent = pricing.get('discount_percent') or appointment_data.get('snapshot_discount_percentage', 0)
+        final_price = pricing.get('final_price') or appointment_data.get('snapshot_price') or appointment_data.get('total_price') or appointment_data.get('price')
+        
         admin_data = BookingEmailData(
             salon_name="Bua Luang Thai Spa",
             client_full_name=client_name,
@@ -3692,11 +3698,14 @@ async def send_booking_emails(appointment_data: dict):
             date_str=formatted_date,
             time_str=formatted_time_only,
             duration_min=None,
-            price=appointment_data.get('price') or appointment_data.get('final_total'),
+            price=final_price,
             address_line="Abebe Bikile 10A, Beograd",
             contact_email="bualuangthailandspa@gmail.com",
             contact_phone="+381 62 625 500",
-            booking_type="massage"
+            booking_type="massage",
+            # 💰 Pricing fields for discount display
+            original_price=original_price,
+            discount_percent=int(discount_percent) if discount_percent else 0
         )
         admin_subject, admin_html = render_admin_email(admin_data)
         
