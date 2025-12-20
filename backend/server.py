@@ -841,43 +841,56 @@ async def update_service(service_id: str, service: ServiceCreate):
 
 @api_router.patch("/services/{service_id}/discount")
 async def update_service_discount(service_id: str, discount: float):
-    """Update discount percentage and automatically adjust price"""
-    if discount < 0 or discount > 100:
-        raise HTTPException(status_code=400, detail="Discount must be between 0 and 100")
+    """Update discount percentage and automatically adjust price.
+    
+    Allowed values: 0, 5, 10, 15
+    Returns computed pricing fields: original_price, discount_percent, has_discount, final_price
+    """
+    # Validate allowed discount percentages
+    ALLOWED_DISCOUNTS = {0, 5, 10, 15}
+    if int(discount) not in ALLOWED_DISCOUNTS:
+        raise HTTPException(status_code=400, detail=f"INVALID_DISCOUNT_PERCENT. Allowed: {ALLOWED_DISCOUNTS}")
     
     existing = await db.services.find_one({"id": service_id})
     if not existing:
-        raise HTTPException(status_code=404, detail="Service not found")
+        raise HTTPException(status_code=404, detail="SERVICE_NOT_FOUND")
     
     # Get original price from metadata if it exists, otherwise use current price
     metadata = existing.get('metadata')
     if metadata and isinstance(metadata, dict) and 'original_price' in metadata:
-        original_price = metadata['original_price']
+        original_price = int(metadata['original_price'])
     else:
         # First time setting discount, save current price as original
-        original_price = existing.get('price', 0)
+        original_price = int(existing.get('price', 0))
     
-    # Calculate new discounted price
-    if discount > 0:
-        discounted_price = original_price * (1 - discount / 100)
+    # Calculate new discounted price using centralized function
+    discount_int = int(discount)
+    if discount_int > 0:
+        discount_amount = int(round(original_price * discount_int / 100))
+        final_price = max(0, original_price - discount_amount)
         update_data = {
-            "price": discounted_price,
-            "discount_percentage": discount,
+            "price": final_price,
+            "discount_percentage": discount_int,
             "metadata": {
                 "original_price": original_price,
-                "discount_applied": discount,
-                "final_price": discounted_price
+                "discount_applied": discount_int,
+                "final_price": final_price
             }
         }
     else:
         # No discount - restore original price
+        final_price = original_price
         update_data = {
             "price": original_price,
             "discount_percentage": 0,
-            "metadata": None
+            "metadata": {
+                "original_price": original_price,
+                "discount_applied": 0,
+                "final_price": original_price
+            }
         }
     
-    logger.info(f"💸 Service {service_id}: Discount {discount}% - Price {existing.get('price')} → {update_data['price']}")
+    logger.info(f"💸 DISCOUNT_APPLIED type=SERVICE id={service_id} original={original_price} pct={discount_int} final={final_price}")
     
     await db.services.update_one(
         {"id": service_id}, 
@@ -885,10 +898,26 @@ async def update_service_discount(service_id: str, discount: float):
     )
     
     updated = await db.services.find_one({"id": service_id}, {"_id": 0})
-    if isinstance(updated['created_at'], str):
-        updated['created_at'] = datetime.fromisoformat(updated['created_at'])
     
-    return updated
+    # Return with computed pricing fields (admin UI expects these)
+    return {
+        "id": updated.get("id"),
+        "name": updated.get("name"),
+        "duration": updated.get("duration"),
+        "category": updated.get("category"),
+        "description": updated.get("description"),
+        "service_code": updated.get("service_code"),
+        "is_couple": updated.get("is_couple", False),
+        # Pricing fields (required by admin UI and frontend)
+        "original_price": original_price,
+        "discount_percent": discount_int,
+        "has_discount": discount_int > 0,
+        "final_price": final_price,
+        # Legacy fields
+        "price": final_price,
+        "discount_percentage": discount_int,
+        "metadata": updated.get("metadata")
+    }
 
 @api_router.delete("/services/{service_id}")
 async def delete_service(service_id: str):
