@@ -80,6 +80,30 @@ backend:
         agent: "testing"
         comment: "❌ CRITICAL ISSUE: GET /api/analytics/detailed?period=week returns SPA categories ['SPA', 'SPA Special kartica'] in massage analytics. According to review request, 'Pregled Po Kategorijama (Masaže)' should NOT contain SPA cards - only massage categories like 'Obicne masaze'. Lines 2553-2568 in server.py hardcode SPA categories in massage analytics. SPA analytics endpoint works correctly with proper categories (spa_zone, spa_ritual, spa_special_couple, spa_addons)."
 
+  - task: "API Endpoints Verification"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ ALL API ENDPOINTS VERIFIED: GET /api/appointments (200, 1 appointment), GET /api/spa/appointments (200, 0 appointments), GET /api/appointments/unviewed/count (200, count: 0), GET /api/services (200, 373 services). All endpoints return valid JSON and expected data structures."
+
+  - task: "Static Files Blocking"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ STATIC FILES CORRECTLY BLOCKED: GET /static/test.js returns HTTP 404 with exact response: {'ok': False, 'error': 'STATIC_DISABLED_ON_API_DOMAIN', 'path': '/static/test.js'}. API-only domain configuration working as expected."
+
 frontend:
   - task: "CEO Dashboard UI"
     implemented: true
