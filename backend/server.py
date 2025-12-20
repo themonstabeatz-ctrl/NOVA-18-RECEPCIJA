@@ -3522,23 +3522,6 @@ async def send_booking_emails_tracked(appointment_data: dict) -> dict:
         logger.error(f"❌ EMAIL_GENERAL_EXCEPTION: {e}")
     
     return result
-                
-                await aiosmtplib.send(
-                    client_msg,
-                    hostname=smtp_host,
-                    port=smtp_port,
-                    username=smtp_user,
-                    password=smtp_password,
-                    start_tls=True
-                )
-                result["client_sent"] = True
-            except Exception as e:
-                logger.error(f"❌ CLIENT_EMAIL_EXCEPTION to={client_email}: {e}")
-    
-    except Exception as e:
-        logger.error(f"❌ EMAIL_GENERAL_EXCEPTION: {e}")
-    
-    return result
 
 # Connect SPA module to central dispatcher
 set_spa_dispatcher(dispatch_booking_notifications)
