@@ -3297,7 +3297,7 @@ async def api_root():
 # 🔐 HARD-LOCKED URLs - ONLY THESE ARE VALID
 # ============================================
 BACKEND_PUBLIC_URL = "https://spa-integration.preview.emergentagent.com"
-FRONTEND_PUBLIC_URL = "https://massage-app-4.preview.emergentagent.com"
+FRONTEND_PUBLIC_URL = "https://relax-reserve-5.preview.emergentagent.com"
 
 # Root endpoint - returns JSON to confirm this is API server
 @app.get("/")
