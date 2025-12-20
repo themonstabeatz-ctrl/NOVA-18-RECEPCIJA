@@ -1,7 +1,7 @@
 🎯 FINALNA INTEGRACIJA - Websajt sa Booking Sistemom
 
-WEBSAJT (RADNA VERZIJA): https://spa-booking-api.preview.emergentagent.com/
-BOOKING API (RADNA VERZIJA): https://spa-booking-api.preview.emergentagent.com/api
+WEBSAJT (RADNA VERZIJA): https://spa-integration.preview.emergentagent.com/
+BOOKING API (RADNA VERZIJA): https://spa-integration.preview.emergentagent.com/api
 
 ========================================
 ZADATAK 1: POPRAVKA PRIKAZA POPUSTA
@@ -10,13 +10,13 @@ ZADATAK 1: POPRAVKA PRIKAZA POPUSTA
 PROBLEM: Popusti se prikazuju na SVIM masažama umesto samo u "Masaža za parove"
 
 API URL:
-https://spa-booking-api.preview.emergentagent.com/api/services
+https://spa-integration.preview.emergentagent.com/api/services
 
 REŠENJE:
 
 1. Promeni API URL u /src/services/bookingApi.js:
 
-const BOOKING_API = 'https://spa-booking-api.preview.emergentagent.com/api';
+const BOOKING_API = 'https://spa-integration.preview.emergentagent.com/api';
 
 2. Dodaj funkciju za proveru:
 
@@ -41,7 +41,7 @@ ZADATAK 2: BOOKING FUNKCIONALNOST
 PROBLEM: Greška pri zakazivanju - "Greška! Molimo pokušajte ponovo."
 
 API ENDPOINT:
-POST https://spa-booking-api.preview.emergentagent.com/api/book-couple-appointment
+POST https://spa-integration.preview.emergentagent.com/api/book-couple-appointment
 
 FORMAT PODATAKA (Request Body):
 {
@@ -96,7 +96,7 @@ async function bookCoupleAppointment(formData) {
   };
   
   const response = await fetch(
-    'https://spa-booking-api.preview.emergentagent.com/api/book-couple-appointment',
+    'https://spa-integration.preview.emergentagent.com/api/book-couple-appointment',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -166,7 +166,7 @@ VAŽNO: SERVICE ID-JEVI
 Da bi booking radio, moraš imati PRAVE service ID-jeve!
 
 1. Učitaj usluge:
-const response = await fetch('https://spa-booking-api.preview.emergentagent.com/api/services');
+const response = await fetch('https://spa-integration.preview.emergentagent.com/api/services');
 const services = await response.json();
 
 2. Filtriraj "Kartica Masaza za parove":
@@ -187,7 +187,7 @@ TESTIRANJE
 
 1. Test API poziva (cURL):
 
-curl -X POST https://spa-booking-api.preview.emergentagent.com/api/book-couple-appointment \
+curl -X POST https://spa-integration.preview.emergentagent.com/api/book-couple-appointment \
   -H "Content-Type: application/json" \
   -d '{
     "client_first_name": "Test",
@@ -202,7 +202,7 @@ curl -X POST https://spa-booking-api.preview.emergentagent.com/api/book-couple-a
   }'
 
 2. Proveri da li se termin pojavio u booking sistemu:
-https://spa-booking-api.preview.emergentagent.com/appointments
+https://spa-integration.preview.emergentagent.com/appointments
 
 ========================================
 OČEKIVANI REZULTAT

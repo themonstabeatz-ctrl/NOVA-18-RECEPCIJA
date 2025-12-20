@@ -18,7 +18,7 @@ import sys
 import time
 
 # Backend URL from environment
-BACKEND_URL = "https://spa-booking-api.preview.emergentagent.com/api"
+BACKEND_URL = "https://spa-integration.preview.emergentagent.com/api"
 
 def print_header(title):
     """Print a formatted header"""

@@ -2,7 +2,7 @@
 
 ## 📋 CILJ
 
-Povezati websajt `https://spa-booking-api.preview.emergentagent.com/` sa booking sistemom `https://spa-booking-api.preview.emergentagent.com/` da:
+Povezati websajt `https://spa-integration.preview.emergentagent.com/` sa booking sistemom `https://spa-integration.preview.emergentagent.com/` da:
 
 1. **Automatski prikazuje cene** iz booking sistema
 2. **Prikazuje popuste** sa značkama (-5%, -10%, -15%)
@@ -14,7 +14,7 @@ Povezati websajt `https://spa-booking-api.preview.emergentagent.com/` sa booking
 
 ### Base URL
 ```
-https://spa-booking-api.preview.emergentagent.com/api
+https://spa-integration.preview.emergentagent.com/api
 ```
 
 ### 1. Preuzmi Sve Usluge
@@ -22,7 +22,7 @@ https://spa-booking-api.preview.emergentagent.com/api
 GET /api/services
 
 // Primer poziva:
-const response = await fetch('https://spa-booking-api.preview.emergentagent.com/api/services');
+const response = await fetch('https://spa-integration.preview.emergentagent.com/api/services');
 const services = await response.json();
 ```
 
@@ -236,7 +236,7 @@ function MasazePage() {
 
   useEffect(() => {
     // Učitaj sve usluge
-    fetch('https://spa-booking-api.preview.emergentagent.com/api/services')
+    fetch('https://spa-integration.preview.emergentagent.com/api/services')
       .then(res => res.json())
       .then(data => {
         // Filtriraj samo obične masaže
@@ -285,7 +285,7 @@ function CoupleBookingForm() {
   const [person2Service, setPerson2Service] = useState('');
 
   useEffect(() => {
-    fetch('https://spa-booking-api.preview.emergentagent.com/api/services')
+    fetch('https://spa-integration.preview.emergentagent.com/api/services')
       .then(res => res.json())
       .then(data => {
         // Filtriraj samo "Kartica Masaza za parove"

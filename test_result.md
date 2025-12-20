@@ -45,10 +45,10 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ CORS updated to https://massage-app-4.preview.emergentagent.com. Needs re-verification."
+        comment: "✅ CORS updated to https://spa-integration.preview.emergentagent.com. Needs re-verification."
       - working: true
         agent: "testing"
-        comment: "✅ CORS VERIFIED: OPTIONS preflight for POST /api/spa/appointments with Origin: https://massage-app-4.preview.emergentagent.com returns correct CORS headers. access-control-allow-origin: https://massage-app-4.preview.emergentagent.com, access-control-allow-methods: DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, access-control-allow-headers: Content-Type"
+        comment: "✅ CORS VERIFIED: OPTIONS preflight for POST /api/spa/appointments with Origin: https://spa-integration.preview.emergentagent.com returns correct CORS headers. access-control-allow-origin: https://spa-integration.preview.emergentagent.com, access-control-allow-methods: DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, access-control-allow-headers: Content-Type"
 
   - task: "SPA Central Notification System"
     implemented: true
@@ -63,7 +63,7 @@ backend:
         comment: "✅ SPA booking uses central dispatch_booking_notifications. Response now includes: notify_status, email_sent, email_sent_admin, email_sent_client, notification_created. Brutalni logovi: SPA_BOOKED, ADMIN_EMAIL_SENT, CLIENT_EMAIL_SENT, NOTIFICATION_CREATED"
       - working: true
         agent: "testing"
-        comment: "✅ SPA NOTIFICATION SYSTEM FULLY VERIFIED: 1) SPA booking WITH client email (test-agent@example.com) returns notify_status: sent, email_sent: true, email_sent_admin: true, email_sent_client: true, notification_created: true. 2) SPA booking WITHOUT client email returns email_sent_client: false, email_sent_admin: true, notification_created: true. 3) Backend logs confirmed: ✅ SPA_BOOKED id=a8e11b5d-9042-4486-80bb-80a5f976112e service=Gentle Touch Ritual client_email=test-agent@example.com, 📧 ADMIN_EMAIL_SENT to=bualuangthailandspa@gmail.com, 📧 CLIENT_EMAIL_SENT to=test-agent@example.com, 🔔 NOTIFICATION_CREATED id=e6edf253-57de-43ad-aac4-d8eebf8610fb, ℹ️ CLIENT_EMAIL_SKIPPED - no email provided (for booking without email). All notification flows working correctly."
+        comment: "✅ SPA NOTIFICATION SYSTEM FULLY VERIFIED: 1) SPA booking WITH client email (test-agent@example.com) returns notify_status: sent, email_sent: true, email_sent_admin: true, email_sent_client: true, notification_created: true. 2) SPA booking WITHOUT client email returns email_sent_client: false, email_sent_admin: true, notification_created: true. 3) Backend logs confirmed: ✅ SPA_BOOKED id=spa-integration service=Gentle Touch Ritual client_email=test-agent@example.com, 📧 ADMIN_EMAIL_SENT to=bualuangthailandspa@gmail.com, 📧 CLIENT_EMAIL_SENT to=test-agent@example.com, 🔔 NOTIFICATION_CREATED id=spa-integration, ℹ️ CLIENT_EMAIL_SKIPPED - no email provided (for booking without email). All notification flows working correctly."
 
   - task: "CEO Dashboard Analytics"
     implemented: true
@@ -111,4 +111,4 @@ agent_communication:
   - agent: "testing"
     message: "❌ CRITICAL ISSUE FOUND: CEO Dashboard Analytics has a major problem. The massage analytics endpoint (GET /api/analytics/detailed?period=week) incorrectly includes SPA categories ['SPA', 'SPA Special kartica'] which should NOT appear in 'Pregled Po Kategorijama (Masaže)' section. Only massage categories like 'Obicne masaze' should be present. This is hardcoded in backend/server.py lines 2553-2568. SPA analytics endpoint works correctly. 4/5 backend tests passed, 1 critical issue needs fixing."
   - agent: "testing"
-    message: "✅ SPA NOTIFICATION SYSTEM TESTING COMPLETE: Comprehensive testing of SPA booking notification system completed successfully. CORS verification passed for https://massage-app-4.preview.emergentagent.com origin. SPA booking with notifications works correctly - both with and without client email. All notification response fields verified (notify_status: sent, email_sent: true, email_sent_admin: true, email_sent_client: true/false, notification_created: true). Backend logs confirmed all notification patterns: SPA_BOOKED, ADMIN_EMAIL_SENT, CLIENT_EMAIL_SENT/CLIENT_EMAIL_SKIPPED, NOTIFICATION_CREATED. System ready for production use."
+    message: "✅ SPA NOTIFICATION SYSTEM TESTING COMPLETE: Comprehensive testing of SPA booking notification system completed successfully. CORS verification passed for https://spa-integration.preview.emergentagent.com origin. SPA booking with notifications works correctly - both with and without client email. All notification response fields verified (notify_status: sent, email_sent: true, email_sent_admin: true, email_sent_client: true/false, notification_created: true). Backend logs confirmed all notification patterns: SPA_BOOKED, ADMIN_EMAIL_SENT, CLIENT_EMAIL_SENT/CLIENT_EMAIL_SKIPPED, NOTIFICATION_CREATED. System ready for production use."

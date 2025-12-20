@@ -1,12 +1,12 @@
 # 🔧 FIX ZA WEBSITE BACKEND KONEKCIJU
 
 ## Problem
-Website `https://spa-booking-api.preview.emergentagent.com/` ne može da se poveže sa backend-om.
+Website `https://spa-integration.preview.emergentagent.com/` ne može da se poveže sa backend-om.
 
 ## Rešenje
 Backend JE AKTIVAN i radi na:
 ```
-https://spa-booking-api.preview.emergentagent.com/api
+https://spa-integration.preview.emergentagent.com/api
 ```
 
 ## Šta website agent treba da uradi:
@@ -17,10 +17,10 @@ Otvoriti `.env` fajl u frontend direktorijumu i promeniti:
 
 ```bash
 # STARO (ne radi):
-REACT_APP_BACKEND_URL=https://spa-booking-api.preview.emergentagent.com/api
+REACT_APP_BACKEND_URL=https://spa-integration.preview.emergentagent.com/api
 
 # NOVO (radi):
-REACT_APP_BACKEND_URL=https://spa-booking-api.preview.emergentagent.com/api
+REACT_APP_BACKEND_URL=https://spa-integration.preview.emergentagent.com/api
 ```
 
 ### 2. Restartovati frontend
@@ -41,7 +41,7 @@ Nakon restart-a, website će moći da učita podatke sa backend-a koji RADI i ko
 
 Test URL:
 ```
-https://spa-booking-api.preview.emergentagent.com/api/services/single/list
+https://spa-integration.preview.emergentagent.com/api/services/single/list
 ```
 
 Ovo vraća sve usluge uključujući ažuriranu "Aroma sa toplim biljnim kompresama" sa:
@@ -54,7 +54,7 @@ Ovo vraća sve usluge uključujući ažuriranu "Aroma sa toplim biljnim kompresa
 
 Hardkodovati u JavaScript kodu:
 ```javascript
-const API_BASE_URL = "https://spa-booking-api.preview.emergentagent.com/api";
+const API_BASE_URL = "https://spa-integration.preview.emergentagent.com/api";
 ```
 
 ---
