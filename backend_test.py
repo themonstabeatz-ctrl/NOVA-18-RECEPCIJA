@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Bua Luang Spa Application
-Testing CORS configuration and API endpoints as specified in review request
+Testing discount system for massage and SPA services as specified in review request
 
-REVIEW REQUEST: Testiraj CORS konfiguraciju i API endpointe za Bua Luang spa aplikaciju:
+REVIEW REQUEST: Testiraj backend-only sistem popusta za Bua Luang Thai Spa:
 - Backend URL: https://spa-integration.preview.emergentagent.com
-- Dozvoljeni frontend origin: https://massage-app-4.preview.emergentagent.com
+- Frontend origin: https://relax-reserve-5.preview.emergentagent.com
 """
 
 import requests
@@ -17,7 +17,7 @@ import subprocess
 # URLs from review request
 BACKEND_URL = "https://spa-integration.preview.emergentagent.com"
 API_BASE_URL = f"{BACKEND_URL}/api"
-ALLOWED_FRONTEND_ORIGIN = "https://massage-app-4.preview.emergentagent.com"
+FRONTEND_ORIGIN = "https://relax-reserve-5.preview.emergentagent.com"
 
 def test_cors_configuration():
     """
