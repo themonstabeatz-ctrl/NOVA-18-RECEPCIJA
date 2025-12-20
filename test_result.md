@@ -104,6 +104,78 @@ backend:
         agent: "testing"
         comment: "✅ STATIC FILES CORRECTLY BLOCKED: GET /static/test.js returns HTTP 404 with exact response: {'ok': False, 'error': 'STATIC_DISABLED_ON_API_DOMAIN', 'path': '/static/test.js'}. API-only domain configuration working as expected."
 
+  - task: "Discount System - CORS Configuration"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ CORS VERIFIED: OPTIONS /api/health with Origin: https://relax-reserve-5.preview.emergentagent.com returns correct CORS headers. access-control-allow-origin: https://relax-reserve-5.preview.emergentagent.com matches exactly as required in Serbian review request."
+
+  - task: "Discount System - Services Pricing Fields"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ GET /api/services PRICING FIELDS VERIFIED: All 373 services have required pricing fields (final_price, discount_percentage). Sample services show correct structure: Tradicionalna tajlandska masaža - 60 min: final_price=4400.0, discount_percentage=0.0%."
+
+  - task: "Discount System - SPA Services Pricing Fields"
+    implemented: true
+    working: true
+    file: "backend/spa_module.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ GET /api/spa/services PRICING FIELDS VERIFIED: All 22 SPA services have required pricing fields (original_price, discount_percent, final_price, has_discount). Sample SPA services show correct structure with proper pricing information."
+
+  - task: "Discount System - Massage Service Discount PATCH"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PATCH /api/services/{service_id}/discount FULLY VERIFIED: 1) 10% discount applied correctly: 4400 → 3960 RSD with proper response fields (original_price, discount_percent, final_price, has_discount). 2) 0% reset works: final_price == original_price. 3) Invalid discount (7%) correctly rejected with INVALID_DISCOUNT_PERCENT error. Allowed values: 0, 5, 10, 15."
+
+  - task: "Discount System - SPA Service Discount PATCH"
+    implemented: true
+    working: true
+    file: "backend/spa_module.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PATCH /api/spa/services/{service_id}/discount FULLY VERIFIED: 1) 15% discount applied correctly: 1400 → 1190 RSD with proper response fields. 2) GET /api/spa/services shows updated discount: 15%, final_price: 1190. 3) 0% reset works correctly: final_price == original_price. SPA discount system working as expected."
+
+  - task: "Discount System - Anti-Duplicate Verification"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: Double discount calculation detected in GET /api/services list endpoint. PATCH /api/services/{id}/discount returns final_price: 3740 (15% off 4400), but GET /api/services list shows final_price: 3179 for same service. Individual GET /api/services/{id} shows 3740 (correct). Lines 701-771 in server.py get_services() function applies additional discount calculation on already discounted services, causing double discount. PATCH and individual GET are consistent, but services list endpoint has bug."
+
 frontend:
   - task: "CEO Dashboard UI"
     implemented: true
