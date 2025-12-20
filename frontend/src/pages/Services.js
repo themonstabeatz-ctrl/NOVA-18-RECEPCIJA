@@ -121,10 +121,27 @@ const Services = () => {
     }
   };
 
+  // Check if current category is SPA
+  const isSpaCategory = (category) => {
+    return category === 'SPA' || category === 'SPA paketi za posebne prilike' || category === 'SPA add-ons (doplate)';
+  };
+
   const handleDiscountChange = async (serviceId, discount) => {
     try {
-      await serviceService.updateDiscount(serviceId, discount);
-      fetchServices(); // Refresh list
+      // Use different endpoint for SPA services
+      if (isSpaCategory(activeCategory)) {
+        // SPA services use /api/spa/services/{id}/discount
+        const res = await fetch(`${API_BASE}/api/spa/services/${serviceId}/discount?discount=${discount}`, {
+          method: 'PATCH',
+          credentials: 'include'
+        });
+        if (!res.ok) throw new Error(`SPA discount update failed: ${res.status}`);
+        fetchSpaServices(); // Refresh SPA list
+      } else {
+        // Massage services use /api/services/{id}/discount
+        await serviceService.updateDiscount(serviceId, discount);
+        fetchServices(); // Refresh massage list
+      }
     } catch (error) {
       console.error('Error updating discount:', error);
       alert('Greška pri ažuriranju popusta');
