@@ -151,7 +151,23 @@ const Services = () => {
   const handleBulkDiscountChange = async (discount) => {
     console.log('🎯 Bulk discount clicked:', discount, 'Category:', activeCategory);
     
-    const servicesToUpdate = services.filter(s => s.category === activeCategory);
+    // Determine which services to update based on category
+    let servicesToUpdate = [];
+    const isSpa = isSpaCategory(activeCategory);
+    
+    if (isSpa) {
+      // SPA services
+      if (activeCategory === 'SPA') {
+        servicesToUpdate = spaServices.filter(s => s.category === 'spa_zone' || s.category === 'spa_ritual');
+      } else if (activeCategory === 'SPA paketi za posebne prilike') {
+        servicesToUpdate = spaServices.filter(s => s.category === 'spa_special');
+      } else if (activeCategory === 'SPA add-ons (doplate)') {
+        servicesToUpdate = spaServices.filter(s => s.category === 'spa_addon');
+      }
+    } else {
+      servicesToUpdate = services.filter(s => s.category === activeCategory);
+    }
+    
     console.log('Services to update:', servicesToUpdate.length);
     
     if (servicesToUpdate.length === 0) {
@@ -159,7 +175,7 @@ const Services = () => {
       return;
     }
     
-    if (!window.confirm(`Da li ste sigurni da želite da primenite ${discount}% popust na SVE masaže (${servicesToUpdate.length}) u kategoriji "${activeCategory}"?`)) {
+    if (!window.confirm(`Da li ste sigurni da želite da primenite ${discount}% popust na SVE usluge (${servicesToUpdate.length}) u kategoriji "${activeCategory}"?`)) {
       return;
     }
 
@@ -172,7 +188,16 @@ const Services = () => {
       
       for (const service of servicesToUpdate) {
         try {
-          await serviceService.updateDiscount(service.id, discount);
+          if (isSpa) {
+            // SPA services use /api/spa/services/{id}/discount
+            const res = await fetch(`${API_BASE}/api/spa/services/${service.id}/discount?discount=${discount}`, {
+              method: 'PATCH',
+              credentials: 'include'
+            });
+            if (!res.ok) throw new Error(`Failed: ${res.status}`);
+          } else {
+            await serviceService.updateDiscount(service.id, discount);
+          }
           successCount++;
           console.log(`✓ Updated: ${service.name}`);
         } catch (err) {
@@ -182,8 +207,12 @@ const Services = () => {
       }
       
       if (successCount > 0) {
-        alert(`✅ Popust od ${discount}% primenjen na ${successCount} masaža!${errorCount > 0 ? ` (${errorCount} grešaka)` : ''}`);
-        fetchServices(); // Refresh list
+        alert(`✅ Popust od ${discount}% primenjen na ${successCount} usluga!${errorCount > 0 ? ` (${errorCount} grešaka)` : ''}`);
+        if (isSpa) {
+          fetchSpaServices();
+        } else {
+          fetchServices();
+        }
       } else {
         alert('❌ Greška: Nijedna usluga nije ažurirana!');
       }
