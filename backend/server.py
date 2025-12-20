@@ -1044,6 +1044,7 @@ async def create_appointment(appointment: AppointmentCreate):
     # Send email notifications (non-blocking)
     try:
         email_data = {
+            'id': appointment_obj.id,  # Add appointment ID for logging
             'client_first_name': appointment_obj.client_first_name,
             'client_last_name': appointment_obj.client_last_name,
             'client_phone': appointment_obj.client_phone,
