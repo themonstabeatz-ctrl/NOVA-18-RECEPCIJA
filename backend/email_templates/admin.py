@@ -1,5 +1,5 @@
 """
-📧 EMAIL TEMPLATES - Admin template
+📧 EMAIL TEMPLATES - Admin template (COMPACT)
 """
 
 from dataclasses import dataclass
@@ -24,67 +24,111 @@ class BookingEmailData:
     booking_type: str = "spa"  # spa or massage
 
 
+# COMPACT ADMIN STYLES - minimal spacing
+ADMIN_STYLES = {
+    "font": "font-family:Arial,Helvetica,sans-serif;",
+    "base": "font-size:14px; line-height:1.25; color:#111;",
+    "h1": "margin:0 0 8px 0; font-size:22px; line-height:1.1; color:#333;",
+    "section": "margin:0 0 10px 0;",
+    "label": "font-weight:700; color:#111;",
+    "value": "font-weight:400; color:#111;",
+    "card": "padding:12px 14px; background:#ffffff; border:1px solid #e6e6e6; border-radius:12px;",
+    "divider": "height:1px; background:#eee; margin:10px 0;",
+    "table": "border-collapse:collapse; width:100%;",
+    "tdL": "padding:4px 8px; vertical-align:top; font-weight:700; width:34%; color:#555; font-size:13px;",
+    "tdR": "padding:4px 8px; vertical-align:top; font-size:13px;",
+    "subheader": "font-size:13px; font-weight:700; margin:0 0 6px 0; color:#666;",
+}
+
+
 def render_admin_email(d: BookingEmailData) -> tuple:
     """
-    🔔 ADMIN EMAIL - Internal notification
-    Plain, informative, for staff
+    🔔 ADMIN EMAIL - COMPACT Internal notification
+    Minimal spacing, no wasted space
     """
+    S = ADMIN_STYLES
+    
     subject = f"[NEW BOOKING] {d.service_title} - {d.date_str} {d.time_str} - {d.client_full_name}"
     
-    html = f"""
-<!DOCTYPE html>
+    # Build optional rows
+    details_row = ""
+    if d.service_details:
+        details_row = f'''<tr>
+          <td style="{S['tdL']}">Detalji:</td>
+          <td style="{S['tdR']}">{d.service_details}</td>
+        </tr>'''
+    
+    duration_row = ""
+    if d.duration_min:
+        duration_row = f'''<tr>
+          <td style="{S['tdL']}">Trajanje:</td>
+          <td style="{S['tdR']}">{d.duration_min} min</td>
+        </tr>'''
+    
+    price_row = ""
+    if d.price:
+        price_row = f'''<tr>
+          <td style="{S['tdL']}">Cena:</td>
+          <td style="{S['tdR']}">{d.price:,.0f} RSD</td>
+        </tr>'''
+    
+    html = f'''<!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <title>Nova Rezervacija - Admin</title>
-</head>
-<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f5f5f5;">
-    <div style="background: #fff; padding: 20px; border-radius: 8px; border-left: 4px solid #d4af37;">
-        <h2 style="margin: 0 0 15px 0; color: #333;">🔔 Nova Rezervacija</h2>
-        
-        <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-                <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold; width: 120px;">Tip:</td>
-                <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{d.booking_type.upper()}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold;">Usluga:</td>
-                <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{d.service_title}</td>
-            </tr>
-            {"<tr><td style='padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold;'>Detalji:</td><td style='padding: 8px 0; border-bottom: 1px solid #eee;'>" + d.service_details + "</td></tr>" if d.service_details else ""}
-            <tr>
-                <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold;">Datum:</td>
-                <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{d.date_str}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold;">Vreme:</td>
-                <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{d.time_str}</td>
-            </tr>
-            {"<tr><td style='padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold;'>Trajanje:</td><td style='padding: 8px 0; border-bottom: 1px solid #eee;'>" + str(d.duration_min) + " min</td></tr>" if d.duration_min else ""}
-            {"<tr><td style='padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold;'>Cena:</td><td style='padding: 8px 0; border-bottom: 1px solid #eee;'>" + f"{d.price:,.0f}".replace(",", ".") + " RSD</td></tr>" if d.price else ""}
-        </table>
-        
-        <h3 style="margin: 20px 0 10px 0; color: #666; font-size: 14px;">👤 PODACI O KLIJENTU</h3>
-        <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-                <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold; width: 120px;">Ime:</td>
-                <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{d.client_full_name}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold;">Telefon:</td>
-                <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><a href="tel:{d.client_phone}">{d.client_phone}</a></td>
-            </tr>
-            <tr>
-                <td style="padding: 8px 0; font-weight: bold;">Email:</td>
-                <td style="padding: 8px 0;"><a href="mailto:{d.client_email}">{d.client_email}</a></td>
-            </tr>
-        </table>
-        
-        <p style="margin-top: 20px; padding: 10px; background: #f9f9f9; border-radius: 4px; font-size: 12px; color: #666;">
-            Ova poruka je automatski generisana. Za pitanja kontaktirajte recepciju.
-        </p>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0; padding:0;">
+<div style="{S['font']} {S['base']} background:#f6f6f6; padding:14px;">
+  <div style="max-width:520px; margin:0 auto; {S['card']}">
+
+    <div style="{S['h1']}">🔔 Nova Rezervacija</div>
+
+    <div style="{S['section']}">
+      <table style="{S['table']}">
+        <tr>
+          <td style="{S['tdL']}">Tip:</td>
+          <td style="{S['tdR']}">{d.booking_type.upper()}</td>
+        </tr>
+        <tr>
+          <td style="{S['tdL']}">Usluga:</td>
+          <td style="{S['tdR']}">{d.service_title}</td>
+        </tr>
+        {details_row}
+        <tr>
+          <td style="{S['tdL']}">Datum:</td>
+          <td style="{S['tdR']}">{d.date_str}</td>
+        </tr>
+        <tr>
+          <td style="{S['tdL']}">Vreme:</td>
+          <td style="{S['tdR']}">{d.time_str}</td>
+        </tr>
+        {duration_row}
+        {price_row}
+      </table>
     </div>
+
+    <div style="{S['divider']}"></div>
+
+    <div style="{S['section']}">
+      <div style="{S['subheader']}">👤 Podaci o klijentu</div>
+      <table style="{S['table']}">
+        <tr>
+          <td style="{S['tdL']}">Ime:</td>
+          <td style="{S['tdR']}">{d.client_full_name}</td>
+        </tr>
+        <tr>
+          <td style="{S['tdL']}">Telefon:</td>
+          <td style="{S['tdR']}"><a href="tel:{d.client_phone}" style="color:#111; text-decoration:none;">{d.client_phone}</a></td>
+        </tr>
+        <tr>
+          <td style="{S['tdL']}">Email:</td>
+          <td style="{S['tdR']}"><a href="mailto:{d.client_email}" style="color:#111; text-decoration:none;">{d.client_email}</a></td>
+        </tr>
+      </table>
+    </div>
+
+  </div>
+  <p style="text-align:center; font-size:11px; color:#999; margin:10px 0 0 0;">Automatski generisano</p>
+</div>
 </body>
-</html>
-"""
+</html>'''
+    
     return subject, html
