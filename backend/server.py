@@ -3239,6 +3239,32 @@ async def get_detailed_analytics(
 
 
 # ============================================
+# 🚫 BLOCKER ENDPOINTS - Prevent frontend from updating discounts
+# Discounts are BACKEND-ONLY (admin panel)
+# ============================================
+@api_router.patch("/services/{service_id}/discount")
+@api_router.put("/services/{service_id}/discount")
+@api_router.post("/services/{service_id}/discount")
+async def block_service_discount_update(service_id: str):
+    """Block any attempt to update service discounts from frontend"""
+    raise HTTPException(
+        status_code=403, 
+        detail="DISCOUNT_UPDATES_BACKEND_ONLY. Public frontend must not call this endpoint. Discounts are managed via admin panel."
+    )
+
+
+@api_router.patch("/spa/services/{service_id}/discount")
+@api_router.put("/spa/services/{service_id}/discount")
+@api_router.post("/spa/services/{service_id}/discount")
+async def block_spa_service_discount_update(service_id: str):
+    """Block any attempt to update SPA service discounts from frontend"""
+    raise HTTPException(
+        status_code=403, 
+        detail="DISCOUNT_UPDATES_BACKEND_ONLY. Public frontend must not call this endpoint. Discounts are managed via admin panel."
+    )
+
+
+# ============================================
 # Root route
 # ============================================
 @api_router.get("/")
