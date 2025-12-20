@@ -24,6 +24,9 @@ from email.mime.multipart import MIMEMultipart
 
 import re
 
+# Import discount engine
+from discount_engine import apply_spa_discount_v2, create_pricing_snapshot, enrich_service_with_discount
+
 logger = logging.getLogger(__name__)
 
 # ============================================
