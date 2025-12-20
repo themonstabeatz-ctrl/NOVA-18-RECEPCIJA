@@ -1071,6 +1071,22 @@ async def create_appointment(appointment: AppointmentCreate):
     doc['end_time'] = doc['end_time'].isoformat()
     doc['created_at'] = doc['created_at'].isoformat()
     
+    # 🔐 PRICING SNAPSHOT - uniform object for emails/dashboard/listing
+    doc['pricing'] = {
+        "currency": "RSD",
+        "original_price": int(original_price),
+        "final_price": int(round(final_price)),
+        "discount_percent": int(best_discount),
+        "has_discount": best_discount > 0 and final_price < original_price,
+        "discount_source": "SERVICE_LEVEL",
+        "snapshot_at": datetime.now(timezone.utc).isoformat()
+    }
+    # Also set total_price for dashboard compatibility
+    doc['total_price'] = int(round(final_price))
+    doc['original_total_price'] = int(original_price)
+    
+    logger.info(f"💰 PRICING_SNAPSHOT created: {doc['pricing']}")
+    
     await db.appointments.insert_one(doc)
     
     # Send email notifications (non-blocking)
