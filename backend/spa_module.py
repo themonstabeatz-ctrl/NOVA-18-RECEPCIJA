@@ -1246,7 +1246,13 @@ async def get_spa_analytics(
     from_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
     to_date: Optional[str] = Query(None, description="End date YYYY-MM-DD")
 ):
-    """Get SPA analytics including all categories"""
+    """Get SPA analytics including all categories.
+    
+    Returns:
+        - totals.revenue_gross: sum(original_price) - Bruto zarada
+        - totals.revenue_net: sum(final_price) - Neto zarada
+        - totals.discount_total: sum(discount_amount) - Ukupni popusti
+    """
     
     # Build date filter
     date_filter = {}
@@ -1264,26 +1270,32 @@ async def get_spa_analytics(
     
     # Initialize counters
     totals = {
-        "revenue": 0,
+        "revenue": 0,           # legacy - same as revenue_net
+        "revenue_net": 0,       # sum(final_price) - Za naplatu
+        "revenue_gross": 0,     # sum(original_price) - Bruto
         "count": 0,
-        "discount_total": 0
+        "discount_total": 0     # sum(discount_amount)
     }
     
     breakdown = {
-        "spa_zone": {"count": 0, "revenue": 0},
-        "spa_ritual": {"count": 0, "revenue": 0},
-        "spa_special_couple": {"count": 0, "revenue": 0},
+        "spa_zone": {"count": 0, "revenue": 0, "revenue_gross": 0},
+        "spa_ritual": {"count": 0, "revenue": 0, "revenue_gross": 0},
+        "spa_special_couple": {"count": 0, "revenue": 0, "revenue_gross": 0},
         "spa_addons": {"count": 0, "revenue": 0}
     }
     
     for apt in appointments:
-        final_total = apt.get("final_total", 0)
-        original_total = apt.get("original_total", 0)
-        discount_amount = apt.get("discount_amount", 0)
+        # Get pricing from snapshot or legacy fields
+        pricing = apt.get("pricing", {})
+        final_total = pricing.get("final_price") or apt.get("final_total", 0)
+        original_total = pricing.get("original_price") or apt.get("original_total", final_total)
+        discount_amount = pricing.get("discount_amount") or apt.get("discount_amount", 0)
         spa_category = apt.get("spa_category", "spa_zone")
         addons_total = apt.get("addons_total", 0)
         
         totals["revenue"] += final_total
+        totals["revenue_net"] += final_total
+        totals["revenue_gross"] += original_total
         totals["count"] += 1
         totals["discount_total"] += discount_amount
         
@@ -1305,14 +1317,17 @@ async def get_spa_analytics(
         if spa_category == "spa_special_couple":
             breakdown["spa_special_couple"]["count"] += 1
             breakdown["spa_special_couple"]["revenue"] += final_total
+            breakdown["spa_special_couple"]["revenue_gross"] += original_total
         elif spa_category == "spa_ritual":
             breakdown["spa_ritual"]["count"] += 1
             breakdown["spa_ritual"]["revenue"] += final_total
+            breakdown["spa_ritual"]["revenue_gross"] += original_total
         else:
             breakdown["spa_zone"]["count"] += 1
             breakdown["spa_zone"]["revenue"] += final_total
+            breakdown["spa_zone"]["revenue_gross"] += original_total
     
-    logger.info(f"📊 SPA Analytics: {totals['count']} appointments, {totals['revenue']} RSD, addons={breakdown['spa_addons']}")
+    logger.info(f"📊 SPA Analytics: {totals['count']} appointments, gross={totals['revenue_gross']}, net={totals['revenue_net']}, discounts={totals['discount_total']}")
     
     return {
         "totals": totals,
