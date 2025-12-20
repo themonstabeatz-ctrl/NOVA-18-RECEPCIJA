@@ -66,18 +66,18 @@ def test_cors_configuration():
         print(f"❌ ERROR during CORS test: {e}")
         return False
 
-def test_spa_analytics():
+def test_health_endpoint():
     """
-    Test 2: SPA Analytics
-    GET /api/spa/analytics
-    Expected: JSON with totals and breakdown
+    Test 2: Health Endpoint
+    GET /api/health mora da vrati {"status":"healthy"}
     """
     print("=" * 80)
-    print("TEST 2: SPA ANALYTICS")
+    print("TEST 2: HEALTH ENDPOINT")
     print("=" * 80)
     
     try:
-        response = requests.get(f"{BACKEND_URL}/spa/analytics")
+        response = requests.get(f"{API_BASE_URL}/health")
+        print(f"Request URL: {API_BASE_URL}/health")
         print(f"Response Status: {response.status_code}")
         
         if response.status_code != 200:
@@ -87,59 +87,155 @@ def test_spa_analytics():
         
         try:
             data = response.json()
-            print(f"✅ SUCCESS: SPA Analytics endpoint returned data")
+            expected_response = {"status": "healthy"}
             
-            # Check required fields
-            required_fields = ["totals", "breakdown"]
-            missing_fields = []
-            
-            for field in required_fields:
-                if field not in data:
-                    missing_fields.append(field)
-            
-            if missing_fields:
-                print(f"❌ FAILED: Missing required fields: {missing_fields}")
+            if data == expected_response:
+                print(f"✅ SUCCESS: Health endpoint returned correct response: {data}")
+                return True
+            else:
+                print(f"❌ FAILED: Expected {expected_response}, got {data}")
                 return False
-            
-            # Check totals structure
-            totals = data.get("totals", {})
-            required_totals = ["revenue", "count", "discount_total"]
-            missing_totals = []
-            
-            for field in required_totals:
-                if field not in totals:
-                    missing_totals.append(field)
-            
-            if missing_totals:
-                print(f"❌ FAILED: Missing totals fields: {missing_totals}")
-                return False
-            
-            # Check breakdown structure
-            breakdown = data.get("breakdown", {})
-            required_breakdown = ["spa_zone", "spa_ritual", "spa_special_couple", "spa_addons"]
-            missing_breakdown = []
-            
-            for field in required_breakdown:
-                if field not in breakdown:
-                    missing_breakdown.append(field)
-            
-            if missing_breakdown:
-                print(f"❌ FAILED: Missing breakdown fields: {missing_breakdown}")
-                return False
-            
-            print(f"✅ SUCCESS: All required fields present")
-            print(f"   Totals: revenue={totals.get('revenue')}, count={totals.get('count')}, discount_total={totals.get('discount_total')}")
-            print(f"   Breakdown categories: {list(breakdown.keys())}")
-            
-            return True
-            
+                
         except json.JSONDecodeError:
             print(f"❌ FAILED: Response is not valid JSON")
             print(f"Response: {response.text}")
             return False
             
     except Exception as e:
-        print(f"❌ ERROR during SPA analytics test: {e}")
+        print(f"❌ ERROR during health endpoint test: {e}")
+        return False
+
+def test_api_endpoints():
+    """
+    Test 3: API Endpoints
+    Proveri da sledeći endpointi rade:
+    - GET /api/appointments
+    - GET /api/spa/appointments  
+    - GET /api/appointments/unviewed/count
+    - GET /api/services
+    """
+    print("=" * 80)
+    print("TEST 3: API ENDPOINTS")
+    print("=" * 80)
+    
+    endpoints_to_test = [
+        "/api/appointments",
+        "/api/spa/appointments", 
+        "/api/appointments/unviewed/count",
+        "/api/services"
+    ]
+    
+    all_passed = True
+    
+    for endpoint in endpoints_to_test:
+        print(f"\nTesting: {endpoint}")
+        print("-" * 40)
+        
+        try:
+            full_url = f"{BACKEND_URL}{endpoint}"
+            response = requests.get(full_url)
+            print(f"Request URL: {full_url}")
+            print(f"Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                try:
+                    data = response.json()
+                    print(f"✅ SUCCESS: {endpoint} returned valid JSON")
+                    
+                    # Basic validation based on endpoint
+                    if endpoint == "/api/appointments":
+                        if isinstance(data, list):
+                            print(f"   Appointments count: {len(data)}")
+                        else:
+                            print(f"   ❌ Expected array, got {type(data)}")
+                            all_passed = False
+                    
+                    elif endpoint == "/api/spa/appointments":
+                        if isinstance(data, list):
+                            print(f"   SPA appointments count: {len(data)}")
+                        else:
+                            print(f"   ❌ Expected array, got {type(data)}")
+                            all_passed = False
+                    
+                    elif endpoint == "/api/appointments/unviewed/count":
+                        if isinstance(data, dict) and "count" in data:
+                            print(f"   Unviewed count: {data['count']}")
+                        else:
+                            print(f"   ❌ Expected object with 'count' field, got {data}")
+                            all_passed = False
+                    
+                    elif endpoint == "/api/services":
+                        if isinstance(data, list):
+                            print(f"   Services count: {len(data)}")
+                        else:
+                            print(f"   ❌ Expected array, got {type(data)}")
+                            all_passed = False
+                            
+                except json.JSONDecodeError:
+                    print(f"❌ FAILED: {endpoint} returned invalid JSON")
+                    print(f"Response: {response.text[:200]}...")
+                    all_passed = False
+            else:
+                print(f"❌ FAILED: {endpoint} returned HTTP {response.status_code}")
+                print(f"Response: {response.text[:200]}...")
+                all_passed = False
+                
+        except Exception as e:
+            print(f"❌ ERROR testing {endpoint}: {e}")
+            all_passed = False
+    
+    return all_passed
+
+def test_static_files_blocked():
+    """
+    Test 4: API-Only Domain - Static Files Blocked
+    Proveri da backend blokira static fajlove
+    GET /static/test.js mora da vrati {"ok":false,"error":"STATIC_DISABLED_ON_API_DOMAIN"}
+    Koristi lokalni URL za ovaj test: curl http://localhost:8001/static/test.js
+    """
+    print("=" * 80)
+    print("TEST 4: STATIC FILES BLOCKED (API-ONLY DOMAIN)")
+    print("=" * 80)
+    
+    # Test with local URL as specified in review request
+    local_url = "http://localhost:8001/static/test.js"
+    
+    try:
+        print(f"Testing local URL: {local_url}")
+        response = requests.get(local_url, timeout=10)
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code == 404:
+            try:
+                data = response.json()
+                expected_error = "STATIC_DISABLED_ON_API_DOMAIN"
+                
+                if (data.get("ok") == False and 
+                    data.get("error") == expected_error):
+                    print(f"✅ SUCCESS: Static files correctly blocked")
+                    print(f"Response: {data}")
+                    return True
+                else:
+                    print(f"❌ FAILED: Unexpected response format")
+                    print(f"Expected: {{'ok': false, 'error': '{expected_error}'}}")
+                    print(f"Got: {data}")
+                    return False
+                    
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Response is not valid JSON")
+                print(f"Response: {response.text}")
+                return False
+        else:
+            print(f"❌ FAILED: Expected HTTP 404, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+            
+    except requests.exceptions.ConnectionError:
+        print(f"❌ ERROR: Could not connect to {local_url}")
+        print("This might be expected if backend is not running locally")
+        return False
+    except Exception as e:
+        print(f"❌ ERROR during static files test: {e}")
         return False
 
 def test_spa_appointments():
