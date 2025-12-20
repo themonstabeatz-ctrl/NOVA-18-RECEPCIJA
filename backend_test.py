@@ -238,124 +238,68 @@ def test_static_files_blocked():
         print(f"❌ ERROR during static files test: {e}")
         return False
 
-def test_spa_appointments():
+def run_review_request_tests():
     """
-    Test 3: SPA Appointments (create)
-    POST /api/spa/appointments
-    Expected: Response with "id" field
+    Run all tests specified in the review request:
+    1. CORS Test
+    2. Health Endpoint  
+    3. API Endpoints
+    4. Static Files Blocked
     """
+    print("🧖 STARTING BUA LUANG SPA TESTS - REVIEW REQUEST")
+    print(f"Backend URL: {BACKEND_URL}")
+    print(f"Allowed Frontend Origin: {ALLOWED_FRONTEND_ORIGIN}")
     print("=" * 80)
-    print("TEST 3: SPA APPOINTMENTS CREATE")
-    print("=" * 80)
     
-    # Test payload as specified in review request
-    payload = {
-        "client_first_name": "TestAgent",
-        "client_last_name": "Tester",
-        "client_phone": "0609999999",
-        "client_email": "testagent@test.com",
-        "appointment_date": "2025-12-31",
-        "appointment_time": "18:00",
-        "spa_category": "spa_special_couple",
-        "spa_package_id": "ROMANTIC_COUPLE_1",
-        "selected_zones": [],
-        "selected_addons": []
-    }
+    tests = [
+        ("CORS Configuration", test_cors_configuration),
+        ("Health Endpoint", test_health_endpoint),
+        ("API Endpoints", test_api_endpoints),
+        ("Static Files Blocked", test_static_files_blocked)
+    ]
     
-    print(f"Request payload:")
-    print(json.dumps(payload, indent=2))
+    results = []
     
-    try:
-        response = requests.post(
-            f"{BACKEND_URL}/spa/appointments",
-            json=payload,
-            headers={"Content-Type": "application/json"}
-        )
-        
-        print(f"Response Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
-            print(f"Response: {response.text}")
-            return False
-        
+    for test_name, test_func in tests:
+        print(f"\n🔍 Running: {test_name}")
         try:
-            data = response.json()
-            
-            # Check for required "id" field
-            appointment_id = data.get("id")
-            if not appointment_id:
-                print(f"❌ FAILED: Response missing required 'id' field")
-                print(f"Response: {json.dumps(data, indent=2)}")
-                return False
-            
-            print(f"✅ SUCCESS: SPA appointment created with ID: {appointment_id}")
-            
-            # Check other expected fields
-            expected_fields = ["client_first_name", "client_last_name", "client_phone", "start_time", "end_time"]
-            for field in expected_fields:
-                if field in data:
-                    print(f"   {field}: {data.get(field)}")
-                else:
-                    print(f"   ⚠️  Missing field: {field}")
-            
-            return True
-            
-        except json.JSONDecodeError:
-            print(f"❌ FAILED: Response is not valid JSON")
-            print(f"Response: {response.text}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ ERROR during SPA appointment creation: {e}")
+            result = test_func()
+            results.append((test_name, result))
+            if result:
+                print(f"✅ {test_name}: PASSED")
+            else:
+                print(f"❌ {test_name}: FAILED")
+        except Exception as e:
+            print(f"❌ {test_name}: ERROR - {e}")
+            results.append((test_name, False))
+        
+        print("-" * 80)
+    
+    # Summary
+    print("\n" + "=" * 80)
+    print("🧖 BUA LUANG SPA TEST SUMMARY")
+    print("=" * 80)
+    
+    passed = sum(1 for _, result in results if result)
+    total = len(results)
+    
+    for test_name, result in results:
+        status = "✅ PASSED" if result else "❌ FAILED"
+        print(f"{test_name}: {status}")
+    
+    print(f"\nOverall: {passed}/{total} tests passed")
+    
+    if passed == total:
+        print("🎉 ALL TESTS PASSED!")
+        return True
+    else:
+        print("❌ SOME TESTS FAILED!")
         return False
 
-def test_cors_verification():
-    """
-    Test 4: CORS Verification
-    OPTIONS preflight request with Origin: https://spa-integration.preview.emergentagent.com
-    Expected: access-control-allow-origin header
-    """
-    print("=" * 80)
-    print("TEST 4: CORS VERIFICATION")
-    print("=" * 80)
-    
-    origin = "https://spa-integration.preview.emergentagent.com"
-    
-    try:
-        # Test OPTIONS preflight request
-        response = requests.options(
-            f"{BACKEND_URL}/spa/appointments",
-            headers={
-                "Origin": origin,
-                "Access-Control-Request-Method": "POST",
-                "Access-Control-Request-Headers": "Content-Type"
-            }
-        )
-        
-        print(f"Response Status: {response.status_code}")
-        print(f"Response Headers: {dict(response.headers)}")
-        
-        # Check for CORS headers
-        cors_origin = response.headers.get("access-control-allow-origin")
-        cors_methods = response.headers.get("access-control-allow-methods")
-        cors_headers = response.headers.get("access-control-allow-headers")
-        
-        print(f"CORS Origin: {cors_origin}")
-        print(f"CORS Methods: {cors_methods}")
-        print(f"CORS Headers: {cors_headers}")
-        
-        # Verify the origin is allowed
-        if cors_origin == origin or cors_origin == "*":
-            print(f"✅ SUCCESS: CORS origin header correct: {cors_origin}")
-            return True
-        else:
-            print(f"❌ FAILED: Expected CORS origin '{origin}' or '*', got '{cors_origin}'")
-            return False
-            
-    except Exception as e:
-        print(f"❌ ERROR during CORS verification: {e}")
-        return False
+if __name__ == "__main__":
+    """Main execution - run the review request tests"""
+    success = run_review_request_tests()
+    sys.exit(0 if success else 1)
 
 def test_ceo_dashboard_analytics():
     """
