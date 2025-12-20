@@ -110,6 +110,20 @@ def build_client_email_for_massage(appt: dict) -> tuple:
         LineItem("📞", "Telefon", appt.get('client_phone') or 'N/A'),
     ]
     
+    # 💰 Add pricing with discount display from snapshot
+    pricing = appt.get('pricing', {})
+    original_price = pricing.get('original_price') or appt.get('snapshot_original_price') or appt.get('original_total_price')
+    discount_percent = pricing.get('discount_percent') or appt.get('snapshot_discount_percentage', 0)
+    final_price = pricing.get('final_price') or appt.get('snapshot_price') or appt.get('total_price')
+    
+    if discount_percent and discount_percent > 0 and original_price:
+        # Show original strikethrough + discount + final
+        items.append(LineItem("💰", "Cena (orig)", f"<s>{original_price:,.0f}</s> RSD"))
+        items.append(LineItem("🏷️", "Popust", f"-{int(discount_percent)}%"))
+        items.append(LineItem("✅", "Za naplatu", f"<b>{final_price:,.0f}</b> RSD"))
+    elif final_price:
+        items.append(LineItem("💰", "Cena", f"{final_price:,.0f} RSD"))
+    
     m = ClientEmailModel(
         salon_name="Bua Luang Thai Spa",
         client_full_name=full_name,
