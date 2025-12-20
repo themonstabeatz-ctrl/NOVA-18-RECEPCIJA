@@ -2908,24 +2908,46 @@ async def get_revenue_statistics(
     
     appointments = await db.appointments.find(query, {"_id": 0}).to_list(10000)
     
-    # Get services for pricing
+    # Get services for pricing FALLBACK only
     services = await db.services.find({}, {"_id": 0}).to_list(1000)
     service_map = {s['id']: s for s in services}
     
     total_revenue = 0
+    gross_revenue = 0  # Original prices (before discounts)
+    total_discount = 0
+    
     for apt in appointments:
-        service = service_map.get(apt['service_id'], {})
-        original_price = service.get('price', 0)
-        discount_percentage = service.get('discount_percentage', 0)
-        # Calculate discounted price
-        discounted_price = original_price * (1 - discount_percentage / 100)
-        total_revenue += discounted_price
+        # PRIORITY 1: Use pricing snapshot from appointment (immutable at booking time)
+        pricing = apt.get('pricing', {})
+        if pricing.get('final_price'):
+            final_price = pricing.get('final_price', 0)
+            original_price = pricing.get('original_price', final_price)
+        # PRIORITY 2: Use snapshot_ fields
+        elif apt.get('snapshot_price'):
+            final_price = apt.get('snapshot_price', 0)
+            original_price = apt.get('snapshot_original_price', final_price)
+        # PRIORITY 3: Use total_price field
+        elif apt.get('total_price'):
+            final_price = apt.get('total_price', 0)
+            original_price = apt.get('original_total_price', final_price)
+        # FALLBACK: Calculate from service (not recommended - service may have changed)
+        else:
+            service = service_map.get(apt.get('service_id'), {})
+            original_price = service.get('price', 0)
+            discount_percentage = service.get('discount_percentage', 0)
+            final_price = original_price * (1 - discount_percentage / 100)
+        
+        total_revenue += final_price
+        gross_revenue += original_price
+        total_discount += (original_price - final_price)
     
     return {
         "period": period,
         "start_date": date_start.isoformat(),
         "end_date": date_end.isoformat(),
-        "total_revenue": total_revenue,
+        "total_revenue": int(total_revenue),  # Net revenue (after discounts)
+        "gross_revenue": int(gross_revenue),  # Gross revenue (before discounts)
+        "total_discount": int(total_discount),  # Total discount amount
         "currency": "RSD",
         "appointments_count": len(appointments)
     }
