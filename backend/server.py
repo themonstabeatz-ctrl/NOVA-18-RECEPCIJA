@@ -3329,6 +3329,16 @@ print(f"🔐 LOCKED FRONTEND_PUBLIC_URL = {FRONTEND_PUBLIC_URL}")
 cors_origins = os.environ.get('CORS_ORIGINS', FRONTEND_PUBLIC_URL).split(',')
 print(f"🔒 CORS LOCK: Allowed origins = {cors_origins}")
 
+# ✅ LOG DISCOUNT ROUTES (proof they exist)
+def log_discount_routes():
+    for route in app.routes:
+        if hasattr(route, 'methods') and 'PATCH' in route.methods:
+            if 'discount' in route.path:
+                print(f"✅ DISCOUNT ROUTE: {route.path} {route.methods}")
+
+# Call after all routes are registered
+log_discount_routes()
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
