@@ -215,11 +215,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "CEO Dashboard Analytics"
-    - "Discount System - Anti-Duplicate Verification"
-  stuck_tasks:
-    - "CEO Dashboard Analytics"
-    - "Discount System - Anti-Duplicate Verification"
+    - "Serbian E2E Discount System Test"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
   completed_tests:
@@ -232,6 +229,9 @@ test_plan:
     - "Discount System - SPA Services Pricing Fields"
     - "Discount System - Massage Service Discount PATCH"
     - "Discount System - SPA Service Discount PATCH"
+    - "CEO Dashboard Analytics"
+    - "Discount System - Anti-Duplicate Verification"
+    - "Serbian E2E Discount System Test"
 
 agent_communication:
   - agent: "testing"
