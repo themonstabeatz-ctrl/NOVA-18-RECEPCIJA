@@ -1036,6 +1036,21 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     doc['duration_min'] = total_duration if total_duration > 0 else 120  # Default 120 min if not calculated
     doc['is_viewed'] = False  # For notification badge on dashboard
     
+    # 💰 PRICING SNAPSHOT - Immutable record of price at booking time
+    doc['pricing'] = {
+        "original_price": int(original_total),
+        "discount_percent": int(applied_discount),
+        "discount_amount": int(discount_amount),
+        "final_price": int(final_total),
+        "discount_id": f"SPA_{int(applied_discount)}" if applied_discount > 0 else None,
+        "discount_reason": f"SPA promo {applied_discount}%" if applied_discount > 0 else None,
+        "snapshot_at": datetime.now().isoformat()
+    }
+    
+    # Log discount if applied
+    if applied_discount > 0:
+        logger.info(f"💰 DISCOUNT_APPLIED type=SPA item={doc['service_name']} original={original_total} pct={applied_discount} final={final_total}")
+    
     # 1) INSERT into DB first
     await db.spa_appointments.insert_one(doc)
     
