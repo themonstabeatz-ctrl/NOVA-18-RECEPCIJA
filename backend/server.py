@@ -757,7 +757,12 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
         else:
             final_price = original_price
         
-        service['final_price'] = round(final_price, 2)
+        # 🔐 NORMALIZE OUTPUT - uniform pricing fields for all services
+        service['original_price'] = int(original_price)
+        service['discount_percent'] = int(discount_pct)
+        service['final_price'] = int(round(final_price))
+        service['has_discount'] = discount_pct > 0 and final_price < original_price
+        # Keep legacy field for backward compatibility
         service['discount_percentage'] = discount_pct
         # 🔒 END STABLE ZONE
     
