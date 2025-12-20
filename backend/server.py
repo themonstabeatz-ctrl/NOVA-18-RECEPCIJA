@@ -3272,17 +3272,9 @@ async def get_detailed_analytics(
 # SPA Discounts are BACKEND-ONLY (admin panel via /api/spa/settings)
 # Note: /api/services/{id}/discount is a legitimate admin endpoint for massage discounts
 # ============================================
-@api_router.patch("/spa/services/{service_id}/discount")
-@api_router.put("/spa/services/{service_id}/discount")
-@api_router.post("/spa/services/{service_id}/discount")
-async def block_spa_service_discount_update(service_id: str):
-    """Block any attempt to update SPA service discounts from frontend.
-    SPA discounts are managed globally via /api/spa/settings endpoint.
-    """
-    raise HTTPException(
-        status_code=403, 
-        detail="DISCOUNT_UPDATES_BACKEND_ONLY. SPA discounts are managed via /api/spa/settings. Public frontend must not call this endpoint."
-    )
+# NOTE: SPA service discount endpoint is now in spa_module.py
+# Admin UI uses PATCH /api/spa/services/{service_id}/discount?discount=X
+# This allows per-service discount management (0, 5, 10, 15%)
 
 
 # ============================================
