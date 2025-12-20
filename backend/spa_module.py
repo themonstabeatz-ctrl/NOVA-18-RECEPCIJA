@@ -389,10 +389,12 @@ async def get_spa_services(category: Optional[str] = None):
     """Get all SPA services, optionally filtered by category.
     
     Returns services with pricing fields:
-    - original_price: Base price
-    - discount_percent: Active discount (from settings)
+    - original_price: Base price (never changes)
+    - discount_percent: Active discount per service (0, 5, 10, 15)
     - final_price: Price after discount
     - has_discount: Boolean
+    
+    BACKEND IS SOURCE OF TRUTH - frontend never calculates prices.
     """
     query = {}
     if category:
@@ -405,18 +407,27 @@ async def get_spa_services(category: Optional[str] = None):
         logger.info("SPA services empty, initializing with defaults...")
         for svc_data in SPA_DEFAULT_SERVICES:
             svc = SpaService(**svc_data)
-            await db.spa_services.insert_one(svc.model_dump())
+            # Initialize with original_price = price, no discount
+            svc_doc = svc.model_dump()
+            svc_doc["original_price"] = svc_doc["price"]
+            svc_doc["discount_percent"] = 0
+            svc_doc["final_price"] = svc_doc["price"]
+            svc_doc["has_discount"] = False
+            await db.spa_services.insert_one(svc_doc)
         services = await db.spa_services.find(query, {"_id": 0}).to_list(100)
     
-    # Get active discount from settings
-    settings = await db.spa_settings.find_one({"id": "global"}, {"_id": 0})
-    active_discount = settings.get("discount_percentage", 0) if settings else 0
-    
-    # Enrich each service with pricing fields
+    # Enrich each service with pricing fields (from individual service discount)
     enriched_services = []
     for svc in services:
-        original_price = svc.get("price", 0)
-        pricing = apply_spa_discount_v2(original_price, active_discount)
+        # Get original price (first time? use price field)
+        original_price = svc.get("original_price") or svc.get("price", 0)
+        original_price = int(original_price)
+        
+        # Get discount from THIS service (not global)
+        service_discount = svc.get("discount_percent", 0)
+        
+        # Calculate pricing using discount engine
+        pricing = apply_spa_discount_v2(original_price, service_discount)
         
         enriched_services.append({
             **svc,
