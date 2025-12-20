@@ -3543,11 +3543,17 @@ async def send_booking_emails(appointment_data: dict):
     """
     🔒 LOCKED - Send booking confirmation emails to client and owner.
     
+    IMPORTANT: Admin gets ADMIN template, Client gets CLIENT template!
+    Template choice does NOT depend on booking type (massage/spa).
+    
     Args:
         appointment_data: Dictionary containing appointment details
         
     Note: This function will NOT raise exceptions to prevent blocking booking creation.
     """
+    from email_templates import BookingEmailData, render_admin_email
+    from email_templates.adapters import build_client_email_for_massage
+    
     logger.info(f"📧 EMAIL FUNCTION CALLED for: {appointment_data.get('client_email')}")
     try:
         # Get SMTP settings from environment
@@ -3566,12 +3572,12 @@ async def send_booking_emails(appointment_data: dict):
             return
         
         # Extract appointment details
-        client_name = f"{appointment_data.get('client_first_name', '')} {appointment_data.get('client_last_name', '')}"
+        client_name = f"{appointment_data.get('client_first_name', '')} {appointment_data.get('client_last_name', '')}".strip()
         client_phone = appointment_data.get('client_phone', 'N/A')
         client_email = appointment_data.get('client_email')
         start_time = appointment_data.get('start_time')
         service_name = appointment_data.get('service_name', 'N/A')
-        notes = appointment_data.get('notes', '')
+        appt_id = appointment_data.get('id', 'unknown')
         
         # Format datetime
         if isinstance(start_time, str):
@@ -3586,167 +3592,35 @@ async def send_booking_emails(appointment_data: dict):
             formatted_date = start_time.strftime('%d.%m.%Y') if start_time else 'N/A'
             formatted_time_only = start_time.strftime('%H:%M') if start_time else ''
         
-        # Get public website URL from env
-        public_site = os.environ.get('PUBLIC_WEBSITE_URL', 'https://www.bualuangthaispa.rs')
+        # ============================================
+        # ADMIN EMAIL - Uses ADMIN template (plain, internal)
+        # ============================================
+        admin_data = BookingEmailData(
+            salon_name="Bua Luang Thai Spa",
+            client_full_name=client_name,
+            client_phone=client_phone,
+            client_email=client_email or '',
+            service_title=service_name,
+            service_details=None,
+            date_str=formatted_date,
+            time_str=formatted_time_only,
+            duration_min=None,
+            price=appointment_data.get('price') or appointment_data.get('final_total'),
+            address_line="Abebe Bikile 10A, Beograd",
+            contact_email="bualuangthailandspa@gmail.com",
+            contact_phone="+381 62 625 500",
+            booking_type="massage"
+        )
+        admin_subject, admin_html = render_admin_email(admin_data)
         
-        # Image URLs
-        logo_url = "https://customer-assets.emergentagent.com/job_massage-booking-fix/artifacts/2m8jgqjv_Bua%20luang%20logo%20crna%20senka.png"
-        background_url = "https://customer-assets.emergentagent.com/job_massage-booking-fix/artifacts/pfz1db04_podloga%20prazna.jpg"
-        
-        # Prepare HTML email content - Bua Luang design with real logo and background
-        email_html = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #1a1a1a;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #1a1a1a;">
-        <tr>
-            <td align="center" style="padding: 10px;">
-                <table width="450" cellpadding="0" cellspacing="0" style="background-color: #0d0d0d; border-radius: 10px; overflow: hidden; border: 1px solid #c9a227;">
-                    
-                    <!-- Header with Logo and Background Image -->
-                    <tr>
-                        <td style="background-image: url('{background_url}'); background-size: cover; background-position: center; padding: 30px; text-align: center;">
-                            <a href="https://www.bualuangthaispa.rs" style="text-decoration: none;">
-                                <img src="{logo_url}" alt="Bua Luang Thai Spa" style="width: 180px; height: auto; display: block; margin: 0 auto;" />
-                            </a>
-                        </td>
-                    </tr>
-                    
-                    <!-- Main Content - Dark with Gold Border -->
-                    <tr>
-                        <td style="background-color: #1a1a1a; padding: 20px;">
-                            <table width="100%" style="background-color: #0d0d0d; border: 2px solid #c9a227; border-radius: 8px;">
-                                <tr>
-                                    <td style="padding: 20px;">
-                                        <!-- Greeting -->
-                                        <p style="color: #c9a227; font-size: 16px; margin: 0 0 10px 0;">
-                                            Poštovani/a {client_name},
-                                        </p>
-                                        <p style="color: #4CAF50; font-size: 18px; font-weight: bold; margin: 0 0 20px 0;">
-                                            ✅ Uspešno zakazano!
-                                        </p>
-                                        
-                                        <!-- Appointment Details Box - White Background -->
-                                        <table width="100%" style="background-color: #ffffff; border-radius: 8px; margin-bottom: 15px;">
-                                            <tr>
-                                                <td style="padding: 15px;">
-                                                    <table width="100%">
-                                                        <tr>
-                                                            <td style="padding: 8px 0; color: #333; font-size: 14px;">
-                                                                <span style="color: #c9a227;">💆</span> <strong>Tretman:</strong>
-                                                                <span style="float: right; font-weight: normal;">{service_name}</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="padding: 8px 0; color: #333; font-size: 14px; border-top: 1px solid #eee;">
-                                                                <span style="color: #c9a227;">📅</span> <strong>Datum:</strong>
-                                                                <span style="float: right; font-weight: normal;">{formatted_date}</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="padding: 8px 0; color: #333; font-size: 14px; border-top: 1px solid #eee;">
-                                                                <span style="color: #c9a227;">🕐</span> <strong>Vreme:</strong>
-                                                                <span style="float: right; font-weight: normal;">{formatted_time_only}</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="padding: 8px 0; color: #333; font-size: 14px; border-top: 1px solid #eee;">
-                                                                <span style="color: #c9a227;">👤</span> <strong>Ime:</strong>
-                                                                <span style="float: right; font-weight: normal;">{client_name}</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="padding: 8px 0; color: #333; font-size: 14px; border-top: 1px solid #eee;">
-                                                                <span style="color: #c9a227;">📞</span> <strong>Telefon:</strong>
-                                                                <span style="float: right; font-weight: normal;">{client_phone}</span>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                        
-                                        <!-- Important Note - Yellow Background -->
-                                        <table width="100%" style="background-color: #fffde7; border-radius: 5px; border-left: 4px solid #c9a227;">
-                                            <tr>
-                                                <td style="padding: 12px; color: #5d4e37; font-size: 13px;">
-                                                    Stignite 10 min pre termina. Otkazivanje 4h unapred.
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    
-                    <!-- Footer - Contact Info -->
-                    <tr>
-                        <td style="background-color: #0d0d0d; padding: 20px; text-align: center; border-top: 1px solid #333;">
-                            <p style="color: #c9a227; margin: 0 0 10px 0; font-size: 14px;">
-                                📧 bualuangthailandspa@gmail.com
-                            </p>
-                            <p style="color: #c9a227; margin: 0 0 10px 0; font-size: 14px;">
-                                📞 +381 62 625 500 | 📍 Abebe Bikile 10A
-                            </p>
-                            <p style="margin: 15px 0 10px 0;">
-                                <a href="https://www.bualuangthaispa.rs" style="display: inline-block; background-color: #c9a227; color: #0d0d0d; text-decoration: none; padding: 10px 25px; border-radius: 5px; font-size: 14px; font-weight: bold;">
-                                    🌐 www.bualuangthaispa.rs
-                                </a>
-                            </p>
-                            <p style="color: #ff69b4; margin: 10px 0 0 0; font-size: 18px;">
-                                🌸
-                            </p>
-                        </td>
-                    </tr>
-                    
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>
-"""
-        
-        # Plain text fallback
-        email_body = f"""
-Poštovani/a {client_name},
-
-✅ Uspešno zakazano!
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💆 Tretman: {service_name}
-📅 Datum: {formatted_date}
-🕐 Vreme: {formatted_time_only}
-👤 Ime: {client_name}
-📞 Telefon: {client_phone}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Stignite 10 min pre termina. Otkazivanje 4h unapred.
-
-Bua Luang Thai Spa
-📧 bualuangthailandspa@gmail.com
-📞 +381 62 625 500
-📍 Abebe Bikile 10A
-
-🌸
-"""
-        
-        # Email to owner (ALWAYS send) - Plain text for quick reading
-        owner_subject = f"🔔 Nova rezervacija — {formatted_date} {formatted_time_only} — {service_name}"
-        owner_msg = MIMEMultipart('alternative')
-        owner_msg['From'] = smtp_from
-        owner_msg['To'] = smtp_to_owner
-        owner_msg['Subject'] = owner_subject
-        owner_msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
-        owner_msg.attach(MIMEText(email_html, 'html', 'utf-8'))
-        
-        # Send to owner
+        # Send to owner (ADMIN template)
         try:
+            owner_msg = MIMEMultipart()
+            owner_msg['From'] = smtp_from
+            owner_msg['To'] = smtp_to_owner
+            owner_msg['Subject'] = admin_subject
+            owner_msg.attach(MIMEText(admin_html, 'html', 'utf-8'))
+            
             await aiosmtplib.send(
                 owner_msg,
                 hostname=smtp_host,
@@ -3755,19 +3629,21 @@ Bua Luang Thai Spa
                 password=smtp_password,
                 start_tls=True
             )
-            logger.info(f"✅ Email sent to owner: {smtp_to_owner}")
+            logger.info(f"📧 ADMIN_EMAIL_SENT to={smtp_to_owner} template=ADMIN appt_id={appt_id}")
         except Exception as e:
             logger.error(f"❌ Failed to send email to owner: {str(e)}")
         
-        # Email to client (only if email provided) - Beautiful HTML
+        # ============================================
+        # CLIENT EMAIL - Uses CLIENT template (branded, beautiful)
+        # ============================================
         if client_email:
-            client_subject = "✨ Potvrda rezervacije — Bua Luang Thai Spa"
-            client_msg = MIMEMultipart('alternative')
+            client_subject, client_html = build_client_email_for_massage(appointment_data)
+            
+            client_msg = MIMEMultipart()
             client_msg['From'] = smtp_from
             client_msg['To'] = client_email
             client_msg['Subject'] = client_subject
-            client_msg.attach(MIMEText(email_body, 'plain', 'utf-8'))
-            client_msg.attach(MIMEText(email_html, 'html', 'utf-8'))
+            client_msg.attach(MIMEText(client_html, 'html', 'utf-8'))
             
             try:
                 await aiosmtplib.send(
@@ -3778,11 +3654,11 @@ Bua Luang Thai Spa
                     password=smtp_password,
                     start_tls=True
                 )
-                logger.info(f"✅ Email sent to client: {client_email}")
+                logger.info(f"📧 CLIENT_EMAIL_SENT to={client_email} template=CLIENT appt_id={appt_id}")
             except Exception as e:
                 logger.error(f"❌ Failed to send email to client: {str(e)}")
         else:
-            logger.info("ℹ️ Client email not provided, skipping client notification")
+            logger.info(f"ℹ️ CLIENT_EMAIL_SKIPPED - no email provided appt_id={appt_id}")
             
     except Exception as e:
         # Catch all errors to prevent blocking booking
