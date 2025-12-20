@@ -169,15 +169,30 @@ backend:
 
   - task: "Discount System - Anti-Duplicate Verification"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL ISSUE: Double discount calculation detected in GET /api/services list endpoint. PATCH /api/services/{id}/discount returns final_price: 3740 (15% off 4400), but GET /api/services list shows final_price: 3179 for same service. Individual GET /api/services/{id} shows 3740 (correct). Lines 701-771 in server.py get_services() function applies additional discount calculation on already discounted services, causing double discount. PATCH and individual GET are consistent, but services list endpoint has bug."
+      - working: true
+        agent: "testing"
+        comment: "✅ RESOLVED: Double discount calculation issue has been fixed. Tested with service ID 98249336-b9d9-4685-b70c-81971d3cf216: PATCH returns final_price: 3740 (15% off 4400), GET individual returns final_price: 3740, GET services list returns final_price: 3740. All endpoints now return consistent pricing. No more double discount calculation."
+
+  - task: "Serbian E2E Discount System Test"
+    implemented: true
+    working: true
+    file: "backend/server.py, backend/spa_module.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE E2E TESTING COMPLETE: All Serbian review request scenarios PASSED. 1) PATCH /api/spa/services/{id}/discount?discount=15 returns uniform pricing fields (original_price, discount_percent, final_price, has_discount). 2) GET /api/spa/services shows correct discount fields for first service (original_price: 1400, discount_percent: 15, final_price: 1190, has_discount: true). 3) GET /api/services (massages) returns uniform fields (original_price, discount_percent, final_price, has_discount) for all 373 services. 4) Analytics endpoint /api/analytics/revenue?period=month uses pricing snapshot (total_revenue, gross_revenue, total_discount). 5) Reset discount to 0% works correctly. Complete discount system working as specified."
 
 frontend:
   - task: "CEO Dashboard UI"
