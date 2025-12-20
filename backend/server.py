@@ -739,29 +739,27 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
             service['created_at'] = datetime.fromisoformat(service['created_at'])
         
         # 🔒 DO NOT MODIFY — STABLE DISCOUNT CALCULATION LOGIC (Bua Luang)
-        # Calculate final_price using best discount logic
+        # Calculate final_price using ORIGINAL price (not current price which may be discounted)
         service_code = service.get('service_code')
-        if service_code:
-            discount_info = await get_best_discount_for_service_code(service_code)
-            # IMPORTANT: service['price'] IS the original price
-            original_price = service.get('price', 0)
-            
-            # Apply best discount
-            best_discount = discount_info['best_discount_percentage']
-            final_price = original_price * (1 - best_discount / 100.0)
-            
-            service['final_price'] = round(final_price, 2)
-            service['discount_percentage'] = best_discount
-        # 🔒 END STABLE ZONE
+        metadata = service.get('metadata') or {}
+        
+        # CRITICAL: Get ORIGINAL price, not current (potentially discounted) price
+        # metadata.original_price is set when discount is first applied
+        original_price = metadata.get('original_price') or service.get('price', 0)
+        original_price = float(original_price)
+        
+        # Get discount from service record (set by PATCH /api/services/{id}/discount)
+        discount_pct = service.get('discount_percentage', 0)
+        
+        # Calculate final price (NO service_code lookup - we use per-service discount)
+        if discount_pct > 0:
+            final_price = original_price * (1 - discount_pct / 100.0)
         else:
-            # Fallback if service_code doesn't exist (shouldn't happen after migration)
-            try:
-                original_price = service.get('price', 0)
-                discount = service.get('discount_percentage', 0)
-                service['final_price'] = round(original_price * (1 - discount / 100.0), 2)
-            except (AttributeError, TypeError) as e:
-                logger.warning(f"Error calculating fallback price for service {service.get('name', 'unknown')}: {e}")
-                service['final_price'] = service.get('price', 0)
+            final_price = original_price
+        
+        service['final_price'] = round(final_price, 2)
+        service['discount_percentage'] = discount_pct
+        # 🔒 END STABLE ZONE
     
     # DEBUG: Log Aroma sa toplim biljnim kompresama services AFTER processing
     for svc in services:
