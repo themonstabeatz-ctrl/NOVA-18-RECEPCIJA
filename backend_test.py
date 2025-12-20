@@ -823,24 +823,28 @@ def test_static_files_blocked():
         print(f"❌ ERROR during static files test: {e}")
         return False
 
-def run_review_request_tests():
+def run_discount_system_tests():
     """
-    Run all tests specified in the review request:
+    Run all discount system tests specified in the Serbian review request:
     1. CORS Test
-    2. Health Endpoint  
-    3. API Endpoints
-    4. Static Files Blocked
+    2. GET /api/services pricing fields
+    3. GET /api/spa/services pricing fields  
+    4. PATCH /api/services/{service_id}/discount (massage)
+    5. PATCH /api/spa/services/{service_id}/discount (SPA)
+    6. Anti-duplicate discount verification
     """
-    print("🧖 STARTING BUA LUANG SPA TESTS - REVIEW REQUEST")
+    print("🧖 STARTING BUA LUANG SPA DISCOUNT SYSTEM TESTS")
     print(f"Backend URL: {BACKEND_URL}")
-    print(f"Allowed Frontend Origin: {ALLOWED_FRONTEND_ORIGIN}")
+    print(f"Frontend Origin: {FRONTEND_ORIGIN}")
     print("=" * 80)
     
     tests = [
         ("CORS Configuration", test_cors_configuration),
-        ("Health Endpoint", test_health_endpoint),
-        ("API Endpoints", test_api_endpoints),
-        ("Static Files Blocked", test_static_files_blocked)
+        ("Services Pricing Fields", test_services_pricing_fields),
+        ("SPA Services Pricing Fields", test_spa_services_pricing_fields),
+        ("Massage Service Discount PATCH", test_massage_service_discount_patch),
+        ("SPA Service Discount PATCH", test_spa_service_discount_patch),
+        ("Anti-Duplicate Discount Verification", test_anti_duplicate_discount_verification)
     ]
     
     results = []
@@ -862,7 +866,7 @@ def run_review_request_tests():
     
     # Summary
     print("\n" + "=" * 80)
-    print("🧖 BUA LUANG SPA TEST SUMMARY")
+    print("🧖 BUA LUANG SPA DISCOUNT SYSTEM TEST SUMMARY")
     print("=" * 80)
     
     passed = sum(1 for _, result in results if result)
@@ -875,10 +879,10 @@ def run_review_request_tests():
     print(f"\nOverall: {passed}/{total} tests passed")
     
     if passed == total:
-        print("🎉 ALL TESTS PASSED!")
+        print("🎉 ALL DISCOUNT SYSTEM TESTS PASSED!")
         return True
     else:
-        print("❌ SOME TESTS FAILED!")
+        print("❌ SOME DISCOUNT SYSTEM TESTS FAILED!")
         return False
 
 if __name__ == "__main__":
