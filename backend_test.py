@@ -22,8 +22,8 @@ FRONTEND_ORIGIN = "https://relax-reserve-5.preview.emergentagent.com"
 def test_cors_configuration():
     """
     Test 1: CORS Configuration Test
-    Pošalji OPTIONS request na `/api/health` sa `Origin: https://massage-app-4.preview.emergentagent.com`
-    Očekivani header: `access-control-allow-origin: https://massage-app-4.preview.emergentagent.com`
+    OPTIONS /api/health sa Origin: https://relax-reserve-5.preview.emergentagent.com
+    Očekivano: access-control-allow-origin: https://relax-reserve-5.preview.emergentagent.com
     """
     print("=" * 80)
     print("TEST 1: CORS CONFIGURATION")
@@ -34,14 +34,14 @@ def test_cors_configuration():
         response = requests.options(
             f"{API_BASE_URL}/health",
             headers={
-                "Origin": ALLOWED_FRONTEND_ORIGIN,
+                "Origin": FRONTEND_ORIGIN,
                 "Access-Control-Request-Method": "GET",
                 "Access-Control-Request-Headers": "Content-Type"
             }
         )
         
         print(f"Request URL: {API_BASE_URL}/health")
-        print(f"Origin Header: {ALLOWED_FRONTEND_ORIGIN}")
+        print(f"Origin Header: {FRONTEND_ORIGIN}")
         print(f"Response Status: {response.status_code}")
         
         # Check response headers
@@ -55,11 +55,11 @@ def test_cors_configuration():
         print(f"  access-control-allow-headers: {cors_headers}")
         
         # Verify CORS origin matches exactly
-        if cors_origin == ALLOWED_FRONTEND_ORIGIN:
+        if cors_origin == FRONTEND_ORIGIN:
             print(f"✅ SUCCESS: CORS allows ONLY the correct origin: {cors_origin}")
             return True
         else:
-            print(f"❌ FAILED: Expected CORS origin '{ALLOWED_FRONTEND_ORIGIN}', got '{cors_origin}'")
+            print(f"❌ FAILED: Expected CORS origin '{FRONTEND_ORIGIN}', got '{cors_origin}'")
             return False
             
     except Exception as e:
