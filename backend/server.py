@@ -246,6 +246,9 @@ class ServiceBase(BaseModel):
     has_discount: Optional[bool] = Field(default=None, description="Flag for easier filtering")
     service_code: Optional[str] = Field(default=None, description="Unique service code for matching across categories")
     is_couple: bool = Field(default=False, description="True if this is a couple/[PAROVI] service")
+    # 🔐 UNIFORM PRICING FIELDS (same as SPA)
+    original_price: Optional[int] = Field(default=None, description="Original price before discount")
+    discount_percent: Optional[int] = Field(default=None, description="Discount percentage (0, 5, 10, 15)")
 
 class ServiceCreate(ServiceBase):
     pass
