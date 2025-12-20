@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script for SPA Module
-Testing SPA endpoints as specified in review request
-REVIEW REQUEST: Test SPA module backend endpoints on spa-dashboard-2
+Backend API Testing Script for Bua Luang Spa Application
+Testing CORS configuration and API endpoints as specified in review request
+
+REVIEW REQUEST: Testiraj CORS konfiguraciju i API endpointe za Bua Luang spa aplikaciju:
+- Backend URL: https://spa-integration.preview.emergentagent.com
+- Dozvoljeni frontend origin: https://massage-app-4.preview.emergentagent.com
 """
 
 import requests
@@ -11,10 +14,10 @@ from datetime import datetime, timedelta
 import sys
 import subprocess
 
-# Backend URL from environment - USING PRODUCTION URL FOR TESTING
-BACKEND_URL = "https://spa-integration.preview.emergentagent.com/api"
-PRODUCTION_BACKEND_URL = "https://thai-spa-booking.emergent.host/api"
-WEBSITE_URL = "https://spa-integration.preview.emergentagent.com"
+# URLs from review request
+BACKEND_URL = "https://spa-integration.preview.emergentagent.com"
+API_BASE_URL = f"{BACKEND_URL}/api"
+ALLOWED_FRONTEND_ORIGIN = "https://massage-app-4.preview.emergentagent.com"
 
 def test_health_check():
     """
