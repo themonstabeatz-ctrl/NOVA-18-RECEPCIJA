@@ -6,7 +6,10 @@ DOES NOT interact with massage/couples logic.
 
 Endpoints:
 - GET /api/spa/services
+- GET /api/spa/cards
+- PATCH /api/spa/cards/{card_id}/discount
 - POST /api/spa/quote
+- POST /api/spa/card-quote
 - POST /api/spa/appointments
 - GET /api/spa/analytics
 """
@@ -28,6 +31,34 @@ import re
 from discount_engine import apply_spa_discount_v2, create_pricing_snapshot, enrich_service_with_discount
 
 logger = logging.getLogger(__name__)
+
+# ============================================
+# 🎴 SPA CARDS - Source of Truth for Card Discounts
+# ============================================
+# This is the ONLY place where card discounts are defined.
+# Admin can update via PATCH /api/spa/cards/{card_id}/discount
+# Quote and booking endpoints READ from here.
+
+SPA_CARDS = {
+    # Classic Rituals
+    "silky_body_ritual": {"name": "Silky Body Ritual", "discount_percent": 0},
+    "gentle_touch_ritual": {"name": "Gentle Touch Ritual", "discount_percent": 0},
+    "deep_renewal_ritual": {"name": "Deep Renewal Ritual", "discount_percent": 0},
+    
+    # Herbal Rituals
+    "silky_herbal_compress": {"name": "Silky Herbal Compress Ritual", "discount_percent": 0},
+    "thai_herbal_compress": {"name": "Thai Herbal Compress Ritual", "discount_percent": 0},
+    "aroma_stone_harmony": {"name": "Aroma Stone Harmony Ritual", "discount_percent": 0},
+    
+    # SPA Zone (standalone)
+    "spa_zone": {"name": "SPA Zone", "discount_percent": 0},
+    
+    # Couple Packages
+    "romantic_couple_package": {"name": "Romantični paket za parove", "discount_percent": 0},
+    "romantic_peeling_package": {"name": "Romantični piling paket za parove", "discount_percent": 0},
+}
+
+ALLOWED_CARD_DISCOUNTS = {0, 5, 10, 15}
 
 # ============================================
 # SPA NOTES PARSER & NORMALIZER
