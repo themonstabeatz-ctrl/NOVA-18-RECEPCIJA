@@ -292,6 +292,33 @@ class SpaAppointment(BaseModel):
     # Service name for display
     service_name: Optional[str] = None  # Primary service name for listing
 
+
+# ============================================
+# Card Discount Models (NEW)
+# ============================================
+class CardDiscountUpdate(BaseModel):
+    """Update card discount for a SPA ritual/card"""
+    card_discount_percent: int = Field(..., description="Card discount: 0, 5, 10, or 15%")
+
+
+class CardQuoteRequest(BaseModel):
+    """Request for card-level quote calculation"""
+    card_id: str = Field(..., description="Card/ritual ID (e.g., 'silky_body_ritual')")
+    base_service_id: str = Field(..., description="Base ritual service ID")
+    variant_service_id: Optional[str] = Field(None, description="Variant service ID (e.g., Face Massage)")
+    spa_zone: Optional[dict] = Field(default={}, description="SPA zone selections: {sauna_id, steam_id, jacuzzi_id}")
+
+
+class CardQuoteResponse(BaseModel):
+    """Response with card-level pricing"""
+    card_id: str
+    original_total: int
+    discount_percent: int
+    final_total: int
+    has_discount: bool
+    breakdown: dict  # {base, variant, spa_zone}
+
+
 # ============================================
 # SPA Price Lock (separate from massage)
 # ============================================
