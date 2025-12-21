@@ -399,23 +399,6 @@ def get_card_discount(card_id: str) -> int:
     return 0
 
 
-def price_view(appt: dict) -> tuple:
-    """
-    Helper to extract pricing from appointment for display.
-    Returns: (final_total, original_total, discount_percent, has_discount)
-    
-    Usage in notifications and dashboard:
-        final, original, pct, has_discount = price_view(appt)
-    """
-    p = appt.get("pricing") or {}
-    final_total = p.get("final_price") or p.get("final_total") or appt.get("final_total") or appt.get("total") or 0
-    original_total = p.get("original_price") or p.get("original_total") or appt.get("original_total") or final_total
-    discount_percent = int(p.get("discount_percent") or appt.get("discount_percentage") or 0)
-    has_discount = bool(p.get("has_discount")) or (discount_percent > 0 and final_total < original_total)
-    
-    return int(final_total), int(original_total), discount_percent, has_discount
-
-
 class CardQuoteRequest(BaseModel):
     """Request for card-level quote calculation"""
     card_id: str = Field(..., description="Card/ritual ID (e.g., 'silky_body_ritual')")
