@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Calendar, Users, Briefcase, Settings, Menu, X, Bell } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, Briefcase, Settings, Menu, X, Bell, CreditCard } from 'lucide-react';
 import { appointmentService } from '../services/api';
 
 const Navbar = () => {
@@ -15,6 +15,7 @@ const Navbar = () => {
     { path: '/appointments', label: 'Termini', icon: Calendar },
     { path: '/therapists', label: 'Terapeuti', icon: Users },
     { path: '/services', label: 'Usluge', icon: Briefcase },
+    { path: '/spa-cards', label: 'SPA Kartice', icon: CreditCard },
     { path: '/settings', label: 'Podešavanja', icon: Settings },
   ];
 
