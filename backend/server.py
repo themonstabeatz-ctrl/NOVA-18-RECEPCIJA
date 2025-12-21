@@ -2187,7 +2187,15 @@ async def get_appointments(
                 'notes': spa.get('notes', ''),
                 'is_viewed': spa.get('is_viewed', False),
                 'is_couples_booking': spa.get('spa_category') == 'spa_special_couple',
-                # Pricing fields
+                # 🔐 PRICING: Standardized pricing object
+                'pricing': spa.get('pricing') or {
+                    'original_price': int(spa.get('original_total', 0)),
+                    'final_price': int(spa.get('final_total', 0)),
+                    'discount_percent': int(spa.get('discount_percentage', 0)),
+                    'has_discount': spa.get('discount_percentage', 0) > 0,
+                    'card_id': spa.get('pricing', {}).get('card_id')
+                },
+                # Legacy pricing fields (for backward compatibility)
                 'snapshot_price': spa.get('final_total', 0),
                 'snapshot_original_price': spa.get('original_total', 0),
                 'snapshot_discount_percentage': spa.get('discount_percentage', 0),
@@ -2196,6 +2204,9 @@ async def get_appointments(
                 'original_total': spa.get('original_total', 0),
                 'discount_percentage': spa.get('discount_percentage', 0),
                 'discount_amount': spa.get('discount_amount', 0),
+                # Computed total_price for dashboard compatibility
+                'total_price': int(spa.get('final_total', 0)),
+                'original_price': int(spa.get('original_total', 0)),
                 # Services snapshot for detail view
                 'services_snapshot': spa.get('services_snapshot', []),
                 'addons': spa.get('addons', []),
