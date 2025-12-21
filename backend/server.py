@@ -3426,14 +3426,14 @@ async def api_root():
 # ============================================
 # 🔐 HARD-LOCKED URLs - ONLY THESE ARE VALID
 # ============================================
-BACKEND_PUBLIC_URL = "https://spa-web-update.preview.emergentagent.com"
-FRONTEND_PUBLIC_URL = "https://spa-web-update.preview.emergentagent.com"
+BACKEND_PUBLIC_URL = "https://price-consistency.preview.emergentagent.com"
+FRONTEND_PUBLIC_URL = "https://price-consistency.preview.emergentagent.com"
 
 # ============================================
 # 🌐 CORS ALLOWLIST - All valid frontend origins
 # ============================================
 ALLOWED_ORIGINS = [
-    "https://relax-reserve-5.preview.emergentagent.com",
+    "https://price-consistency.preview.emergentagent.com",
     "http://localhost:3000",
     "http://localhost:5173",
     FRONTEND_PUBLIC_URL,  # Include the main frontend URL

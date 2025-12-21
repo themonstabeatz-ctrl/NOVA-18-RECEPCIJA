@@ -3,13 +3,13 @@
 ## ✅ TRENUTNO STANJE
 
 ### Booking Sistem (Preview)
-- **URL:** https://spa-web-update.preview.emergentagent.com/
+- **URL:** https://price-consistency.preview.emergentagent.com/
 - **Status:** ✅ POTPUNO FUNKCIONALAN
 - **Popusti:** ✅ 15% aktivan na svim "Kartica Masaza za parove" uslugama (10 usluga)
 - **API Endpoint:** ✅ `/api/book-couple-appointment` radi savršeno
 
 ### Websajt (Preview)
-- **URL:** https://spa-web-update.preview.emergentagent.com/
+- **URL:** https://price-consistency.preview.emergentagent.com/
 - **Status:** ⚠️ TREBA IMPLEMENTACIJA
 - **Problem 1:** Popusti se prikazuju na svim masažama (treba SAMO u "Masaža za parove")
 - **Problem 2:** Booking ne radi - greška pri zakazivanju
@@ -34,7 +34,7 @@ Ovaj fajl sadrži:
 ## 📋 CHECKLIST ZA IMPLEMENTACIJU
 
 ### Zadatak 1: Ispravka Popusta ⭐
-- [ ] Promeni API URL u `https://spa-web-update.preview.emergentagent.com/api`
+- [ ] Promeni API URL u `https://price-consistency.preview.emergentagent.com/api`
 - [ ] Dodaj funkciju `shouldShowDiscount(service)`
 - [ ] U običnim masažama (Tradicionalna, Aroma, itd.) - NE prikazuj popuste
 - [ ] U "Masaža za parove" dropdown-u - prikazuj popuste SA značkama
@@ -57,7 +57,7 @@ Ovaj fajl sadrži:
 ## 🧪 TESTIRANJE
 
 ### Test 1: Popusti
-1. Otvori booking sistem: https://spa-web-update.preview.emergentagent.com/services
+1. Otvori booking sistem: https://price-consistency.preview.emergentagent.com/services
 2. Idi na "Kartica Masaza za parove"
 3. Vidi da svi imaju 15% popust ✅
 4. Refresh websajt
@@ -69,7 +69,7 @@ Ovaj fajl sadrži:
 3. Unesi datum i vreme
 4. Klikni "Pošaljite"
 5. **Očekivano:** ✅ Potvrda o uspešnom zakazivanju
-6. Proveri u booking sistemu: https://spa-web-update.preview.emergentagent.com/appointments
+6. Proveri u booking sistemu: https://price-consistency.preview.emergentagent.com/appointments
 7. **Očekivano:** Termin se prikazuje u kalendaru
 
 ---
@@ -85,7 +85,7 @@ To je "Tradicionalna tajlandska masaža - 60 min" sa 15% popustom.
 
 **Kompletan test cURL:**
 ```bash
-curl -X POST https://spa-web-update.preview.emergentagent.com/api/book-couple-appointment \
+curl -X POST https://price-consistency.preview.emergentagent.com/api/book-couple-appointment \
   -H "Content-Type: application/json" \
   -d '{
     "client_first_name": "Milos",

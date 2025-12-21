@@ -4,8 +4,8 @@ Backend API Testing Script for Bua Luang Spa Application
 Testing discount system for massage and SPA services as specified in review request
 
 REVIEW REQUEST: Testiraj backend-only sistem popusta za Bua Luang Thai Spa:
-- Backend URL: https://spa-web-update.preview.emergentagent.com
-- Frontend origin: https://spa-web-update.preview.emergentagent.com
+- Backend URL: https://price-consistency.preview.emergentagent.com
+- Frontend origin: https://price-consistency.preview.emergentagent.com
 """
 
 import requests
@@ -15,15 +15,15 @@ import sys
 import subprocess
 
 # URLs from review request
-BACKEND_URL = "https://spa-web-update.preview.emergentagent.com"
+BACKEND_URL = "https://price-consistency.preview.emergentagent.com"
 API_BASE_URL = f"{BACKEND_URL}/api"
-FRONTEND_ORIGIN = "https://spa-web-update.preview.emergentagent.com"
+FRONTEND_ORIGIN = "https://price-consistency.preview.emergentagent.com"
 
 def test_cors_configuration():
     """
     Test 1: CORS Configuration Test
-    OPTIONS /api/health sa Origin: https://spa-web-update.preview.emergentagent.com
-    Očekivano: access-control-allow-origin: https://spa-web-update.preview.emergentagent.com
+    OPTIONS /api/health sa Origin: https://price-consistency.preview.emergentagent.com
+    Očekivano: access-control-allow-origin: https://price-consistency.preview.emergentagent.com
     """
     print("=" * 80)
     print("TEST 1: CORS CONFIGURATION")
@@ -889,7 +889,7 @@ def test_spa_cors_configuration():
     """
     A) CORS Configuration Test
     Test that CORS allows requests from:
-    - https://relax-reserve-5.preview.emergentagent.com
+    - https://price-consistency.preview.emergentagent.com
     - http://localhost:3000
     - http://localhost:5173
     Send OPTIONS preflight request to `/api/spa/quote` and verify `Access-Control-Allow-Origin` header includes all origins.
@@ -899,7 +899,7 @@ def test_spa_cors_configuration():
     print("=" * 80)
     
     origins_to_test = [
-        "https://relax-reserve-5.preview.emergentagent.com",
+        "https://price-consistency.preview.emergentagent.com",
         "http://localhost:3000", 
         "http://localhost:5173"
     ]
