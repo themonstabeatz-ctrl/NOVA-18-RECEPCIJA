@@ -3646,9 +3646,9 @@ async def send_booking_emails_tracked(appointment_data: dict) -> dict:
             formatted_date = start_time.strftime('%d.%m.%Y') if start_time else 'N/A'
             formatted_time_only = start_time.strftime('%H:%M') if start_time else ''
         
-        # Get pricing info from appointment
+        # Get pricing info from appointment - USE STANDARDIZED KEYS
         pricing = appointment_data.get('pricing', {})
-        original_price = pricing.get('original_price') or appointment_data.get('original_total')
+        original_total = pricing.get('original_total') or pricing.get('original_price') or appointment_data.get('original_total')
         discount_percent = pricing.get('discount_percent') or appointment_data.get('discount_percentage', 0)
         
         # Build email data object
@@ -3667,8 +3667,8 @@ async def send_booking_emails_tracked(appointment_data: dict) -> dict:
             contact_email="bualuangthailandspa@gmail.com",
             contact_phone="+381 62 625 500",
             booking_type=booking_type,
-            # Pricing fields for discount display
-            original_price=original_price,
+            # 💰 Pricing fields for discount display - USE original_total
+            original_price=original_total,
             discount_percent=discount_percent
         )
         
