@@ -1884,9 +1884,20 @@ def test_public_booking_flow():
                 break
         
         if not service_with_discount:
-            # Apply discount to first service for testing
-            print("No service with discount found, applying 10% discount to first service...")
-            test_service = services[0]
+            # Apply discount to first non-couples service for testing
+            print("No non-couples service with discount found, applying 10% discount to first non-couples service...")
+            test_service = None
+            for service in services:
+                is_couple = service.get('is_couple', False)
+                service_name = service.get('name', '')
+                if not is_couple and '[PAROVI]' not in service_name and 'parove' not in service_name.lower():
+                    test_service = service
+                    break
+            
+            if not test_service:
+                print(f"❌ FAILED: No suitable non-couples service found")
+                return False
+                
             service_id = test_service['id']
             
             # Apply 10% discount
