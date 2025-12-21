@@ -58,4 +58,53 @@ export const analyticsService = {
   getDetailed: (params) => api.get('/analytics/detailed', { params }),
 };
 
+// SPA Services
+export const spaService = {
+  // Get all SPA services
+  getServices: () => api.get('/spa/services'),
+  
+  // Get SPA cards with discounts
+  getCards: () => api.get('/spa/cards'),
+  
+  // Update card discount
+  updateCardDiscount: (cardId, discount) => 
+    api.patch(`/spa/cards/${cardId}/discount?discount=${discount}`),
+  
+  // Get quote for SPA booking
+  getQuote: (data) => api.post('/spa/quote', data),
+  
+  // Get card-level quote
+  getCardQuote: (data) => api.post('/spa/card-quote', data),
+  
+  // Create SPA appointment
+  createAppointment: (data) => api.post('/spa/appointments', data),
+};
+
+/**
+ * Fetch SPA quote with card discount
+ * @param {string[]} serviceIds - Array of service IDs
+ * @param {string} cardId - Card ID for discount lookup
+ * @param {object} options - Additional options (spa_category, selected_zones, etc.)
+ */
+export async function fetchSpaQuote(serviceIds, cardId, options = {}) {
+  try {
+    const payload = {
+      service_ids: serviceIds || [],
+      card_id: cardId,
+      ...options
+    };
+    
+    console.log('📊 SPA Quote Request:', payload);
+    
+    const response = await api.post('/spa/quote', payload);
+    
+    console.log('📊 SPA Quote Response:', response.data);
+    
+    return response.data;
+  } catch (error) {
+    console.error('SPA Quote Error:', error);
+    return null;
+  }
+}
+
 export default api;
