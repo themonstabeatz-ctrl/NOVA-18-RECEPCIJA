@@ -112,6 +112,12 @@ def build_client_email_for_massage(appt: dict) -> tuple:
     💆 MASSAGE ADAPTER - Uses SAME template as SPA!
     🔒 Uses resolve_pricing as single source of truth
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # 🔥 DEBUG LOG
+    logger.info(f"📧 BUILD_MASSAGE_EMAIL input: pricing={appt.get('pricing')}, original_total={appt.get('original_total')}, final_total={appt.get('final_total')}, has_discount={appt.get('has_discount')}")
+    
     full_name = f"{appt.get('client_first_name', '')} {appt.get('client_last_name', '')}".strip()
     
     items = [
