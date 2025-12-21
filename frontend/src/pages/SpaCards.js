@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreditCard, Percent, Save, RefreshCw } from 'lucide-react';
-
-const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
+import { spaService } from '../services/api';
+import { formatRSD } from '../config/spaCardIds';
 
 export default function SpaCards() {
   const [cards, setCards] = useState([]);
@@ -16,10 +16,8 @@ export default function SpaCards() {
   const fetchCards = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/api/spa/cards`);
-      if (!res.ok) throw new Error('Failed to fetch cards');
-      const data = await res.json();
-      setCards(data);
+      const res = await spaService.getCards();
+      setCards(res.data);
       setError(null);
     } catch (err) {
       console.error('Error fetching cards:', err);
@@ -38,25 +36,18 @@ export default function SpaCards() {
     try {
       setSaving(prev => ({ ...prev, [cardId]: true }));
       
-      const res = await fetch(`${API_BASE}/api/spa/cards/${cardId}/discount?discount=${discount}`, {
-        method: 'PATCH'
-      });
-      
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || 'Failed to update');
-      }
+      await spaService.updateCardDiscount(cardId, discount);
       
       // Update local state
       setCards(prev => prev.map(card => 
         card.card_id === cardId 
-          ? { ...card, discount_percent: discount }
+          ? { ...card, discount_percent: discount, has_discount: discount > 0 }
           : card
       ));
       
     } catch (err) {
       console.error('Error updating discount:', err);
-      alert(`Greška: ${err.message}`);
+      alert(`Greška: ${err.response?.data?.detail || err.message}`);
     } finally {
       setSaving(prev => ({ ...prev, [cardId]: false }));
     }
