@@ -331,8 +331,8 @@ class SpaAppointmentCreate(BaseModel):
     included_spa_zone: Optional[str] = None
     # Auto-generated message
     message: Optional[str] = None
-    total_original: Optional[int] = None
-    final_price: Optional[int] = None
+    # 🎴 CARD-LEVEL DISCOUNT - source of truth
+    card_id: Optional[str] = None  # e.g., "silky_body_ritual", "spa_zone"
 
 class SpaAppointment(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
