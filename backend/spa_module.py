@@ -1487,6 +1487,9 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     # 💰 PRICING SNAPSHOT - Immutable record of price at booking time
     doc['pricing'] = pricing_snapshot
     
+    # ✅ CRITICAL: Set total = final_total for dashboard compatibility
+    doc['total'] = pricing["final_price"]
+    
     # Log discount if applied
     if pricing["discount_percent"] > 0:
         logger.info(f"💰 DISCOUNT_APPLIED type=SPA item={doc['service_name']} pricing={pricing_snapshot}")
