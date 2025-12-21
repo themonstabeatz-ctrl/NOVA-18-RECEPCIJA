@@ -1,11 +1,16 @@
 """
 📧 EMAIL ADAPTERS
 Convert SPA/MASSAGE appointment data to shared ClientEmailModel
+
+🔒 USES resolve_pricing FROM pricing_utils.py AS SINGLE SOURCE OF TRUTH
 """
 
 from datetime import datetime
 from typing import Optional, Any
 from .client_shared import ClientEmailModel, LineItem, render_client_shared
+import sys
+sys.path.insert(0, '/app/backend')
+from pricing_utils import resolve_pricing
 
 
 def _format_date(dt: Any) -> str:
@@ -37,7 +42,7 @@ def _format_time(dt: Any) -> str:
 def build_client_email_for_spa(appt: dict) -> tuple:
     """
     🧖 SPA ADAPTER - Uses SAME template as MASSAGE!
-    Only difference is the content (items)
+    🔒 Uses resolve_pricing as single source of truth
     """
     full_name = f"{appt.get('client_first_name', '')} {appt.get('client_last_name', '')}".strip()
     
@@ -67,28 +72,20 @@ def build_client_email_for_spa(appt: dict) -> tuple:
         LineItem("📞", "Telefon", appt.get('client_phone') or 'N/A'),
     ])
     
-    # Add pricing with discount display
-    pricing = appt.get('pricing', {})
-    discount_percent = int(pricing.get('discount_percent') or appt.get('discount_percentage') or 0)
-    
-    # 🔒 PREFER NEW KEYS (original_total, final_total)
-    final_total = pricing.get('final_total') or pricing.get('final_price') or appt.get('final_total') or appt.get('total')
-    original_total = pricing.get('original_total') or pricing.get('original_price') or appt.get('original_total')
-    
-    # 🧮 REVERSE CALCULATION: Only if orig is missing but we have discount
-    if original_total is None and discount_percent > 0 and final_total:
-        original_total = int(round(final_total / (1 - discount_percent / 100)))
-    
-    # Determine if discount is actually applied
-    has_discount = discount_percent > 0 and original_total and final_total and original_total > final_total
+    # 🔒 USE resolve_pricing AS SINGLE SOURCE OF TRUTH
+    pricing = resolve_pricing(appt)
+    original_total = pricing["original_total"]
+    final_total = pricing["final_total"]
+    discount_percent = pricing["discount_percent"]
+    has_discount = pricing["has_discount"]
     
     if has_discount:
         # Show: Cena (orig) precrtano + Popust + Za naplatu
-        items.append(LineItem("💰", "Cena (orig)", f"<s>{original_total:,.0f}</s> RSD"))
+        items.append(LineItem("💰", "Cena (orig)", f"<s>{original_total:,}</s> RSD"))
         items.append(LineItem("🏷️", "Popust", f"-{discount_percent}%"))
-        items.append(LineItem("✅", "Za naplatu", f"<b>{final_total:,.0f}</b> RSD"))
+        items.append(LineItem("✅", "Za naplatu", f"<b>{final_total:,}</b> RSD"))
     elif final_total:
-        items.append(LineItem("💰", "Cena", f"{final_total:,.0f} RSD"))
+        items.append(LineItem("💰", "Cena", f"{final_total:,} RSD"))
     
     m = ClientEmailModel(
         salon_name="Bua Luang Thai Spa",
@@ -107,7 +104,7 @@ def build_client_email_for_spa(appt: dict) -> tuple:
 def build_client_email_for_massage(appt: dict) -> tuple:
     """
     💆 MASSAGE ADAPTER - Uses SAME template as SPA!
-    This is the original "MASAŽE" format
+    🔒 Uses resolve_pricing as single source of truth
     """
     full_name = f"{appt.get('client_first_name', '')} {appt.get('client_last_name', '')}".strip()
     
@@ -119,30 +116,20 @@ def build_client_email_for_massage(appt: dict) -> tuple:
         LineItem("📞", "Telefon", appt.get('client_phone') or 'N/A'),
     ]
     
-    # 💰 Add pricing with discount display from snapshot
-    pricing = appt.get('pricing', {})
-    discount_percent = int(pricing.get('discount_percent') or appt.get('snapshot_discount_percentage') or 0)
-    
-    # 🔒 PREFER NEW KEYS (original_total, final_total)
-    final_total = pricing.get('final_total') or pricing.get('final_price') or appt.get('snapshot_price') or appt.get('total_price')
-    original_total = pricing.get('original_total') or pricing.get('original_price') or appt.get('snapshot_original_price')
-    
-    # 🧮 REVERSE CALCULATION: Only if orig is missing but we have discount
-    if original_total is None and discount_percent > 0 and final_total:
-        original_total = int(round(final_total / (1 - discount_percent / 100)))
-    elif original_total is None:
-        original_total = appt.get('original_total_price') or final_total
-    
-    # Determine if discount is actually applied
-    has_discount = discount_percent > 0 and original_total and final_total and original_total > final_total
+    # 🔒 USE resolve_pricing AS SINGLE SOURCE OF TRUTH
+    pricing = resolve_pricing(appt)
+    original_total = pricing["original_total"]
+    final_total = pricing["final_total"]
+    discount_percent = pricing["discount_percent"]
+    has_discount = pricing["has_discount"]
     
     if has_discount:
         # Show: Cena (orig) precrtano + Popust + Za naplatu
-        items.append(LineItem("💰", "Cena (orig)", f"<s>{original_total:,.0f}</s> RSD"))
+        items.append(LineItem("💰", "Cena (orig)", f"<s>{original_total:,}</s> RSD"))
         items.append(LineItem("🏷️", "Popust", f"-{discount_percent}%"))
-        items.append(LineItem("✅", "Za naplatu", f"<b>{final_total:,.0f}</b> RSD"))
+        items.append(LineItem("✅", "Za naplatu", f"<b>{final_total:,}</b> RSD"))
     elif final_total:
-        items.append(LineItem("💰", "Cena", f"{final_total:,.0f} RSD"))
+        items.append(LineItem("💰", "Cena", f"{final_total:,} RSD"))
     
     m = ClientEmailModel(
         salon_name="Bua Luang Thai Spa",
