@@ -885,9 +885,660 @@ def run_discount_system_tests():
         print("❌ SOME DISCOUNT SYSTEM TESTS FAILED!")
         return False
 
+def test_spa_cors_configuration():
+    """
+    A) CORS Configuration Test
+    Test that CORS allows requests from:
+    - https://relax-reserve-5.preview.emergentagent.com
+    - http://localhost:3000
+    - http://localhost:5173
+    Send OPTIONS preflight request to `/api/spa/quote` and verify `Access-Control-Allow-Origin` header includes all origins.
+    """
+    print("=" * 80)
+    print("TEST A: SPA CORS CONFIGURATION")
+    print("=" * 80)
+    
+    origins_to_test = [
+        "https://relax-reserve-5.preview.emergentagent.com",
+        "http://localhost:3000", 
+        "http://localhost:5173"
+    ]
+    
+    all_passed = True
+    
+    for origin in origins_to_test:
+        print(f"\nTesting CORS for origin: {origin}")
+        print("-" * 50)
+        
+        try:
+            # Send OPTIONS preflight request
+            response = requests.options(
+                f"{API_BASE_URL}/spa/quote",
+                headers={
+                    "Origin": origin,
+                    "Access-Control-Request-Method": "POST",
+                    "Access-Control-Request-Headers": "Content-Type"
+                }
+            )
+            
+            print(f"Request URL: {API_BASE_URL}/spa/quote")
+            print(f"Origin Header: {origin}")
+            print(f"Response Status: {response.status_code}")
+            
+            # Check response headers
+            cors_origin = response.headers.get("access-control-allow-origin")
+            cors_methods = response.headers.get("access-control-allow-methods")
+            
+            print(f"CORS Headers:")
+            print(f"  access-control-allow-origin: {cors_origin}")
+            print(f"  access-control-allow-methods: {cors_methods}")
+            
+            # Verify CORS origin allows this origin
+            if cors_origin == "*" or cors_origin == origin:
+                print(f"✅ SUCCESS: CORS allows origin: {origin}")
+            else:
+                print(f"❌ FAILED: CORS does not allow origin '{origin}', got '{cors_origin}'")
+                all_passed = False
+                
+        except Exception as e:
+            print(f"❌ ERROR testing CORS for {origin}: {e}")
+            all_passed = False
+    
+    return all_passed
+
+def test_spa_quote_endpoint_response_format():
+    """
+    B) Quote Endpoint Response Format Test
+    POST `/api/spa/quote` with body:
+    {
+      "spa_category": "spa_zone",
+      "selected_zones": ["7d46da23-a15a-4836-8db5-04d748cd6b72"],
+      "card_id": "spa_zone"
+    }
+    
+    Verify response contains all required keys:
+    - `original_total` (int)
+    - `discount_percent` (int) - NOT `discount_percentage`
+    - `final_total` (int)
+    - `has_discount` (bool)
+    - `card_id` (string)
+    - `breakdown` (string)
+    """
+    print("=" * 80)
+    print("TEST B: SPA QUOTE ENDPOINT RESPONSE FORMAT")
+    print("=" * 80)
+    
+    # First, get available SPA zone services to use a real ID
+    try:
+        services_response = requests.get(f"{API_BASE_URL}/spa/services")
+        if services_response.status_code != 200:
+            print(f"❌ FAILED: Could not get SPA services list")
+            return False
+        
+        spa_services = services_response.json()
+        zone_services = [s for s in spa_services if s.get("category") == "spa_zone"]
+        
+        if not zone_services:
+            print(f"❌ FAILED: No SPA zone services found")
+            return False
+        
+        # Use the first available zone service
+        zone_id = zone_services[0]["id"]
+        print(f"Using SPA zone service: {zone_services[0]['name']} (ID: {zone_id})")
+        
+    except Exception as e:
+        print(f"❌ ERROR getting SPA services: {e}")
+        # Fallback to the ID from review request
+        zone_id = "7d46da23-a15a-4836-8db5-04d748cd6b72"
+        print(f"Using fallback zone ID: {zone_id}")
+    
+    request_data = {
+        "spa_category": "spa_zone",
+        "selected_zones": [zone_id],
+        "card_id": "spa_zone"
+    }
+    
+    print(f"\nRequest Data:")
+    print(json.dumps(request_data, indent=2))
+    
+    try:
+        response = requests.post(
+            f"{API_BASE_URL}/spa/quote",
+            json=request_data,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        print(f"\nResponse Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        try:
+            quote_data = response.json()
+            print(f"✅ SUCCESS: Quote endpoint returned HTTP 200")
+            
+            # Check required fields
+            required_fields = {
+                "original_total": int,
+                "discount_percent": int,  # NOT discount_percentage
+                "final_total": int,
+                "has_discount": bool,
+                "card_id": str,
+                "breakdown": str
+            }
+            
+            all_fields_present = True
+            
+            for field, expected_type in required_fields.items():
+                if field not in quote_data:
+                    print(f"❌ FAILED: Missing required field '{field}'")
+                    all_fields_present = False
+                else:
+                    actual_value = quote_data[field]
+                    if not isinstance(actual_value, expected_type):
+                        print(f"❌ FAILED: Field '{field}' should be {expected_type.__name__}, got {type(actual_value).__name__}")
+                        all_fields_present = False
+                    else:
+                        print(f"✅ Field '{field}': {actual_value} ({expected_type.__name__})")
+            
+            # Verify NOT discount_percentage (old field name)
+            if "discount_percentage" in quote_data:
+                print(f"❌ FAILED: Response contains deprecated field 'discount_percentage', should use 'discount_percent'")
+                all_fields_present = False
+            else:
+                print(f"✅ SUCCESS: Response uses 'discount_percent' (not deprecated 'discount_percentage')")
+            
+            if all_fields_present:
+                print(f"\n✅ SUCCESS: All required fields present with correct types")
+                print(f"Quote Summary:")
+                print(f"  Original Total: {quote_data['original_total']} RSD")
+                print(f"  Discount: {quote_data['discount_percent']}%")
+                print(f"  Final Total: {quote_data['final_total']} RSD")
+                print(f"  Has Discount: {quote_data['has_discount']}")
+                print(f"  Card ID: {quote_data['card_id']}")
+                print(f"  Breakdown: {quote_data['breakdown']}")
+                return True
+            else:
+                return False
+                
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Response is not valid JSON")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ ERROR during quote endpoint test: {e}")
+        return False
+
+def test_spa_card_discount_flow():
+    """
+    C) Card Discount Flow Test
+    1. Set 15% discount on spa_zone card:
+       PATCH `/api/spa/cards/spa_zone/discount?discount=15`
+       
+    2. Get quote and verify discount is applied:
+       POST `/api/spa/quote` with card_id: "spa_zone"
+       - Expected: final_total = original_total * 0.85
+
+    3. Reset discount to 0%:
+       PATCH `/api/spa/cards/spa_zone/discount?discount=0`
+    """
+    print("=" * 80)
+    print("TEST C: SPA CARD DISCOUNT FLOW")
+    print("=" * 80)
+    
+    # Get a SPA zone service for testing
+    try:
+        services_response = requests.get(f"{API_BASE_URL}/spa/services")
+        if services_response.status_code != 200:
+            print(f"❌ FAILED: Could not get SPA services list")
+            return False
+        
+        spa_services = services_response.json()
+        zone_services = [s for s in spa_services if s.get("category") == "spa_zone"]
+        
+        if not zone_services:
+            print(f"❌ FAILED: No SPA zone services found")
+            return False
+        
+        zone_id = zone_services[0]["id"]
+        zone_name = zone_services[0]["name"]
+        zone_price = zone_services[0].get("price", 0)
+        
+        print(f"Using SPA zone service: {zone_name} (ID: {zone_id}, Price: {zone_price} RSD)")
+        
+    except Exception as e:
+        print(f"❌ ERROR getting SPA services: {e}")
+        return False
+    
+    all_tests_passed = True
+    
+    # Step 1: Set 15% discount on spa_zone card
+    print(f"\nC.1 Setting 15% discount on spa_zone card...")
+    print("-" * 50)
+    
+    try:
+        response = requests.patch(f"{API_BASE_URL}/spa/cards/spa_zone/discount?discount=15")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            all_tests_passed = False
+        else:
+            try:
+                discount_response = response.json()
+                print(f"✅ SUCCESS: Discount set successfully")
+                print(f"  Card ID: {discount_response.get('card_id')}")
+                print(f"  Discount Percent: {discount_response.get('discount_percent')}%")
+                print(f"  Has Discount: {discount_response.get('has_discount')}")
+                
+                if discount_response.get('discount_percent') != 15:
+                    print(f"❌ FAILED: Expected discount_percent=15, got {discount_response.get('discount_percent')}")
+                    all_tests_passed = False
+                    
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON response")
+                all_tests_passed = False
+                
+    except Exception as e:
+        print(f"❌ ERROR setting discount: {e}")
+        all_tests_passed = False
+    
+    # Step 2: Get quote and verify discount is applied
+    print(f"\nC.2 Getting quote and verifying discount application...")
+    print("-" * 50)
+    
+    try:
+        quote_request = {
+            "spa_category": "spa_zone",
+            "selected_zones": [zone_id],
+            "card_id": "spa_zone"
+        }
+        
+        response = requests.post(
+            f"{API_BASE_URL}/spa/quote",
+            json=quote_request,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            all_tests_passed = False
+        else:
+            try:
+                quote_data = response.json()
+                original_total = quote_data.get('original_total', 0)
+                final_total = quote_data.get('final_total', 0)
+                discount_percent = quote_data.get('discount_percent', 0)
+                has_discount = quote_data.get('has_discount', False)
+                
+                print(f"Quote Response:")
+                print(f"  Original Total: {original_total} RSD")
+                print(f"  Discount Percent: {discount_percent}%")
+                print(f"  Final Total: {final_total} RSD")
+                print(f"  Has Discount: {has_discount}")
+                
+                # Verify discount calculation: final_total = original_total * 0.85
+                expected_final = int(round(original_total * 0.85))
+                
+                if discount_percent == 15 and has_discount == True and final_total == expected_final:
+                    print(f"✅ SUCCESS: 15% discount applied correctly: {original_total} * 0.85 = {final_total} RSD")
+                else:
+                    print(f"❌ FAILED: Discount calculation incorrect")
+                    print(f"  Expected final_total: {expected_final}")
+                    print(f"  Actual final_total: {final_total}")
+                    all_tests_passed = False
+                    
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON response")
+                all_tests_passed = False
+                
+    except Exception as e:
+        print(f"❌ ERROR getting quote: {e}")
+        all_tests_passed = False
+    
+    # Step 3: Reset discount to 0%
+    print(f"\nC.3 Resetting discount to 0%...")
+    print("-" * 50)
+    
+    try:
+        response = requests.patch(f"{API_BASE_URL}/spa/cards/spa_zone/discount?discount=0")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            all_tests_passed = False
+        else:
+            try:
+                reset_response = response.json()
+                print(f"✅ SUCCESS: Discount reset successfully")
+                print(f"  Card ID: {reset_response.get('card_id')}")
+                print(f"  Discount Percent: {reset_response.get('discount_percent')}%")
+                print(f"  Has Discount: {reset_response.get('has_discount')}")
+                
+                if reset_response.get('discount_percent') != 0 or reset_response.get('has_discount') != False:
+                    print(f"❌ FAILED: Discount not properly reset")
+                    all_tests_passed = False
+                    
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON response")
+                all_tests_passed = False
+                
+    except Exception as e:
+        print(f"❌ ERROR resetting discount: {e}")
+        all_tests_passed = False
+    
+    return all_tests_passed
+
+def test_spa_booking_endpoint_pricing_snapshot():
+    """
+    D) Booking Endpoint - Pricing Snapshot Test
+    POST `/api/spa/appointments` with:
+    {
+      "client_first_name": "Test",
+      "client_last_name": "Backend",
+      "client_phone": "0611234567",
+      "client_email": "test@backend.test",
+      "spa_category": "spa_zone",
+      "selected_zones": ["7d46da23-a15a-4836-8db5-04d748cd6b72"],
+      "card_id": "spa_zone",
+      "appointment_date": "2025-12-30",
+      "appointment_time": "15:00"
+    }
+
+    Verify booking response contains:
+    - `original_total`
+    - `final_total`
+    - `discount_percentage`
+    """
+    print("=" * 80)
+    print("TEST D: SPA BOOKING ENDPOINT - PRICING SNAPSHOT")
+    print("=" * 80)
+    
+    # Get a SPA zone service for testing
+    try:
+        services_response = requests.get(f"{API_BASE_URL}/spa/services")
+        if services_response.status_code != 200:
+            print(f"❌ FAILED: Could not get SPA services list")
+            return False
+        
+        spa_services = services_response.json()
+        zone_services = [s for s in spa_services if s.get("category") == "spa_zone"]
+        
+        if not zone_services:
+            print(f"❌ FAILED: No SPA zone services found")
+            return False
+        
+        zone_id = zone_services[0]["id"]
+        zone_name = zone_services[0]["name"]
+        
+        print(f"Using SPA zone service: {zone_name} (ID: {zone_id})")
+        
+    except Exception as e:
+        print(f"❌ ERROR getting SPA services: {e}")
+        # Fallback to the ID from review request
+        zone_id = "7d46da23-a15a-4836-8db5-04d748cd6b72"
+        print(f"Using fallback zone ID: {zone_id}")
+    
+    booking_request = {
+        "client_first_name": "Test",
+        "client_last_name": "Backend",
+        "client_phone": "0611234567",
+        "client_email": "test@backend.test",
+        "spa_category": "spa_zone",
+        "selected_zones": [zone_id],
+        "card_id": "spa_zone",
+        "appointment_date": "2025-12-30",
+        "appointment_time": "15:00"
+    }
+    
+    print(f"\nBooking Request Data:")
+    print(json.dumps(booking_request, indent=2))
+    
+    try:
+        response = requests.post(
+            f"{API_BASE_URL}/spa/appointments",
+            json=booking_request,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        print(f"\nResponse Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        try:
+            booking_data = response.json()
+            print(f"✅ SUCCESS: SPA appointment created")
+            
+            # Check required pricing fields
+            required_fields = ["original_total", "final_total", "discount_percentage"]
+            missing_fields = []
+            
+            for field in required_fields:
+                if field not in booking_data:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                print(f"❌ FAILED: Missing required pricing fields: {missing_fields}")
+                return False
+            
+            original_total = booking_data.get('original_total')
+            final_total = booking_data.get('final_total')
+            discount_percentage = booking_data.get('discount_percentage')
+            
+            print(f"✅ SUCCESS: All required pricing fields present")
+            print(f"Pricing Snapshot:")
+            print(f"  Original Total: {original_total}")
+            print(f"  Final Total: {final_total}")
+            print(f"  Discount Percentage: {discount_percentage}%")
+            print(f"  Appointment ID: {booking_data.get('id')}")
+            
+            # Verify pricing consistency
+            if original_total >= final_total:
+                print(f"✅ SUCCESS: Pricing consistency verified (original >= final)")
+            else:
+                print(f"❌ FAILED: Pricing inconsistency (original < final)")
+                return False
+            
+            return True
+                
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Response is not valid JSON")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ ERROR during booking test: {e}")
+        return False
+
+def test_spa_unified_listing_price_display():
+    """
+    E) Unified Listing - Price Display Test
+    GET `/api/appointments/list?period=year`
+
+    Verify SPA appointments in response have:
+    - `total_price` (should equal `final_total`)
+    - `original_price`
+    - `discount_percentage`
+    - `has_discount` (bool)
+
+    All prices should use final (discounted) values for dashboard display.
+    """
+    print("=" * 80)
+    print("TEST E: SPA UNIFIED LISTING - PRICE DISPLAY")
+    print("=" * 80)
+    
+    try:
+        response = requests.get(f"{API_BASE_URL}/appointments/list?period=year")
+        print(f"Request URL: {API_BASE_URL}/appointments/list?period=year")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+        
+        try:
+            appointments_data = response.json()
+            print(f"✅ SUCCESS: Appointments list retrieved")
+            
+            if not isinstance(appointments_data, list):
+                print(f"❌ FAILED: Expected array response, got {type(appointments_data)}")
+                return False
+            
+            print(f"Total appointments found: {len(appointments_data)}")
+            
+            # Filter SPA appointments
+            spa_appointments = []
+            for apt in appointments_data:
+                # Check if this is a SPA appointment
+                if (apt.get('type') == 'spa' or 
+                    apt.get('spa_category') or 
+                    'spa' in apt.get('service_name', '').lower()):
+                    spa_appointments.append(apt)
+            
+            print(f"SPA appointments found: {len(spa_appointments)}")
+            
+            if len(spa_appointments) == 0:
+                print(f"⚠️ WARNING: No SPA appointments found in listing")
+                print(f"This might be expected if no SPA appointments exist")
+                return True
+            
+            # Check required pricing fields for SPA appointments
+            required_fields = ["total_price", "original_price", "discount_percentage", "has_discount"]
+            all_spa_valid = True
+            
+            for i, spa_apt in enumerate(spa_appointments[:5]):  # Check first 5 SPA appointments
+                print(f"\nSPA Appointment {i+1}:")
+                print(f"  Service: {spa_apt.get('service_name', 'Unknown')}")
+                print(f"  Client: {spa_apt.get('client_first_name', '')} {spa_apt.get('client_last_name', '')}")
+                
+                missing_fields = []
+                for field in required_fields:
+                    if field not in spa_apt:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    print(f"  ❌ FAILED: Missing fields: {missing_fields}")
+                    all_spa_valid = False
+                else:
+                    total_price = spa_apt.get('total_price')
+                    original_price = spa_apt.get('original_price')
+                    discount_percentage = spa_apt.get('discount_percentage')
+                    has_discount = spa_apt.get('has_discount')
+                    final_total = spa_apt.get('final_total')
+                    
+                    print(f"  ✅ All required fields present:")
+                    print(f"    Total Price: {total_price}")
+                    print(f"    Original Price: {original_price}")
+                    print(f"    Discount Percentage: {discount_percentage}%")
+                    print(f"    Has Discount: {has_discount}")
+                    
+                    # Verify total_price equals final_total (if final_total exists)
+                    if final_total is not None:
+                        if total_price == final_total:
+                            print(f"    ✅ total_price equals final_total: {total_price}")
+                        else:
+                            print(f"    ❌ FAILED: total_price ({total_price}) != final_total ({final_total})")
+                            all_spa_valid = False
+                    
+                    # Verify pricing consistency
+                    if isinstance(original_price, (int, float)) and isinstance(total_price, (int, float)):
+                        if original_price >= total_price:
+                            print(f"    ✅ Pricing consistency verified")
+                        else:
+                            print(f"    ❌ FAILED: original_price ({original_price}) < total_price ({total_price})")
+                            all_spa_valid = False
+            
+            if all_spa_valid:
+                print(f"\n✅ SUCCESS: All SPA appointments have correct pricing fields")
+                print(f"✅ SUCCESS: All prices use final (discounted) values for dashboard display")
+                return True
+            else:
+                print(f"\n❌ FAILED: Some SPA appointments have pricing issues")
+                return False
+                
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Response is not valid JSON")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ ERROR during unified listing test: {e}")
+        return False
+
+def run_spa_backend_tests():
+    """
+    Run all SPA backend API tests specified in the review request:
+    A) CORS Configuration Test
+    B) Quote Endpoint Response Format Test
+    C) Card Discount Flow Test
+    D) Booking Endpoint - Pricing Snapshot Test
+    E) Unified Listing - Price Display Test
+    """
+    print("🧖 STARTING SPA BACKEND API TESTS")
+    print(f"API URL: {BACKEND_URL}")
+    print("=" * 80)
+    
+    tests = [
+        ("A) CORS Configuration", test_spa_cors_configuration),
+        ("B) Quote Endpoint Response Format", test_spa_quote_endpoint_response_format),
+        ("C) Card Discount Flow", test_spa_card_discount_flow),
+        ("D) Booking Endpoint - Pricing Snapshot", test_spa_booking_endpoint_pricing_snapshot),
+        ("E) Unified Listing - Price Display", test_spa_unified_listing_price_display)
+    ]
+    
+    results = []
+    
+    for test_name, test_func in tests:
+        print(f"\n🔍 Running: {test_name}")
+        try:
+            result = test_func()
+            results.append((test_name, result))
+            if result:
+                print(f"✅ {test_name}: PASSED")
+            else:
+                print(f"❌ {test_name}: FAILED")
+        except Exception as e:
+            print(f"❌ {test_name}: ERROR - {e}")
+            results.append((test_name, False))
+        
+        print("-" * 80)
+    
+    # Summary
+    print("\n" + "=" * 80)
+    print("🧖 SPA BACKEND API TEST SUMMARY")
+    print("=" * 80)
+    
+    passed = sum(1 for _, result in results if result)
+    total = len(results)
+    
+    for test_name, result in results:
+        status = "✅ PASSED" if result else "❌ FAILED"
+        print(f"{test_name}: {status}")
+    
+    print(f"\nOverall: {passed}/{total} tests passed")
+    
+    if passed == total:
+        print("🎉 ALL SPA BACKEND API TESTS PASSED!")
+        return True
+    else:
+        print("❌ SOME SPA BACKEND API TESTS FAILED!")
+        return False
+
 if __name__ == "__main__":
-    """Main execution - run the discount system tests"""
-    success = run_discount_system_tests()
+    """Main execution - run the SPA backend API tests"""
+    success = run_spa_backend_tests()
     sys.exit(0 if success else 1)
 
 def test_couples_4_services_no_therapist():
