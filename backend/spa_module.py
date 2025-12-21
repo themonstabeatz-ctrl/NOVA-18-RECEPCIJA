@@ -248,13 +248,10 @@ def normalize_spa_appt(appt: dict) -> dict:
 async def create_in_app_notification(db, appt: dict):
     """Create in-app notification for new SPA booking"""
     try:
-        # 🐛 DEBUG: Log incoming appt pricing
-        logger.info(f"📢 CREATE_NOTIF appt.pricing={appt.get('pricing')}")
+        # 🔒 Get pricing info using price_view helper
+        final_total, original_total, discount_percent, has_discount = price_view(appt)
         
-        # Get pricing info using price_view helper
-        final_price, original_price, discount_percent, has_discount = price_view(appt)
-        
-        logger.info(f"📢 CREATE_NOTIF price_view result: final={final_price}, orig={original_price}, disc={discount_percent}, has={has_discount}")
+        logger.info(f"📢 CREATE_NOTIF pricing: orig={original_total}, final={final_total}, disc={discount_percent}%, has={has_discount}")
         
         notification = {
             "id": str(uuid.uuid4()),
@@ -265,8 +262,10 @@ async def create_in_app_notification(db, appt: dict):
             "details": {
                 "service_name": appt.get("service_name"),
                 "duration_min": appt.get("duration_min"),
-                "price": final_price,  # ✅ Always final price
-                "original_price": original_price,
+                # 🔒 STANDARDIZED FIELD NAMES
+                "price": final_total,  # For display (final price)
+                "original_total": original_total,  # NOT original_price
+                "final_total": final_total,
                 "discount_percent": discount_percent,
                 "has_discount": has_discount,
                 "client_phone": appt.get("client_phone", ""),
