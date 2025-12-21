@@ -920,23 +920,28 @@ async def get_spa_quote(request: SpaQuoteRequest):
         original_total = base_price
         total_duration = base_duration  # Duration stays same for herbal
         
-        # Apply discount
-        discount_pct = min(request.discount_percentage or 0, 15)
-        discount_amount, final_total, applied_discount = apply_spa_discount(original_total, discount_pct)
+        # 🎴 Apply CARD-LEVEL discount from SPA_CARDS
+        card_id = request.card_id
+        discount_pct = get_card_discount(card_id)
+        final_total = apply_percent(original_total, discount_pct)
+        discount_amount = original_total - final_total
+        has_discount = discount_pct > 0 and final_total < original_total
         
         # Build breakdown with included zone note
         breakdown = f"{package['name']} ({base_price} RSD) + SPA zona (uključeno: {included_zone_name}) = {original_total} RSD"
-        if applied_discount > 0:
-            breakdown += f" - {applied_discount}% = {final_total} RSD"
+        if discount_pct > 0:
+            breakdown += f" - {discount_pct}% = {final_total} RSD"
         
-        logger.info(f"💰 SPA_QUOTE (HERBAL+ZONE): package={package['name']}, included_zone={included_zone_name}, total={original_total}")
+        logger.info(f"💰 SPA_QUOTE (HERBAL+ZONE): card_id={card_id} package={package['name']}, included_zone={included_zone_name}, total={original_total}, discount={discount_pct}%")
         
         return SpaQuoteResponse(
             services=[{"id": package["id"], "name": package["name"], "price": package["price"], "duration": package["duration"]}],
             original_total=original_total,
-            discount_percentage=applied_discount,
+            discount_percent=discount_pct,
             discount_amount=discount_amount,
             final_total=final_total,
+            has_discount=has_discount,
+            card_id=card_id,
             breakdown=breakdown,
             total_duration=total_duration,
             base_price=base_price,
