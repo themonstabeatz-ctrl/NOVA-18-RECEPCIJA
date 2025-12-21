@@ -3547,9 +3547,10 @@ async def dispatch_booking_notifications(payload: dict) -> dict:
                 "details": {
                     "service_name": service_name,
                     "duration_min": payload.get("duration_min"),
-                    # 💰 PRICING: Use final_total for price, include original and discount
+                    # 🔒 STANDARDIZED FIELD NAMES
                     "price": payload.get("final_total") or payload.get("price", 0),
-                    "original_price": payload.get("original_total"),
+                    "original_total": payload.get("original_total"),  # NOT original_price
+                    "final_total": payload.get("final_total"),
                     "discount_percent": payload.get("discount_percent"),
                     "has_discount": payload.get("has_discount"),
                     "start_time": payload.get("start_time"),
