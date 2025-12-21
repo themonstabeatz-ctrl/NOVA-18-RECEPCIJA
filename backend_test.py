@@ -1970,6 +1970,10 @@ def test_public_booking_flow():
             appointment_id = booking_data.get('id')
             print(f"✅ Booking created successfully - ID: {appointment_id}")
             
+            # Debug: Show full response structure
+            print(f"\nDEBUG: Full booking response structure:")
+            print(json.dumps(booking_data, indent=2))
+            
         except json.JSONDecodeError:
             print(f"❌ FAILED: Invalid JSON response from booking")
             return False
