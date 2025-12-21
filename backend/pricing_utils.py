@@ -109,14 +109,14 @@ def resolve_pricing(appt: Dict) -> Dict:
     card_id = p.get("card_id") or appt.get("card_id")
     
     # 🔒 PREFER PRICING OBJECT KEYS (original_total, final_total)
-    original_total = p.get("original_total")
-    final_total = p.get("final_total")
+    original_total = p.get("original_total") or p.get("original_price")  # Support both keys
+    final_total = p.get("final_total") or p.get("final_price")  # Support both keys
     
     # Fallback to top-level fields if pricing object doesn't have them
     if original_total is None:
-        original_total = appt.get("original_total") or appt.get("original_price")
+        original_total = appt.get("original_total") or appt.get("original_price") or appt.get("snapshot_original_price")
     if final_total is None:
-        final_total = appt.get("final_total") or appt.get("total") or appt.get("total_price")
+        final_total = appt.get("final_total") or appt.get("total") or appt.get("total_price") or appt.get("snapshot_price")
     
     # 🧮 REVERSE CALCULATION: Only if original is missing but we have discount
     if original_total is None and has_discount and final_total is not None and discount_percent > 0:
