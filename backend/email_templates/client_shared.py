@@ -28,8 +28,8 @@ class ClientEmailModel:
     contact_phone: str
     address_line: str
     website_url: str = "https://www.bualuangthaispa.rs"
-    logo_url: str = "https://customer-assets.emergentagent.com/job_massage-booking-fix/artifacts/2m8jgqjv_Bua%20luang%20logo%20crna%20senka.png"
-    background_url: str = "https://customer-assets.emergentagent.com/job_massage-booking-fix/artifacts/pfz1db04_podloga%20prazna.jpg"
+    logo_url: str = "https://customer-assets.emergentagent.com/job_spa-web-update/artifacts/3uhqente_Bua%20luang%20logo%20crna%20senka.png"
+    background_url: str = "https://customer-assets.emergentagent.com/job_spa-web-update/artifacts/s08ovfd4_podloga.jpg"
     brand_bg: str = "#0d0d0d"
     brand_gold: str = "#c9a227"
 
