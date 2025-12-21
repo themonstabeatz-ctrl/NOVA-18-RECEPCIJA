@@ -1375,8 +1375,13 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
                 "spa_zone": doc.get("spa_zone", ""),
                 "start_time": doc.get("start_time"),
                 "end_time": doc.get("end_time"),
+                # 💰 PRICING - use doc values for minimal appointments
                 "price": doc.get("final_total", 0),
+                "original_total": doc.get("original_total", doc.get("final_total", 0)),
                 "final_total": doc.get("final_total", 0),
+                "discount_percent": doc.get("discount_percentage", 0),
+                "has_discount": doc.get("discount_percentage", 0) > 0,
+                "pricing": doc.get("pricing", {}),
                 "client_first_name": doc.get("client_first_name", ""),
                 "client_last_name": doc.get("client_last_name", ""),
                 "client_email": doc.get("client_email", ""),
