@@ -3434,6 +3434,7 @@ FRONTEND_PUBLIC_URL = "https://price-consistency.preview.emergentagent.com"
 # ============================================
 ALLOWED_ORIGINS = [
     "https://price-consistency.preview.emergentagent.com",
+    "https://relax-reserve-5.preview.emergentagent.com",  # Public frontend
     "http://localhost:3000",
     "http://localhost:5173",
     FRONTEND_PUBLIC_URL,  # Include the main frontend URL
