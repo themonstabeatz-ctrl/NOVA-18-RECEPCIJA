@@ -45,13 +45,13 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ CORS updated to https://spa-integration.preview.emergentagent.com. Needs re-verification."
+        comment: "✅ CORS updated to https://spa-web-update.preview.emergentagent.com. Needs re-verification."
       - working: true
         agent: "testing"
-        comment: "✅ CORS VERIFIED: OPTIONS preflight for POST /api/spa/appointments with Origin: https://spa-integration.preview.emergentagent.com returns correct CORS headers. access-control-allow-origin: https://spa-integration.preview.emergentagent.com, access-control-allow-methods: DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, access-control-allow-headers: Content-Type"
+        comment: "✅ CORS VERIFIED: OPTIONS preflight for POST /api/spa/appointments with Origin: https://spa-web-update.preview.emergentagent.com returns correct CORS headers. access-control-allow-origin: https://spa-web-update.preview.emergentagent.com, access-control-allow-methods: DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, access-control-allow-headers: Content-Type"
       - working: true
         agent: "testing"
-        comment: "✅ CORS CONFIGURATION FULLY VERIFIED: OPTIONS request to /api/health with Origin: https://massage-app-4.preview.emergentagent.com returns exact match: access-control-allow-origin: https://massage-app-4.preview.emergentagent.com. CORS allows ONLY the correct frontend origin as required in review request."
+        comment: "✅ CORS CONFIGURATION FULLY VERIFIED: OPTIONS request to /api/health with Origin: https://spa-web-update.preview.emergentagent.com returns exact match: access-control-allow-origin: https://spa-web-update.preview.emergentagent.com. CORS allows ONLY the correct frontend origin as required in review request."
 
   - task: "SPA Central Notification System"
     implemented: true
@@ -117,7 +117,7 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "✅ CORS VERIFIED: OPTIONS /api/health with Origin: https://relax-reserve-5.preview.emergentagent.com returns correct CORS headers. access-control-allow-origin: https://relax-reserve-5.preview.emergentagent.com matches exactly as required in Serbian review request."
+        comment: "✅ CORS VERIFIED: OPTIONS /api/health with Origin: https://spa-web-update.preview.emergentagent.com returns correct CORS headers. access-control-allow-origin: https://spa-web-update.preview.emergentagent.com matches exactly as required in Serbian review request."
 
   - task: "Discount System - Services Pricing Fields"
     implemented: true
@@ -239,8 +239,8 @@ agent_communication:
   - agent: "testing"
     message: "❌ CRITICAL ISSUE FOUND: CEO Dashboard Analytics has a major problem. The massage analytics endpoint (GET /api/analytics/detailed?period=week) incorrectly includes SPA categories ['SPA', 'SPA Special kartica'] which should NOT appear in 'Pregled Po Kategorijama (Masaže)' section. Only massage categories like 'Obicne masaze' should be present. This is hardcoded in backend/server.py lines 2553-2568. SPA analytics endpoint works correctly. 4/5 backend tests passed, 1 critical issue needs fixing."
   - agent: "testing"
-    message: "✅ SPA NOTIFICATION SYSTEM TESTING COMPLETE: Comprehensive testing of SPA booking notification system completed successfully. CORS verification passed for https://spa-integration.preview.emergentagent.com origin. SPA booking with notifications works correctly - both with and without client email. All notification response fields verified (notify_status: sent, email_sent: true, email_sent_admin: true, email_sent_client: true/false, notification_created: true). Backend logs confirmed all notification patterns: SPA_BOOKED, ADMIN_EMAIL_SENT, CLIENT_EMAIL_SENT/CLIENT_EMAIL_SKIPPED, NOTIFICATION_CREATED. System ready for production use."
+    message: "✅ SPA NOTIFICATION SYSTEM TESTING COMPLETE: Comprehensive testing of SPA booking notification system completed successfully. CORS verification passed for https://spa-web-update.preview.emergentagent.com origin. SPA booking with notifications works correctly - both with and without client email. All notification response fields verified (notify_status: sent, email_sent: true, email_sent_admin: true, email_sent_client: true/false, notification_created: true). Backend logs confirmed all notification patterns: SPA_BOOKED, ADMIN_EMAIL_SENT, CLIENT_EMAIL_SENT/CLIENT_EMAIL_SKIPPED, NOTIFICATION_CREATED. System ready for production use."
   - agent: "testing"
-    message: "✅ REVIEW REQUEST TESTING COMPLETE: All 4 tests from review request PASSED successfully. 1) CORS Configuration: OPTIONS /api/health with Origin https://massage-app-4.preview.emergentagent.com returns exact match access-control-allow-origin header. 2) Health Endpoint: GET /api/health returns {'status':'healthy'}. 3) API Endpoints: All 4 endpoints (/api/appointments, /api/spa/appointments, /api/appointments/unviewed/count, /api/services) return HTTP 200 with valid JSON. 4) Static Files Blocked: GET /static/test.js returns correct error response {'ok':false,'error':'STATIC_DISABLED_ON_API_DOMAIN'}. Backend configuration is correct for production deployment."
+    message: "✅ REVIEW REQUEST TESTING COMPLETE: All 4 tests from review request PASSED successfully. 1) CORS Configuration: OPTIONS /api/health with Origin https://spa-web-update.preview.emergentagent.com returns exact match access-control-allow-origin header. 2) Health Endpoint: GET /api/health returns {'status':'healthy'}. 3) API Endpoints: All 4 endpoints (/api/appointments, /api/spa/appointments, /api/appointments/unviewed/count, /api/services) return HTTP 200 with valid JSON. 4) Static Files Blocked: GET /static/test.js returns correct error response {'ok':false,'error':'STATIC_DISABLED_ON_API_DOMAIN'}. Backend configuration is correct for production deployment."
   - agent: "testing"
-    message: "🧖 DISCOUNT SYSTEM TESTING COMPLETE (Serbian Review Request): 5/6 tests PASSED, 1 CRITICAL ISSUE found. ✅ PASSED: 1) CORS with https://relax-reserve-5.preview.emergentagent.com, 2) GET /api/services pricing fields (final_price, discount_percentage), 3) GET /api/spa/services pricing fields (original_price, discount_percent, final_price, has_discount), 4) PATCH /api/services/{id}/discount with allowed values 0,5,10,15%, 5) PATCH /api/spa/services/{id}/discount with 15% test. ❌ CRITICAL: Double discount calculation in GET /api/services list endpoint - PATCH returns final_price: 3740 (correct), but services list shows 3179 (double discounted). Backend lines 701-771 in get_services() function needs fixing."
+    message: "🧖 DISCOUNT SYSTEM TESTING COMPLETE (Serbian Review Request): 5/6 tests PASSED, 1 CRITICAL ISSUE found. ✅ PASSED: 1) CORS with https://spa-web-update.preview.emergentagent.com, 2) GET /api/services pricing fields (final_price, discount_percentage), 3) GET /api/spa/services pricing fields (original_price, discount_percent, final_price, has_discount), 4) PATCH /api/services/{id}/discount with allowed values 0,5,10,15%, 5) PATCH /api/spa/services/{id}/discount with 15% test. ❌ CRITICAL: Double discount calculation in GET /api/services list endpoint - PATCH returns final_price: 3740 (correct), but services list shows 3179 (double discounted). Backend lines 701-771 in get_services() function needs fixing."

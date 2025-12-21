@@ -27,7 +27,7 @@ https://spabooking.emergent.host/api/services  ❌ (produkcija)
 
 **Treba da poziva:**
 ```
-https://spa-integration.preview.emergentagent.com/api/services  ✅ (preview)
+https://spa-web-update.preview.emergentagent.com/api/services  ✅ (preview)
 ```
 
 **Ili bolje - nek se može preklopiti između preview i produkcije kroz env varijablu.**
@@ -55,10 +55,10 @@ U fajlu `/src/services/bookingApi.js`:
 const BOOKING_API = 'https://spabooking.emergent.host/api';  ❌
 
 // NOVO (TAČNO):
-const BOOKING_API = 'https://spa-integration.preview.emergentagent.com/api';  ✅
+const BOOKING_API = 'https://spa-web-update.preview.emergentagent.com/api';  ✅
 
 // ILI BOLJE - koristi environment varijablu:
-const BOOKING_API = process.env.REACT_APP_BOOKING_API || 'https://spa-integration.preview.emergentagent.com/api';
+const BOOKING_API = process.env.REACT_APP_BOOKING_API || 'https://spa-web-update.preview.emergentagent.com/api';
 ```
 
 ---
@@ -259,7 +259,7 @@ Ušteda: 1,320 RSD! 🎉
 ## 🧪 KAKO TESTIRATI
 
 1. **Postavi popust u booking sistemu:**
-   - Idi na: https://spa-integration.preview.emergentagent.com/services
+   - Idi na: https://spa-web-update.preview.emergentagent.com/services
    - Klikni na "Kartica Masaza za parove"
    - Postavi -15% popust
    - Potvrdi

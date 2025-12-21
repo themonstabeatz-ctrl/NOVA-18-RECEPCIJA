@@ -24,7 +24,7 @@ Primeri:
 
 ### KORAK 1: Fetch Servisa
 ```javascript
-const response = await fetch('https://spa-integration.preview.emergentagent.com/api/services');
+const response = await fetch('https://spa-web-update.preview.emergentagent.com/api/services');
 const allServices = await response.json();
 
 const coupleServices = allServices.filter(s => s.name.startsWith('[PAROVI]'));
@@ -76,7 +76,7 @@ const booking = {
   status: "scheduled"
 };
 
-await fetch('https://spa-integration.preview.emergentagent.com/api/appointments/couple', {
+await fetch('https://spa-web-update.preview.emergentagent.com/api/appointments/couple', {
   method: 'POST',
   headers: {'Content-Type': 'application/json'},
   body: JSON.stringify(booking)
@@ -127,7 +127,7 @@ console.log('Popust:', service.discount_percentage);  // 10%
 
 ```javascript
 // 1. Fetch
-const services = await fetch('https://spa-integration.preview.emergentagent.com/api/services').then(r => r.json());
+const services = await fetch('https://spa-web-update.preview.emergentagent.com/api/services').then(r => r.json());
 const couple = services.filter(s => s.name.startsWith('[PAROVI]'));
 
 console.log('Broj servisa:', couple.length);  // Trebalo bi 18
@@ -136,7 +136,7 @@ console.log('Cena:', couple[0].price);  // Snižena cena
 console.log('Popust:', couple[0].discount_percentage);  // 10%
 
 // 2. Proveri da li badge radi
-// Otvori: https://spa-integration.preview.emergentagent.com/massage
+// Otvori: https://spa-web-update.preview.emergentagent.com/massage
 // Trebalo bi da vidiš badge sa "-10%"
 ```
 
@@ -164,6 +164,6 @@ Ako sve ovo radiš, MORA raditi!
 
 ---
 
-**Backend URL:** https://spa-integration.preview.emergentagent.com/api
+**Backend URL:** https://spa-web-update.preview.emergentagent.com/api
 **Status:** ✅ PRODUCTION READY
 **Popusti:** ✅ 10% aktivni na svim [PAROVI] servisima

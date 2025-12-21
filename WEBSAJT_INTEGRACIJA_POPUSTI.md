@@ -15,7 +15,7 @@ Kada korisnik bira "Masaža za parove" na web sajtu, treba da vidi:
 
 ```javascript
 // GET request
-const response = await fetch('https://spa-integration.preview.emergentagent.com/api/services');
+const response = await fetch('https://spa-web-update.preview.emergentagent.com/api/services');
 const allServices = await response.json();
 
 // Filtriraj samo "Kartica Masaza za parove" kategoriju
@@ -90,7 +90,7 @@ function CoupleBookingForm() {
 
   // Učitaj masaže za couple booking
   useEffect(() => {
-    fetch('https://spa-integration.preview.emergentagent.com/api/services')
+    fetch('https://spa-web-update.preview.emergentagent.com/api/services')
       .then(res => res.json())
       .then(data => {
         // Filtriraj samo "Kartica Masaza za parove"
@@ -298,7 +298,7 @@ ZADATAK:
      * https://customer-assets.emergentagent.com/job_therapist-booking-2/artifacts/z9xclo41_-15%25.png → /public/discount-15.png
 
 2. UČITAJ MASAŽE ZA COUPLE BOOKING:
-   API: GET https://spa-integration.preview.emergentagent.com/api/services
+   API: GET https://spa-web-update.preview.emergentagent.com/api/services
    Filtriraj: services.filter(s => s.category === "Kartica Masaza za parove")
 
 3. U "MASAŽA ZA PAROVE" FORMI:
