@@ -64,7 +64,7 @@ def apply_best_discount(original_price: int, discounts: List[Dict]) -> Dict:
 
 
 def apply_spa_discount_v2(
-    original_price: int, 
+    original_total: int, 
     discount_percent: float = 0,
     discount_id: str = None
 ) -> Dict:
@@ -72,7 +72,9 @@ def apply_spa_discount_v2(
     Apply SPA discount with validation.
     Valid discounts: 0%, 5%, 10%, 15%
     
-    Returns pricing dict with all fields needed for response and DB storage.
+    Returns pricing dict with STANDARDIZED field names:
+    - original_total (not original_price)
+    - final_total (not final_price)
     """
     # Validate discount percentage
     valid_discounts = [0, 5, 10, 15]
@@ -80,22 +82,26 @@ def apply_spa_discount_v2(
         # Use highest valid discount <= requested
         discount_percent = max([d for d in valid_discounts if d <= discount_percent], default=0)
     
-    discount_amount = int(round(original_price * discount_percent / 100))
-    final_price = int(original_price - discount_amount)
+    discount_amount = int(round(original_total * discount_percent / 100))
+    final_total = int(original_total - discount_amount)
     
     has_discount = discount_percent > 0
     
     # Log discount application
     if has_discount:
-        logger.info(f"💰 DISCOUNT_APPLIED type=SPA original={original_price} pct={discount_percent} final={final_price}")
+        logger.info(f"💰 DISCOUNT_APPLIED type=SPA original={original_total} pct={discount_percent} final={final_total}")
     
     return {
-        "original_price": int(original_price),
+        # 🔒 STANDARDIZED FIELD NAMES
+        "original_total": int(original_total),
+        "final_total": int(final_total),
         "discount_percent": int(discount_percent),
         "discount_amount": int(discount_amount),
-        "final_price": int(final_price),
         "discount_id": discount_id,
-        "has_discount": has_discount
+        "has_discount": has_discount,
+        # 🔄 LEGACY ALIASES (for backward compatibility)
+        "original_price": int(original_total),
+        "final_price": int(final_total)
     }
 
 
