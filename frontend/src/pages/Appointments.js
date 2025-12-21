@@ -801,53 +801,51 @@ const Appointments = () => {
                           // PRIORITY: Use snapshot prices from appointment if available
                           let originalPrice = 0;
                           let finalPrice = 0;
+                          let discountPct = 0;
                           let hasDiscount = false;
 
                           if (appointment.snapshot_price !== undefined) {
                             // Use snapshot values from booking time
                             finalPrice = appointment.snapshot_price || 0;
                             originalPrice = appointment.snapshot_original_price || finalPrice;
-                            hasDiscount = appointment.snapshot_discount_percentage > 0;
+                            discountPct = appointment.snapshot_discount_percentage || 0;
+                            hasDiscount = discountPct > 0 && originalPrice > finalPrice;
                           } else {
                             // Fallback: Use current service price (for old appointments)
                             const service = services.find(s => s.id === appointment.service_id);
                             if (service) {
                               originalPrice = service.price || 0;
-                              const discount = service.discount_percentage || 0;
-                              finalPrice = originalPrice * (1 - discount / 100);
-                              hasDiscount = discount > 0;
+                              discountPct = service.discount_percentage || 0;
+                              finalPrice = originalPrice * (1 - discountPct / 100);
+                              hasDiscount = discountPct > 0 && originalPrice > finalPrice;
                             }
                           }
+
+                          const formatPrice = (amount) => new Intl.NumberFormat('sr-RS', { 
+                            style: 'currency', 
+                            currency: 'RSD',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                          }).format(amount);
 
                           return (
                             <div className="flex flex-col items-end">
                               {hasDiscount ? (
                                 <>
-                                  <span className="text-xs text-gray-400 line-through">
-                                    {new Intl.NumberFormat('sr-RS', { 
-                                      style: 'currency', 
-                                      currency: 'RSD',
-                                      minimumFractionDigits: 0,
-                                      maximumFractionDigits: 0
-                                    }).format(originalPrice)}
-                                  </span>
-                                  <span className="text-sm font-semibold text-green-600">
-                                    {new Intl.NumberFormat('sr-RS', { 
-                                      style: 'currency', 
-                                      currency: 'RSD',
-                                      minimumFractionDigits: 0,
-                                      maximumFractionDigits: 0
-                                    }).format(finalPrice)}
-                                  </span>
+                                  <div className="text-xs text-gray-500">
+                                    <span className="font-medium">Cena (orig):</span>{' '}
+                                    <span className="line-through text-gray-400">{formatPrice(originalPrice)}</span>
+                                  </div>
+                                  <div className="text-xs text-red-600 font-medium">
+                                    Popust: -{discountPct}%
+                                  </div>
+                                  <div className="text-sm font-semibold text-green-600 mt-0.5">
+                                    Za naplatu: {formatPrice(finalPrice)}
+                                  </div>
                                 </>
                               ) : (
                                 <span className="text-sm font-medium text-gray-900">
-                                  {new Intl.NumberFormat('sr-RS', { 
-                                    style: 'currency', 
-                                    currency: 'RSD',
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0
-                                  }).format(finalPrice)}
+                                  {formatPrice(finalPrice)}
                                 </span>
                               )}
                             </div>
