@@ -274,7 +274,9 @@ class SpaService(BaseModel):
 
 class SpaQuoteRequest(BaseModel):
     service_ids: List[str] = []  # Legacy support
-    discount_percentage: Optional[float] = 0  # 0, 5, 10, or 15
+    discount_percentage: Optional[float] = 0  # DEPRECATED - use card_id instead
+    # 🎴 CARD-LEVEL DISCOUNT - Source of truth
+    card_id: Optional[str] = None  # e.g., "silky_body_ritual", "spa_zone"
     # Support for package + addons (SPA_RITUAL)
     spa_package_id: Optional[str] = None  # Main ritual/package ID
     spa_category: Optional[str] = None  # "spa_ritual", "spa_zone", etc.
@@ -287,9 +289,11 @@ class SpaQuoteRequest(BaseModel):
 class SpaQuoteResponse(BaseModel):
     services: List[dict]
     original_total: int
-    discount_percentage: float
+    discount_percent: int  # Standardized name (was discount_percentage)
     discount_amount: int
     final_total: int
+    has_discount: bool = False  # NEW
+    card_id: Optional[str] = None  # NEW
     breakdown: str
     # NEW: Addon details
     base_price: Optional[int] = 0
