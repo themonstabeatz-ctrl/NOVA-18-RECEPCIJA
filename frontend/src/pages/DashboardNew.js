@@ -6,15 +6,34 @@ import { BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, Cartesi
 import Login from '../components/Login';
 
 /**
- * 💰 PRICING HELPER - Extract pricing from appointment
- * Handles both new (pricing snapshot) and legacy data formats
+ * 💰 PRICING HELPER - Bulletproof pricing resolver
+ * STANDARDIZED FIELD NAMES:
+ * - original_total (NOT original_price)
+ * - final_total (NOT final_price)
+ * - discount_percent
+ * - has_discount
+ * 
+ * RULES:
+ * ❌ NEVER use appointment.total as "orig"
+ * ❌ NEVER use original_price if original_total exists
+ * ❌ NEVER strikethrough final_total
  */
 const getPricing = (appt) => {
   const p = appt.pricing || {};
-  const original = p.original_total ?? p.original_price ?? appt.original_price ?? null;
-  const final = p.final_total ?? p.final_price ?? appt.total_price ?? appt.final_total ?? null;
   const discount = Number(p.discount_percent ?? appt.discount_percentage ?? 0);
-  const has = Boolean(appt.has_discount) || (discount > 0 && original && final && original > final);
+  
+  // 🔒 PREFER NEW KEYS (original_total, final_total)
+  let original = p.original_total ?? p.original_price ?? appt.original_price ?? null;
+  let final = p.final_total ?? p.final_price ?? appt.total_price ?? appt.final_total ?? null;
+  
+  // 🧮 REVERSE CALCULATION: Only if orig is missing but we have discount
+  if (original === null && discount > 0 && final !== null) {
+    original = Math.round(final / (1 - discount / 100));
+  }
+  
+  // Determine if discount is actually applied
+  const has = Boolean(appt.has_discount) || (discount > 0 && original !== null && final !== null && original > final);
+  
   return { original, final, discount, has };
 };
 
