@@ -1,10 +1,13 @@
 """
 💰 DISCOUNT ENGINE - Unified discount handling for SPA and MASSAGE
 Single source of truth for all discount calculations.
+
+USES pricing_utils.compute_pricing as THE SINGLE SOURCE OF TRUTH.
 """
 
 import logging
 from typing import List, Dict, Optional, Any
+from pricing_utils import compute_pricing
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +26,8 @@ def apply_best_discount(original_price: int, discounts: List[Dict]) -> Dict:
             "discount_percent": int,
             "discount_amount": int,
             "final_price": int,
-            "discount_id": str | None
+            "discount_id": str | None,
+            "has_discount": bool
         }
     """
     # Filter active discounts only
@@ -51,15 +55,15 @@ def apply_best_discount(original_price: int, discounts: List[Dict]) -> Dict:
             "has_discount": False
         }
     
-    amount = int(round(original_price * pct / 100.0))
-    final_price = max(0, int(original_price) - amount)
+    # Use compute_pricing as single source of truth
+    pricing = compute_pricing(int(original_price), pct)
     
     return {
-        "discount_percent": pct,
-        "discount_amount": amount,
-        "final_price": final_price,
+        "discount_percent": pricing["discount_percent"],
+        "discount_amount": pricing["original_total"] - pricing["final_total"],
+        "final_price": pricing["final_total"],
         "discount_id": best.get("id"),
-        "has_discount": True
+        "has_discount": pricing["has_discount"]
     }
 
 
@@ -73,35 +77,37 @@ def apply_spa_discount_v2(
     Valid discounts: 0%, 5%, 10%, 15%
     
     Returns pricing dict with STANDARDIZED field names:
-    - original_total (not original_price)
-    - final_total (not final_price)
+    - original_total
+    - final_total
+    - discount_percent
+    - has_discount
     """
     # Validate discount percentage
     valid_discounts = [0, 5, 10, 15]
-    if discount_percent not in valid_discounts:
+    if int(discount_percent) not in valid_discounts:
         # Use highest valid discount <= requested
-        discount_percent = max([d for d in valid_discounts if d <= discount_percent], default=0)
+        discount_percent = max([d for d in valid_discounts if d <= int(discount_percent)], default=0)
     
-    discount_amount = int(round(original_total * discount_percent / 100))
-    final_total = int(original_total - discount_amount)
+    # Use compute_pricing as single source of truth
+    pricing = compute_pricing(int(original_total), int(discount_percent))
     
-    has_discount = discount_percent > 0
+    discount_amount = pricing["original_total"] - pricing["final_total"]
     
     # Log discount application
-    if has_discount:
-        logger.info(f"💰 DISCOUNT_APPLIED type=SPA original={original_total} pct={discount_percent} final={final_total}")
+    if pricing["has_discount"]:
+        logger.info(f"💰 DISCOUNT_APPLIED type=SPA original={pricing['original_total']} pct={pricing['discount_percent']} final={pricing['final_total']}")
     
     return {
-        # 🔒 STANDARDIZED FIELD NAMES
-        "original_total": int(original_total),
-        "final_total": int(final_total),
-        "discount_percent": int(discount_percent),
-        "discount_amount": int(discount_amount),
+        # 🔒 STANDARDIZED FIELD NAMES (PRIMARY)
+        "original_total": pricing["original_total"],
+        "final_total": pricing["final_total"],
+        "discount_percent": pricing["discount_percent"],
+        "discount_amount": discount_amount,
         "discount_id": discount_id,
-        "has_discount": has_discount,
+        "has_discount": pricing["has_discount"],
         # 🔄 LEGACY ALIASES (for backward compatibility)
-        "original_price": int(original_total),
-        "final_price": int(final_total)
+        "original_price": pricing["original_total"],
+        "final_price": pricing["final_total"]
     }
 
 
@@ -116,13 +122,15 @@ def create_pricing_snapshot(
     This snapshot is immutable - represents the price at booking time.
     
     Uses STANDARDIZED field names:
-    - original_total (not original_price)
-    - final_total (not final_price)
+    - original_total
+    - final_total
+    - discount_percent
+    - has_discount
     """
     pricing = apply_spa_discount_v2(original_total, discount_percent, discount_id)
     
     return {
-        # 🔒 STANDARDIZED FIELD NAMES
+        # 🔒 STANDARDIZED FIELD NAMES (PRIMARY)
         "original_total": pricing["original_total"],
         "final_total": pricing["final_total"],
         "discount_percent": pricing["discount_percent"],
@@ -153,10 +161,10 @@ def enrich_service_with_discount(service: Dict, active_discount_percent: float =
     
     return {
         **service,
-        "original_price": pricing["original_price"],
+        "original_price": pricing["original_total"],
         "discount_percent": pricing["discount_percent"],
         "discount_amount": pricing["discount_amount"],
-        "final_price": pricing["final_price"],
+        "final_price": pricing["final_total"],
         "has_discount": pricing["has_discount"]
     }
 
