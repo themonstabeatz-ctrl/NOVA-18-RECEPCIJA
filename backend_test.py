@@ -2158,13 +2158,30 @@ def test_public_booking_flow():
                 unviewed_snapshot_final = our_appointment.get('snapshot_price')
                 unviewed_snapshot_discount = our_appointment.get('snapshot_discount_percentage')
                 
+                # Also check alternative field names
+                if not unviewed_snapshot_original:
+                    unviewed_snapshot_original = our_appointment.get('original_total')
+                if not unviewed_snapshot_final:
+                    unviewed_snapshot_final = our_appointment.get('final_total') or our_appointment.get('total_price')
+                if not unviewed_snapshot_discount:
+                    unviewed_snapshot_discount = our_appointment.get('discount_percentage')
+                
+                print(f"DEBUG: Unviewed appointment fields:")
+                print(f"   snapshot_original_price: {our_appointment.get('snapshot_original_price')}")
+                print(f"   snapshot_price: {our_appointment.get('snapshot_price')}")
+                print(f"   snapshot_discount_percentage: {our_appointment.get('snapshot_discount_percentage')}")
+                print(f"   original_total: {our_appointment.get('original_total')}")
+                print(f"   final_total: {our_appointment.get('final_total')}")
+                print(f"   total_price: {our_appointment.get('total_price')}")
+                print(f"   discount_percentage: {our_appointment.get('discount_percentage')}")
+                
                 unviewed_pricing = {
                     'original_total': int(unviewed_snapshot_original) if unviewed_snapshot_original else 0,
                     'final_total': int(unviewed_snapshot_final) if unviewed_snapshot_final else 0,
                     'discount_percent': int(unviewed_snapshot_discount) if unviewed_snapshot_discount else 0,
                     'has_discount': unviewed_snapshot_discount > 0 if unviewed_snapshot_discount else False
                 }
-                print(f"✅ Created unviewed pricing structure from snapshot fields:")
+                print(f"✅ Created unviewed pricing structure from available fields:")
             else:
                 print(f"✅ Unviewed appointment has pricing object:")
             
