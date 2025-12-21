@@ -257,6 +257,7 @@ test_plan:
     - "Discount System - Anti-Duplicate Verification"
     - "Serbian E2E Discount System Test"
     - "SPA Backend API Implementation"
+    - "SPA Pricing Snapshot with Discount Verification"
 
 agent_communication:
   - agent: "testing"
