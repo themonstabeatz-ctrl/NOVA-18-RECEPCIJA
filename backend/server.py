@@ -2712,13 +2712,27 @@ async def get_unviewed_appointments():
         is_spa = apt.get('spa_category') is not None or apt.get('final_total') is not None
         
         if is_spa:
-            # SPA appointment - use direct fields
+            # SPA appointment - use pricing snapshot
             service_name = apt.get('service_name') or 'SPA Tretman'
             service_duration = apt.get('duration_min') or 120
             service_category = apt.get('spa_category') or 'spa'
-            service_price = apt.get('final_total') or 0
-            original_price = apt.get('original_total') or service_price
-            discount_percentage = apt.get('discount_percentage') or 0
+            
+            # 🔒 USE PRICING SNAPSHOT (source of truth)
+            pricing = apt.get('pricing') or {}
+            final_total = pricing.get('final_total') or apt.get('final_total') or apt.get('total') or 0
+            original_total = pricing.get('original_total') or apt.get('original_total')
+            discount_percent = int(pricing.get('discount_percent') or apt.get('discount_percentage') or 0)
+            has_discount = bool(pricing.get('has_discount')) or (discount_percent > 0 and original_total and original_total > final_total)
+            
+            # 🧮 REVERSE CALCULATION: Only if orig is missing
+            if original_total is None and has_discount and final_total > 0 and discount_percent > 0:
+                original_total = round(final_total / (1 - discount_percent / 100))
+            elif original_total is None:
+                original_total = final_total
+            
+            service_price = final_total
+            original_price = original_total
+            discount_percentage = discount_percent
             therapist_name = None  # SPA usually doesn't have assigned therapist
         else:
             # Massage appointment - use service lookup
