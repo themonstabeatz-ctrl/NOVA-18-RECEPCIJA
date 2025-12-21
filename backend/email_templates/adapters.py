@@ -69,12 +69,27 @@ def build_client_email_for_spa(appt: dict) -> tuple:
     
     # Add pricing with discount display
     pricing = appt.get('pricing', {})
-    original_price = pricing.get('original_price') or appt.get('original_total')
-    discount_percent = pricing.get('discount_percent') or appt.get('discount_percentage', 0)
-    final_price = pricing.get('final_price') or appt.get('final_total')
+    discount_percent = int(pricing.get('discount_percent') or appt.get('discount_percentage') or 0)
     
-    if discount_percent and discount_percent > 0 and original_price:
-        # Show original strikethrough + discount + final
+    # Get final price first (what client pays)
+    final_price = pricing.get('final_price') or appt.get('final_total') or appt.get('total')
+    
+    # Get original price - if not available and discount exists, calculate it
+    if pricing.get('original_price'):
+        original_price = pricing.get('original_price')
+    elif appt.get('original_total') and appt.get('original_total') > 0:
+        original_price = appt.get('original_total')
+    elif discount_percent > 0 and final_price:
+        # Reverse calculate: original = final / (1 - discount/100)
+        original_price = int(round(final_price / (1 - discount_percent / 100)))
+    else:
+        original_price = final_price
+    
+    # Determine if discount is actually applied
+    has_discount = discount_percent > 0 and original_price and final_price and original_price > final_price
+    
+    if has_discount:
+        # Show: Cena (orig) precrtano + Popust + Za naplatu
         items.append(LineItem("💰", "Cena (orig)", f"<s>{original_price:,.0f}</s> RSD"))
         items.append(LineItem("🏷️", "Popust", f"-{discount_percent}%"))
         items.append(LineItem("✅", "Za naplatu", f"<b>{final_price:,.0f}</b> RSD"))
