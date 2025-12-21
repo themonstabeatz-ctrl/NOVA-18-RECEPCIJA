@@ -1871,11 +1871,15 @@ def test_public_booking_flow():
         services = services_response.json()
         print(f"✅ Got {len(services)} services")
         
-        # Find a service with discount > 0
+        # Find a service with discount > 0 (but not a couples service)
         service_with_discount = None
         for service in services:
             discount = service.get('discount_percentage', 0)
-            if discount > 0:
+            is_couple = service.get('is_couple', False)
+            service_name = service.get('name', '')
+            
+            # Skip couples services (they have different booking endpoint)
+            if discount > 0 and not is_couple and '[PAROVI]' not in service_name and 'parove' not in service_name.lower():
                 service_with_discount = service
                 break
         
