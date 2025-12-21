@@ -3794,11 +3794,11 @@ async def send_booking_emails(appointment_data: dict):
         # ============================================
         # ADMIN EMAIL - Uses ADMIN template (plain, internal)
         # ============================================
-        # 💰 Get pricing from snapshot
+        # 💰 Get pricing from snapshot - USE STANDARDIZED KEYS
         pricing = appointment_data.get('pricing', {})
-        original_price = pricing.get('original_price') or appointment_data.get('snapshot_original_price') or appointment_data.get('original_total_price')
+        original_total = pricing.get('original_total') or pricing.get('original_price') or appointment_data.get('snapshot_original_price') or appointment_data.get('original_total_price')
         discount_percent = pricing.get('discount_percent') or appointment_data.get('snapshot_discount_percentage', 0)
-        final_price = pricing.get('final_price') or appointment_data.get('snapshot_price') or appointment_data.get('total_price') or appointment_data.get('price')
+        final_total = pricing.get('final_total') or pricing.get('final_price') or appointment_data.get('snapshot_price') or appointment_data.get('total_price') or appointment_data.get('price')
         
         admin_data = BookingEmailData(
             salon_name="Bua Luang Thai Spa",
@@ -3810,13 +3810,13 @@ async def send_booking_emails(appointment_data: dict):
             date_str=formatted_date,
             time_str=formatted_time_only,
             duration_min=None,
-            price=final_price,
+            price=final_total,
             address_line="Abebe Bikile 10A, Beograd",
             contact_email="bualuangthailandspa@gmail.com",
             contact_phone="+381 62 625 500",
             booking_type="massage",
-            # 💰 Pricing fields for discount display
-            original_price=original_price,
+            # 💰 Pricing fields for discount display - USE original_total
+            original_price=original_total,
             discount_percent=int(discount_percent) if discount_percent else 0
         )
         admin_subject, admin_html = render_admin_email(admin_data)
