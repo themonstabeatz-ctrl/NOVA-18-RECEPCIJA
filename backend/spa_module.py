@@ -1200,12 +1200,12 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         # ✅ GUARD: If has_discount, original MUST differ from final
         has_discount = discount_pct > 0 and pricing["final_price"] < pricing["original_price"]
         if has_discount and pricing["original_price"] == pricing["final_price"]:
-            logger.error(f"🚨 BUG: original_price == final_price while discount={discount_pct}%")
-            raise ValueError("BUG: original_price == final_price while has_discount=True")
+            logger.error(f"🚨 BUG: original_total == final_total while discount={discount_pct}%")
+            raise ValueError("BUG: original_total == final_total while has_discount=True")
         
         # Create pricing snapshot for immutable record
         pricing_snapshot = create_pricing_snapshot(
-            original_price=original_total,
+            original_total=original_total,  # STANDARDIZED: original_total not original_price
             discount_percent=discount_pct,
             reason="SPA_SPECIAL_COUPLE_BOOKING"
         )
