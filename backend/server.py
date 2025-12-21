@@ -3359,6 +3359,16 @@ async def api_root():
 BACKEND_PUBLIC_URL = "https://spa-web-update.preview.emergentagent.com"
 FRONTEND_PUBLIC_URL = "https://spa-web-update.preview.emergentagent.com"
 
+# ============================================
+# 🌐 CORS ALLOWLIST - All valid frontend origins
+# ============================================
+ALLOWED_ORIGINS = [
+    "https://relax-reserve-5.preview.emergentagent.com",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    FRONTEND_PUBLIC_URL,  # Include the main frontend URL
+]
+
 # Root endpoint - returns JSON to confirm this is API server
 @app.get("/")
 async def root():
