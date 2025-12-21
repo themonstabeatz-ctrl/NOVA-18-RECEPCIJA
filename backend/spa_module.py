@@ -1014,26 +1014,31 @@ async def get_spa_quote(request: SpaQuoteRequest):
         original_total = base_price + addon_price
         total_duration = base_duration + addon_duration
         
-        # Apply discount
-        discount_pct = min(request.discount_percentage or 0, 15)
-        discount_amount, final_total, applied_discount = apply_spa_discount(original_total, discount_pct)
+        # 🎴 Apply CARD-LEVEL discount from SPA_CARDS
+        card_id = request.card_id
+        discount_pct = get_card_discount(card_id)
+        final_total = apply_percent(original_total, discount_pct)
+        discount_amount = original_total - final_total
+        has_discount = discount_pct > 0 and final_total < original_total
         
         # Build breakdown
         breakdown_parts = [f"{package['name']} ({base_price} RSD)"]
         for addon in addons:
             breakdown_parts.append(f"+{addon['name']} ({addon['price']} RSD)")
         breakdown = " ".join(breakdown_parts) + f" = {original_total} RSD"
-        if applied_discount > 0:
-            breakdown += f" - {applied_discount}% = {final_total} RSD"
+        if discount_pct > 0:
+            breakdown += f" - {discount_pct}% = {final_total} RSD"
         
-        logger.info(f"💰 SPA_QUOTE (PACKAGE+ADDONS): base={base_price}, addon={addon_price}, total={original_total}, discount={applied_discount}%, final={final_total}, duration={total_duration}")
+        logger.info(f"💰 SPA_QUOTE (PACKAGE+ADDONS): card_id={card_id} base={base_price}, addon={addon_price}, total={original_total}, discount={discount_pct}%, final={final_total}, duration={total_duration}")
         
         return SpaQuoteResponse(
             services=[{"id": package["id"], "name": package["name"], "price": package["price"], "duration": package["duration"]}],
             original_total=original_total,
-            discount_percentage=applied_discount,
+            discount_percent=discount_pct,
             discount_amount=discount_amount,
             final_total=final_total,
+            has_discount=has_discount,
+            card_id=card_id,
             breakdown=breakdown,
             base_price=base_price,
             addon_price=addon_price,
@@ -1076,17 +1081,20 @@ async def get_spa_quote(request: SpaQuoteRequest):
             detail=f"SPA PRICE LOCK: Total {original_total} RSD must end in 00."
         )
     
-    # Apply discount (max 15%, only highest applies)
-    discount_pct = min(request.discount_percentage or 0, 15)
-    discount_amount, final_total, applied_discount = apply_spa_discount(original_total, discount_pct)
+    # 🎴 Apply CARD-LEVEL discount from SPA_CARDS
+    card_id = request.card_id
+    discount_pct = get_card_discount(card_id)
+    final_total = apply_percent(original_total, discount_pct)
+    discount_amount = original_total - final_total
+    has_discount = discount_pct > 0 and final_total < original_total
     
     # Build breakdown
     service_names = [f"{svc['name']} ({svc['price']} RSD)" for svc in services]
     breakdown = " + ".join(service_names) + f" = {original_total} RSD"
-    if applied_discount > 0:
-        breakdown += f" - {applied_discount}% = {final_total} RSD"
+    if discount_pct > 0:
+        breakdown += f" - {discount_pct}% = {final_total} RSD"
     
-    logger.info(f"💰 SPA_QUOTE: original={original_total}, discount={applied_discount}%, final={final_total}")
+    logger.info(f"💰 SPA_QUOTE: card_id={card_id} original={original_total}, discount={discount_pct}%, final={final_total}")
     
     return SpaQuoteResponse(
         services=[{"id": s["id"], "name": s["name"], "price": s["price"], "duration": s["duration"]} for s in services],
