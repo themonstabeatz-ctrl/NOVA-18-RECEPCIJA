@@ -39,26 +39,58 @@ logger = logging.getLogger(__name__)
 # Admin can update via PATCH /api/spa/cards/{card_id}/discount
 # Quote and booking endpoints READ from here.
 
-SPA_CARDS = {
-    # Classic Rituals
-    "silky_body_ritual": {"name": "Silky Body Ritual", "discount_percent": 0},
-    "gentle_touch_ritual": {"name": "Gentle Touch Ritual", "discount_percent": 0},
-    "deep_renewal_ritual": {"name": "Deep Renewal Ritual", "discount_percent": 0},
-    
-    # Herbal Rituals
-    "silky_herbal_compress": {"name": "Silky Herbal Compress Ritual", "discount_percent": 0},
-    "thai_herbal_compress": {"name": "Thai Herbal Compress Ritual", "discount_percent": 0},
-    "aroma_stone_harmony": {"name": "Aroma Stone Harmony Ritual", "discount_percent": 0},
-    
-    # SPA Zone (standalone)
-    "spa_zone": {"name": "SPA Zone", "discount_percent": 0},
-    
-    # Couple Packages
-    "romantic_couple_package": {"name": "Romantični paket za parove", "discount_percent": 0},
-    "romantic_peeling_package": {"name": "Romantični piling paket za parove", "discount_percent": 0},
-}
-
 ALLOWED_CARD_DISCOUNTS = {0, 5, 10, 15}
+
+SPA_CARDS = {
+    "silky_body_ritual": {
+        "title_sr": "Silky Body Ritual",
+        "title_en": "Silky Body Ritual",
+        "discount_percent": 0,
+    },
+    "gentle_touch_ritual": {
+        "title_sr": "Gentle Touch Ritual",
+        "title_en": "Gentle Touch Ritual",
+        "discount_percent": 0,
+    },
+    "deep_renewal_ritual": {
+        "title_sr": "Deep Renewal Ritual",
+        "title_en": "Deep Renewal Ritual",
+        "discount_percent": 0,
+    },
+
+    "silky_herbal_compress_ritual": {
+        "title_sr": "Silky Herbal Compress Ritual",
+        "title_en": "Silky Herbal Compress Ritual",
+        "discount_percent": 0,
+    },
+    "thai_herbal_compress_ritual": {
+        "title_sr": "Thai Herbal Compress Ritual",
+        "title_en": "Thai Herbal Compress Ritual",
+        "discount_percent": 0,
+    },
+    "aroma_stone_harmony_ritual": {
+        "title_sr": "Aroma Stone Harmony Ritual",
+        "title_en": "Aroma Stone Harmony Ritual",
+        "discount_percent": 0,
+    },
+
+    "spa_zone": {
+        "title_sr": "SPA Zone",
+        "title_en": "SPA Zone",
+        "discount_percent": 0,
+    },
+
+    "romantic_couple_package": {
+        "title_sr": "Romantični paket za parove",
+        "title_en": "Romantic Couple Package",
+        "discount_percent": 0,
+    },
+    "romantic_peeling_couple_package": {
+        "title_sr": "Romantični piling paket za parove",
+        "title_en": "Romantic Peeling Couple Package",
+        "discount_percent": 0,
+    },
+}
 
 # ============================================
 # SPA NOTES PARSER & NORMALIZER
