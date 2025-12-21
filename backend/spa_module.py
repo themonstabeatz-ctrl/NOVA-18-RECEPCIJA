@@ -1696,8 +1696,13 @@ async def delete_spa_appointments_bulk(
 # EMAIL SENDING FOR SPA BOOKINGS
 # ============================================
 async def send_spa_booking_email(appointment_data: dict):
-    """Send email notification for SPA booking"""
+    """
+    Send email notification for SPA booking.
+    🔒 USES SAME ADAPTER AS TEST EMAIL - build_client_email_for_spa()
+    """
     try:
+        from email_templates.adapters import build_client_email_for_spa
+        
         smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
         smtp_port = int(os.getenv("SMTP_PORT", "587"))
         smtp_user = os.getenv("SMTP_USER", "")
@@ -1708,38 +1713,13 @@ async def send_spa_booking_email(appointment_data: dict):
             logger.warning(f"Email credentials not configured (user={smtp_user}, owner={owner_email}), skipping SPA email")
             return False
         
-        # Build email content
-        client_name = f"{appointment_data.get('client_first_name', '')} {appointment_data.get('client_last_name', '')}"
-        client_phone = appointment_data.get('client_phone', 'N/A')
-        client_email = appointment_data.get('client_email', 'N/A')
-        start_time = appointment_data.get('start_time', 'N/A')
-        total = appointment_data.get('final_total', 0)
-        services = appointment_data.get('services_snapshot', [])
-        spa_category = appointment_data.get('spa_category', 'SPA')
+        # 🔒 USE SAME ADAPTER AS TEST EMAIL
+        # This ensures pricing snapshot is used correctly
+        subject, html_content = build_client_email_for_spa(appointment_data)
         
-        service_names = ", ".join([s.get('name', '') for s in services]) if services else spa_category
-        
-        html_content = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px;">
-                <h2 style="color: #8B4513; text-align: center;">🧖 Nova SPA Rezervacija</h2>
-                <hr style="border: 1px solid #ddd;">
-                <p><strong>Klijent:</strong> {client_name}</p>
-                <p><strong>Telefon:</strong> {client_phone}</p>
-                <p><strong>Email:</strong> {client_email}</p>
-                <p><strong>Datum/Vreme:</strong> {start_time}</p>
-                <p><strong>Usluge:</strong> {service_names}</p>
-                <p><strong>Ukupno:</strong> {total} RSD</p>
-                <hr style="border: 1px solid #ddd;">
-                <p style="text-align: center; color: #888;">Bu Aluang Thai Spa</p>
-            </div>
-        </body>
-        </html>
-        """
-        
+        # Send to owner
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"🧖 Nova SPA rezervacija - {client_name}"
+        msg["Subject"] = subject
         msg["From"] = smtp_user
         msg["To"] = owner_email
         msg.attach(MIMEText(html_content, "html"))
@@ -1753,7 +1733,30 @@ async def send_spa_booking_email(appointment_data: dict):
             password=smtp_password
         )
         
-        logger.info(f"📧 SPA booking email sent to {owner_email}")
+        logger.info(f"📧 SPA booking email sent to OWNER: {owner_email}")
+        
+        # Also send to client if email is provided
+        client_email = appointment_data.get('client_email', '')
+        if client_email and '@' in client_email:
+            client_msg = MIMEMultipart("alternative")
+            client_msg["Subject"] = subject
+            client_msg["From"] = smtp_user
+            client_msg["To"] = client_email
+            client_msg.attach(MIMEText(html_content, "html"))
+            
+            try:
+                await aiosmtplib.send(
+                    client_msg,
+                    hostname=smtp_host,
+                    port=smtp_port,
+                    start_tls=True,
+                    username=smtp_user,
+                    password=smtp_password
+                )
+                logger.info(f"📧 SPA booking email sent to CLIENT: {client_email}")
+            except Exception as ce:
+                logger.warning(f"⚠️ Failed to send SPA email to client {client_email}: {ce}")
+        
         return True
         
     except Exception as e:
