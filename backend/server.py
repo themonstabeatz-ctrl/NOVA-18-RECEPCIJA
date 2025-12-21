@@ -2342,6 +2342,13 @@ async def get_unified_appointments_list(
         if addon_names and addon_names not in service_description:
             service_description = f"{service_description} + {addon_names}"
         
+        # ✅ Use pricing snapshot for accurate prices (D requirement)
+        pricing = apt.get('pricing') or {}
+        final_price = pricing.get('final_price') or apt.get('final_total') or apt.get('total') or 0
+        original_price = pricing.get('original_price') or apt.get('original_total') or final_price
+        discount_pct = pricing.get('discount_percent') or apt.get('discount_percentage') or 0
+        has_discount = discount_pct > 0 and final_price < original_price
+        
         items.append({
             "id": apt.get('id'),
             "type": "spa",
@@ -2359,11 +2366,13 @@ async def get_unified_appointments_list(
             "service_duration": normalized['duration_min'],
             "duration_min": normalized['duration_min'],
             "spa_zone": normalized.get('spa_zone', ''),
-            "original_price": apt.get('original_total', 0),
-            "final_total": apt.get('final_total', 0),
-            "total_price": apt.get('final_total', 0),
-            "discount_percentage": apt.get('discount_percentage', 0) or 0,
-            "discount_amount": apt.get('discount_amount', 0) or 0,
+            # ✅ Pricing from snapshot (source of truth)
+            "original_price": original_price,
+            "final_total": final_price,
+            "total_price": final_price,
+            "discount_percentage": discount_pct,
+            "discount_amount": original_price - final_price if has_discount else 0,
+            "has_discount": has_discount,
             "is_couples_booking": apt.get('spa_category') == 'spa_special_couple',
             "status": apt.get('status', 'scheduled'),
             "addons": addons,
