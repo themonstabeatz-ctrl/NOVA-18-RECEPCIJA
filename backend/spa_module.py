@@ -581,6 +581,153 @@ async def update_spa_service_discount(service_id: str, discount: int = Query(...
     }
 
 
+# ============================================
+# Card Discount Endpoints (NEW)
+# ============================================
+ALLOWED_CARD_DISCOUNTS = {0, 5, 10, 15}
+
+
+@spa_router.patch("/cards/{card_id}/discount")
+async def update_card_discount(card_id: str, discount: int = Query(...)):
+    """
+    🔐 ADMIN ENDPOINT: Set card-level discount for a SPA ritual/card.
+    
+    This discount applies to the ENTIRE card total:
+    - Base ritual price
+    - Variant add-ons (e.g., Face Massage +3000)
+    - SPA ZONE selections (sauna/steam/jacuzzi)
+    
+    Allowed values: 0, 5, 10, 15
+    """
+    if discount not in ALLOWED_CARD_DISCOUNTS:
+        raise HTTPException(status_code=400, detail=f"INVALID_CARD_DISCOUNT. Allowed: {ALLOWED_CARD_DISCOUNTS}")
+    
+    # Find the card/ritual service by card_id (stored in metadata.card_id or service ID)
+    existing = await db.spa_services.find_one({
+        "$or": [
+            {"id": card_id},
+            {"metadata.card_id": card_id}
+        ]
+    })
+    
+    if not existing:
+        raise HTTPException(status_code=404, detail="CARD_NOT_FOUND")
+    
+    # Update card discount in metadata
+    metadata = existing.get("metadata", {})
+    metadata["card_discount_percent"] = discount
+    metadata["discount_scope"] = "CARD_TOTAL"
+    metadata["card_id"] = card_id
+    
+    await db.spa_services.update_one(
+        {"id": existing["id"]},
+        {"$set": {"metadata": metadata}}
+    )
+    
+    logger.info(f"💳 CARD_DISCOUNT_SET card_id={card_id} discount={discount}%")
+    
+    updated = await db.spa_services.find_one({"id": existing["id"]}, {"_id": 0})
+    
+    return {
+        "card_id": card_id,
+        "service_id": updated.get("id"),
+        "name": updated.get("name"),
+        "card_discount_percent": discount,
+        "discount_scope": "CARD_TOTAL"
+    }
+
+
+@spa_router.post("/card-quote")
+async def get_card_quote(request: CardQuoteRequest):
+    """
+    🧮 Calculate quote for a SPA CARD with all selections.
+    
+    Card discount is applied to the ENTIRE total:
+    original_total = base + variant + spa_zone_sum
+    final_total = original_total * (1 - card_discount_percent/100)
+    
+    Frontend sends service IDs, backend calculates everything.
+    """
+    
+    # 1) Get base service price
+    base_service = await db.spa_services.find_one({"id": request.base_service_id}, {"_id": 0})
+    if not base_service:
+        raise HTTPException(status_code=404, detail="BASE_SERVICE_NOT_FOUND")
+    
+    base_price = int(base_service.get("original_price") or base_service.get("price", 0))
+    base_name = base_service.get("name", "")
+    
+    # Get card discount from base service metadata
+    metadata = base_service.get("metadata", {})
+    card_discount = metadata.get("card_discount_percent", 0)
+    if card_discount not in ALLOWED_CARD_DISCOUNTS:
+        card_discount = 0
+    
+    # 2) Get variant price (if selected)
+    variant_price = 0
+    variant_name = None
+    if request.variant_service_id:
+        variant_service = await db.spa_services.find_one({"id": request.variant_service_id}, {"_id": 0})
+        if variant_service:
+            variant_price = int(variant_service.get("original_price") or variant_service.get("price", 0))
+            variant_name = variant_service.get("name", "")
+    
+    # 3) Get SPA ZONE prices
+    spa_zone_total = 0
+    spa_zone_details = {}
+    spa_zone = request.spa_zone or {}
+    
+    for zone_key in ["sauna_id", "sauna_service_id", "steam_id", "steam_service_id", "jacuzzi_id", "jacuzzi_service_id"]:
+        zone_id = spa_zone.get(zone_key)
+        if zone_id:
+            zone_service = await db.spa_services.find_one({"id": zone_id}, {"_id": 0})
+            if zone_service:
+                zone_price = int(zone_service.get("original_price") or zone_service.get("price", 0))
+                spa_zone_total += zone_price
+                # Normalize key name
+                normalized_key = zone_key.replace("_service_id", "").replace("_id", "")
+                spa_zone_details[normalized_key] = {
+                    "id": zone_id,
+                    "name": zone_service.get("name"),
+                    "price": zone_price
+                }
+    
+    # 4) Calculate totals
+    original_total = base_price + variant_price + spa_zone_total
+    
+    # 5) Apply card discount to ENTIRE total
+    if card_discount > 0:
+        final_total = int(round(original_total * (100 - card_discount) / 100))
+    else:
+        final_total = original_total
+    
+    discount_amount = original_total - final_total
+    has_discount = card_discount > 0 and final_total < original_total
+    
+    logger.info(f"💳 CARD_QUOTE card_id={request.card_id} base={base_price} variant={variant_price} spa_zone={spa_zone_total} original={original_total} discount={card_discount}% final={final_total}")
+    
+    return {
+        "card_id": request.card_id,
+        "original_total": original_total,
+        "discount_percent": card_discount,
+        "discount_amount": discount_amount,
+        "final_total": final_total,
+        "has_discount": has_discount,
+        "breakdown": {
+            "base": {
+                "name": base_name,
+                "price": base_price
+            },
+            "variant": {
+                "name": variant_name,
+                "price": variant_price
+            } if variant_name else None,
+            "spa_zone": spa_zone_details if spa_zone_details else None,
+            "spa_zone_total": spa_zone_total
+        }
+    }
+
+
 @spa_router.post("/quote", response_model=SpaQuoteResponse)
 async def get_spa_quote(request: SpaQuoteRequest):
     """Calculate SPA quote with optional discount and add-ons"""
