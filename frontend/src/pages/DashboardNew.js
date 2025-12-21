@@ -5,6 +5,19 @@ import { TrendingUp, Users, DollarSign, Clock, Printer, LogOut, PieChart, BarCha
 import { BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Login from '../components/Login';
 
+/**
+ * 💰 PRICING HELPER - Extract pricing from appointment
+ * Handles both new (pricing snapshot) and legacy data formats
+ */
+const getPricing = (appt) => {
+  const p = appt.pricing || {};
+  const original = p.original_total ?? p.original_price ?? appt.original_price ?? null;
+  const final = p.final_total ?? p.final_price ?? appt.total_price ?? appt.final_total ?? null;
+  const discount = Number(p.discount_percent ?? appt.discount_percentage ?? 0);
+  const has = Boolean(appt.has_discount) || (discount > 0 && original && final && original > final);
+  return { original, final, discount, has };
+};
+
 const DashboardNew = () => {
   const navigate = useNavigate();
   const [period, setPeriod] = useState('week');
