@@ -123,7 +123,7 @@ const Services = () => {
 
   // Check if current category is SPA
   const isSpaCategory = (category) => {
-    return category === 'SPA' || category === 'SPA paketi za posebne prilike' || category === 'SPA add-ons (doplate)';
+    return category === 'SPA' || category === 'SPA paketi za posebne prilike' || category === 'SPA ZONE';
   };
 
   const handleDiscountChange = async (serviceId, discount) => {
