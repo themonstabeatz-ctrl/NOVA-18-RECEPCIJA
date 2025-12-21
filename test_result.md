@@ -206,6 +206,18 @@ backend:
         agent: "testing"
         comment: "✅ SPA BACKEND API COMPREHENSIVE TESTING COMPLETE: All 5 test scenarios from review request PASSED successfully. A) CORS Configuration: OPTIONS /api/spa/quote allows all required origins (https://relax-reserve-5.preview.emergentagent.com, http://localhost:3000, http://localhost:5173). B) Quote Endpoint Response Format: POST /api/spa/quote returns all required fields (original_total, discount_percent, final_total, has_discount, card_id, breakdown) with correct types. C) Card Discount Flow: PATCH /api/spa/cards/spa_zone/discount successfully sets 15% discount, quote applies discount correctly (1400 * 0.85 = 1190 RSD), reset to 0% works. D) Booking Endpoint Pricing Snapshot: POST /api/spa/appointments creates appointment with pricing snapshot (original_total, final_total, discount_percentage). E) Unified Listing Price Display: GET /api/appointments/list returns SPA appointments with correct pricing fields (total_price=final_total, original_price, discount_percentage, has_discount). All pricing calculations consistent and use final discounted values for dashboard display."
 
+  - task: "SPA Pricing Snapshot with Discount Verification"
+    implemented: true
+    working: true
+    file: "backend/spa_module.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ SPA PRICING SNAPSHOT WITH DISCOUNT TESTING COMPLETE: Comprehensive test of the specific pricing snapshot functionality PASSED all scenarios. A) Set Card Discount: PATCH /api/spa/cards/deep_renewal_ritual/discount?discount=5 returns correct response {'card_id': 'deep_renewal_ritual', 'discount_percent': 5, 'has_discount': true}. B) Create Booking with Discount: POST /api/spa/appointments with card_id creates appointment with correct pricing (original_total=11600, final_total=11020, discount_percentage=5, total=11020). C) Verify Response Pricing: All required fields present (original_total, final_total, discount_percentage, pricing.original_price, pricing.final_price, pricing.discount_percent, pricing.has_discount, pricing.card_id). D) CRITICAL VALIDATION PASSED: original_price (11600) != final_price (11020) when has_discount=true - this confirms the main bug fix is working correctly. E) Unified Listing: GET /api/appointments/list shows correct pricing from snapshot (original_price=11600, final_total=11020, discount_percentage=5, has_discount=true). F) Reset Discount: Successfully reset to 0%. The pricing snapshot system correctly captures and stores discount information, preventing retroactive price changes."
+
 frontend:
   - task: "CEO Dashboard UI"
     implemented: true
