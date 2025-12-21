@@ -2127,6 +2127,19 @@ async def get_appointments(
             apt['end_time'] = datetime.fromisoformat(apt['end_time'])
         if isinstance(apt['created_at'], str):
             apt['created_at'] = datetime.fromisoformat(apt['created_at'])
+        
+        # 🔐 PRICING: Add standardized pricing object for massage appointments
+        if not apt.get('pricing'):
+            apt['pricing'] = {
+                'original_price': int(apt.get('snapshot_original_price') or apt.get('price', 0)),
+                'final_price': int(apt.get('snapshot_price') or apt.get('price', 0)),
+                'discount_percent': int(apt.get('snapshot_discount_percentage', 0)),
+                'has_discount': apt.get('snapshot_discount_percentage', 0) > 0
+            }
+        # Add total_price for dashboard compatibility
+        apt['total_price'] = int(apt.get('snapshot_price') or apt.get('pricing', {}).get('final_price', 0) or apt.get('price', 0))
+        apt['original_price'] = int(apt.get('snapshot_original_price') or apt.get('pricing', {}).get('original_price', 0) or apt.get('price', 0))
+        apt['discount_percentage'] = int(apt.get('snapshot_discount_percentage') or apt.get('pricing', {}).get('discount_percent', 0))
     
     # Fetch SPA appointments if requested
     if include_spa and start_date and end_date:
