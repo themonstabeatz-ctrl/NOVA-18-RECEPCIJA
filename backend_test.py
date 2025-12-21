@@ -1543,9 +1543,313 @@ def run_spa_backend_tests():
         print("❌ SOME SPA BACKEND API TESTS FAILED!")
         return False
 
+def test_spa_pricing_snapshot_with_discount():
+    """
+    Test SPA booking pricing system to verify that discounts are correctly calculated and stored.
+    
+    Test Scenario: Pricing Snapshot with Discount
+    A) Set Card Discount: 5% discount on deep_renewal_ritual card
+    B) Create Booking with Discount: Create SPA booking with card_id
+    C) Verify Response Has Correct Pricing: Check all pricing fields
+    D) Critical Validation: Verify original_price != final_price when has_discount = true
+    E) Test Unified Listing: Verify pricing in dashboard listing
+    F) Reset Discount: Clean up by resetting discount to 0%
+    """
+    print("=" * 80)
+    print("TEST: SPA PRICING SNAPSHOT WITH DISCOUNT")
+    print("=" * 80)
+    
+    all_tests_passed = True
+    
+    # A) Set Card Discount - 5% discount on deep_renewal_ritual card
+    print(f"\nA) Setting 5% discount on deep_renewal_ritual card...")
+    print("-" * 50)
+    
+    try:
+        response = requests.patch(f"{API_BASE_URL}/spa/cards/deep_renewal_ritual/discount?discount=5")
+        print(f"PATCH {API_BASE_URL}/spa/cards/deep_renewal_ritual/discount?discount=5")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            all_tests_passed = False
+        else:
+            try:
+                discount_response = response.json()
+                expected_response = {
+                    "card_id": "deep_renewal_ritual",
+                    "discount_percent": 5,
+                    "has_discount": True
+                }
+                
+                print(f"✅ SUCCESS: Discount set successfully")
+                print(f"Response: {discount_response}")
+                
+                # Verify expected response structure
+                if (discount_response.get('card_id') == expected_response['card_id'] and
+                    discount_response.get('discount_percent') == expected_response['discount_percent'] and
+                    discount_response.get('has_discount') == expected_response['has_discount']):
+                    print(f"✅ Response matches expected format")
+                else:
+                    print(f"❌ FAILED: Response doesn't match expected format")
+                    print(f"Expected: {expected_response}")
+                    all_tests_passed = False
+                    
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON response")
+                all_tests_passed = False
+                
+    except Exception as e:
+        print(f"❌ ERROR setting discount: {e}")
+        all_tests_passed = False
+    
+    # B) Create Booking with Discount
+    print(f"\nB) Creating SPA booking with card_id...")
+    print("-" * 50)
+    
+    booking_request = {
+        "client_first_name": "Pricing",
+        "client_last_name": "Test",
+        "client_phone": "0611234567",
+        "client_email": "pricing@test.com",
+        "spa_category": "spa_ritual",
+        "spa_package_id": "b4067c22-e4c0-4db7-aa7a-b6b6d396e27a",
+        "card_id": "deep_renewal_ritual",
+        "appointment_date": "2025-12-30",
+        "appointment_time": "15:00"
+    }
+    
+    print(f"Booking Request:")
+    print(json.dumps(booking_request, indent=2))
+    
+    booking_id = None
+    
+    try:
+        response = requests.post(
+            f"{API_BASE_URL}/spa/appointments",
+            json=booking_request,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        print(f"\nPOST {API_BASE_URL}/spa/appointments")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            print(f"Response: {response.text}")
+            all_tests_passed = False
+        else:
+            try:
+                booking_response = response.json()
+                booking_id = booking_response.get('id')
+                print(f"✅ SUCCESS: SPA appointment created")
+                print(f"Appointment ID: {booking_id}")
+                
+                # C) Verify Response Has Correct Pricing
+                print(f"\nC) Verifying response has correct pricing...")
+                print("-" * 50)
+                
+                # Expected values based on Deep Renewal base price
+                expected_original_total = 11600  # Deep Renewal base price
+                expected_final_total = 11020     # 11600 * 0.95
+                expected_discount_percentage = 5
+                
+                # Check all required pricing fields
+                required_fields = {
+                    'original_total': expected_original_total,
+                    'final_total': expected_final_total,
+                    'discount_percentage': expected_discount_percentage,
+                    'total': expected_final_total
+                }
+                
+                pricing_fields = booking_response.get('pricing', {})
+                
+                print(f"Booking Response Pricing:")
+                print(f"  original_total: {booking_response.get('original_total')}")
+                print(f"  final_total: {booking_response.get('final_total')}")
+                print(f"  discount_percentage: {booking_response.get('discount_percentage')}")
+                print(f"  total: {booking_response.get('total')}")
+                
+                print(f"\nPricing Object:")
+                print(f"  pricing.original_price: {pricing_fields.get('original_price')}")
+                print(f"  pricing.final_price: {pricing_fields.get('final_price')}")
+                print(f"  pricing.discount_percent: {pricing_fields.get('discount_percent')}")
+                print(f"  pricing.has_discount: {pricing_fields.get('has_discount')}")
+                print(f"  pricing.card_id: {pricing_fields.get('card_id')}")
+                
+                # Verify main pricing fields
+                pricing_correct = True
+                
+                if booking_response.get('original_total') != expected_original_total:
+                    print(f"❌ FAILED: original_total expected {expected_original_total}, got {booking_response.get('original_total')}")
+                    pricing_correct = False
+                
+                if booking_response.get('final_total') != expected_final_total:
+                    print(f"❌ FAILED: final_total expected {expected_final_total}, got {booking_response.get('final_total')}")
+                    pricing_correct = False
+                
+                if booking_response.get('discount_percentage') != expected_discount_percentage:
+                    print(f"❌ FAILED: discount_percentage expected {expected_discount_percentage}, got {booking_response.get('discount_percentage')}")
+                    pricing_correct = False
+                
+                if booking_response.get('total') != expected_final_total:
+                    print(f"❌ FAILED: total expected {expected_final_total}, got {booking_response.get('total')}")
+                    pricing_correct = False
+                
+                # Verify pricing object fields
+                if pricing_fields.get('original_price') != expected_original_total:
+                    print(f"❌ FAILED: pricing.original_price expected {expected_original_total}, got {pricing_fields.get('original_price')}")
+                    pricing_correct = False
+                
+                if pricing_fields.get('final_price') != expected_final_total:
+                    print(f"❌ FAILED: pricing.final_price expected {expected_final_total}, got {pricing_fields.get('final_price')}")
+                    pricing_correct = False
+                
+                if pricing_fields.get('discount_percent') != expected_discount_percentage:
+                    print(f"❌ FAILED: pricing.discount_percent expected {expected_discount_percentage}, got {pricing_fields.get('discount_percent')}")
+                    pricing_correct = False
+                
+                if pricing_fields.get('has_discount') != True:
+                    print(f"❌ FAILED: pricing.has_discount expected True, got {pricing_fields.get('has_discount')}")
+                    pricing_correct = False
+                
+                if pricing_fields.get('card_id') != "deep_renewal_ritual":
+                    print(f"❌ FAILED: pricing.card_id expected 'deep_renewal_ritual', got {pricing_fields.get('card_id')}")
+                    pricing_correct = False
+                
+                if pricing_correct:
+                    print(f"✅ SUCCESS: All pricing fields are correct")
+                else:
+                    all_tests_passed = False
+                
+                # D) Critical Validation - Verify original_price != final_price when has_discount = true
+                print(f"\nD) Critical Validation...")
+                print("-" * 50)
+                
+                original_price = pricing_fields.get('original_price')
+                final_price = pricing_fields.get('final_price')
+                has_discount = pricing_fields.get('has_discount')
+                
+                if has_discount == True:
+                    if original_price != final_price:
+                        print(f"✅ SUCCESS: has_discount=true and original_price ({original_price}) != final_price ({final_price})")
+                        print(f"✅ This is the main bug fix verification - PASSED")
+                    else:
+                        print(f"❌ CRITICAL FAILURE: has_discount=true but original_price ({original_price}) == final_price ({final_price})")
+                        print(f"❌ This indicates the main bug is NOT fixed - TEST FAILS")
+                        all_tests_passed = False
+                else:
+                    print(f"❌ FAILED: has_discount should be true when discount is applied, got {has_discount}")
+                    all_tests_passed = False
+                    
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON response")
+                all_tests_passed = False
+                
+    except Exception as e:
+        print(f"❌ ERROR creating booking: {e}")
+        all_tests_passed = False
+    
+    # E) Test Unified Listing
+    print(f"\nE) Testing unified listing...")
+    print("-" * 50)
+    
+    try:
+        response = requests.get(f"{API_BASE_URL}/appointments/list?period=year")
+        print(f"GET {API_BASE_URL}/appointments/list?period=year")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"❌ FAILED: Expected HTTP 200, got {response.status_code}")
+            all_tests_passed = False
+        else:
+            try:
+                listing_response = response.json()
+                
+                # Find the booking we just created
+                appointments = listing_response if isinstance(listing_response, list) else listing_response.get('items', [])
+                created_booking = None
+                
+                for apt in appointments:
+                    if apt.get('id') == booking_id:
+                        created_booking = apt
+                        break
+                
+                if created_booking:
+                    print(f"✅ SUCCESS: Found created booking in listing")
+                    
+                    # Verify pricing fields in listing
+                    listing_original = created_booking.get('original_price')
+                    listing_final = created_booking.get('final_total')
+                    listing_discount = created_booking.get('discount_percentage')
+                    listing_has_discount = created_booking.get('has_discount')
+                    
+                    print(f"Listing Pricing:")
+                    print(f"  original_price: {listing_original}")
+                    print(f"  final_total: {listing_final}")
+                    print(f"  discount_percentage: {listing_discount}")
+                    print(f"  has_discount: {listing_has_discount}")
+                    
+                    # Verify values match expected
+                    if (listing_original == 11600 and 
+                        listing_final == 11020 and 
+                        listing_discount == 5 and 
+                        listing_has_discount == True):
+                        print(f"✅ SUCCESS: Listing shows correct pricing from snapshot")
+                    else:
+                        print(f"❌ FAILED: Listing pricing doesn't match expected values")
+                        all_tests_passed = False
+                else:
+                    print(f"❌ FAILED: Could not find created booking in listing")
+                    all_tests_passed = False
+                    
+            except json.JSONDecodeError:
+                print(f"❌ FAILED: Invalid JSON response")
+                all_tests_passed = False
+                
+    except Exception as e:
+        print(f"❌ ERROR testing listing: {e}")
+        all_tests_passed = False
+    
+    # F) Reset Discount
+    print(f"\nF) Resetting discount to 0%...")
+    print("-" * 50)
+    
+    try:
+        response = requests.patch(f"{API_BASE_URL}/spa/cards/deep_renewal_ritual/discount?discount=0")
+        print(f"PATCH {API_BASE_URL}/spa/cards/deep_renewal_ritual/discount?discount=0")
+        print(f"Response Status: {response.status_code}")
+        
+        if response.status_code == 200:
+            print(f"✅ SUCCESS: Discount reset to 0%")
+        else:
+            print(f"⚠️ WARNING: Could not reset discount (status {response.status_code})")
+            
+    except Exception as e:
+        print(f"⚠️ WARNING: Error resetting discount: {e}")
+    
+    return all_tests_passed
+
 if __name__ == "__main__":
-    """Main execution - run the SPA backend API tests"""
-    success = run_spa_backend_tests()
+    """Main execution - run the specific pricing snapshot test"""
+    print("🧖 STARTING SPA PRICING SNAPSHOT WITH DISCOUNT TEST")
+    print(f"API URL: {BACKEND_URL}")
+    print("=" * 80)
+    
+    success = test_spa_pricing_snapshot_with_discount()
+    
+    print("\n" + "=" * 80)
+    print("🧖 SPA PRICING SNAPSHOT TEST SUMMARY")
+    print("=" * 80)
+    
+    if success:
+        print("✅ SPA PRICING SNAPSHOT WITH DISCOUNT: PASSED")
+        print("🎉 ALL PRICING SNAPSHOT TESTS PASSED!")
+    else:
+        print("❌ SPA PRICING SNAPSHOT WITH DISCOUNT: FAILED")
+        print("❌ PRICING SNAPSHOT TESTS FAILED!")
+    
     sys.exit(0 if success else 1)
 
 def test_couples_4_services_no_therapist():
