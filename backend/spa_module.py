@@ -864,27 +864,32 @@ async def get_spa_quote(request: SpaQuoteRequest):
         original_total = sum(z["price"] for z in zones)
         total_duration = sum(z["duration"] for z in zones)
         
-        # Apply discount
-        discount_pct = min(request.discount_percentage or 0, 15)
-        discount_amount, final_total, applied_discount = apply_spa_discount(original_total, discount_pct)
+        # 🎴 Apply CARD-LEVEL discount from SPA_CARDS
+        card_id = request.card_id or "spa_zone"
+        discount_pct = get_card_discount(card_id)
+        final_total = apply_percent(original_total, discount_pct)
+        discount_amount = original_total - final_total
+        has_discount = discount_pct > 0 and final_total < original_total
         
         # Build breakdown
         zone_names = [f"{z['name']} ({z['price']} RSD)" for z in zones]
         breakdown = " + ".join(zone_names) + f" = {original_total} RSD"
-        if applied_discount > 0:
-            breakdown += f" - {applied_discount}% = {final_total} RSD"
+        if discount_pct > 0:
+            breakdown += f" - {discount_pct}% = {final_total} RSD"
         
         # Build message
         message = "SPA ZONA: " + ", ".join([z["name"] for z in zones])
         
-        logger.info(f"💰 SPA_QUOTE (ZONE): zones={[z['name'] for z in zones]}, total={original_total}, duration={total_duration}")
+        logger.info(f"💰 SPA_QUOTE (ZONE): card_id={card_id} zones={[z['name'] for z in zones]}, total={original_total}, discount={discount_pct}%, final={final_total}")
         
         return SpaQuoteResponse(
             services=[{"id": z["id"], "name": z["name"], "price": z["price"], "duration": z["duration"]} for z in zones],
             original_total=original_total,
-            discount_percentage=applied_discount,
+            discount_percent=discount_pct,
             discount_amount=discount_amount,
             final_total=final_total,
+            has_discount=has_discount,
+            card_id=card_id,
             breakdown=breakdown,
             total_duration=total_duration,
             base_price=original_total,
