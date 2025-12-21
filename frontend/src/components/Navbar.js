@@ -302,24 +302,27 @@ const Navbar = () => {
                           )}
                         </div>
                         
-                        {/* Price */}
-                        {notification.service_price && (
+                        {/* Price - 🔒 USE STANDARDIZED PRICING */}
+                        {(notification.service_price || notification.final_total) && (
                           <div className="mt-3 p-2 bg-green-50 rounded-lg border border-green-200">
-                            {notification.discount_percentage > 0 ? (
-                              <div>
-                                <p className="text-xs text-gray-500 line-through">
-                                  Original: {notification.original_price.toLocaleString()} RSD
-                                </p>
-                                <p className="text-base font-bold text-green-700 flex items-center gap-2">
-                                  💰 Cena: {notification.service_price.toLocaleString()} RSD
-                                  <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
-                                    -{notification.discount_percentage}%
+                            {notification.has_discount && notification.original_total > notification.final_total ? (
+                              <div className="space-y-1">
+                                <p className="text-xs text-gray-600">
+                                  <span className="font-medium">Cena (orig):</span>{' '}
+                                  <span className="line-through text-gray-400">
+                                    {(notification.original_total || notification.original_price || 0).toLocaleString()} RSD
                                   </span>
+                                </p>
+                                <p className="text-xs text-red-600 font-medium">
+                                  Popust: -{notification.discount_percentage}%
+                                </p>
+                                <p className="text-sm font-bold text-green-700">
+                                  Za naplatu: {(notification.final_total || notification.service_price || 0).toLocaleString()} RSD
                                 </p>
                               </div>
                             ) : (
                               <p className="text-base font-bold text-green-700 flex items-center gap-2">
-                                💰 Cena: {notification.service_price.toLocaleString()} RSD
+                                💰 Cena: {(notification.final_total || notification.service_price || 0).toLocaleString()} RSD
                               </p>
                             )}
                           </div>
