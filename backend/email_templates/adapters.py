@@ -127,14 +127,29 @@ def build_client_email_for_massage(appt: dict) -> tuple:
     
     # 💰 Add pricing with discount display from snapshot
     pricing = appt.get('pricing', {})
-    original_price = pricing.get('original_price') or appt.get('snapshot_original_price') or appt.get('original_total_price')
-    discount_percent = pricing.get('discount_percent') or appt.get('snapshot_discount_percentage', 0)
+    discount_percent = int(pricing.get('discount_percent') or appt.get('snapshot_discount_percentage') or 0)
+    
+    # Get final price first
     final_price = pricing.get('final_price') or appt.get('snapshot_price') or appt.get('total_price')
     
-    if discount_percent and discount_percent > 0 and original_price:
-        # Show original strikethrough + discount + final
+    # Get original price - if not available and discount exists, calculate it
+    if pricing.get('original_price'):
+        original_price = pricing.get('original_price')
+    elif appt.get('snapshot_original_price') and appt.get('snapshot_original_price') > 0:
+        original_price = appt.get('snapshot_original_price')
+    elif discount_percent > 0 and final_price:
+        # Reverse calculate: original = final / (1 - discount/100)
+        original_price = int(round(final_price / (1 - discount_percent / 100)))
+    else:
+        original_price = appt.get('original_total_price') or final_price
+    
+    # Determine if discount is actually applied
+    has_discount = discount_percent > 0 and original_price and final_price and original_price > final_price
+    
+    if has_discount:
+        # Show: Cena (orig) precrtano + Popust + Za naplatu
         items.append(LineItem("💰", "Cena (orig)", f"<s>{original_price:,.0f}</s> RSD"))
-        items.append(LineItem("🏷️", "Popust", f"-{int(discount_percent)}%"))
+        items.append(LineItem("🏷️", "Popust", f"-{discount_percent}%"))
         items.append(LineItem("✅", "Za naplatu", f"<b>{final_price:,.0f}</b> RSD"))
     elif final_price:
         items.append(LineItem("💰", "Cena", f"{final_price:,.0f} RSD"))
