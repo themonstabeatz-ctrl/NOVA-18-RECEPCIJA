@@ -138,7 +138,7 @@ def enrich_service_with_discount(service: Dict, active_discount_percent: float =
     original_price = int(service.get("price", 0))
     
     pricing = apply_spa_discount_v2(
-        original_price=original_price,
+        original_total=original_price,
         discount_percent=active_discount_percent
     )
     
