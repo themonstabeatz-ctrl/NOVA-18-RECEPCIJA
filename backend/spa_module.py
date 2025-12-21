@@ -1154,10 +1154,19 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         start_time = get_start_time()
         end_time = start_time + timedelta(minutes=pkg["duration"])
         
-        # Apply discount using discount engine (SINGLE SOURCE OF TRUTH)
+        # 🎴 SERVER-SIDE RECOMPUTE: Get discount from card_id (source of truth)
+        # Priority: appointment.card_id > spa_package_id > discount_percentage
+        card_id = appointment.card_id or appointment.spa_package_id
         original_total = pkg["price"]
-        discount_pct = min(appointment.discount_percentage or 0, 15)
+        card_discount = get_card_discount(card_id)
+        discount_pct = card_discount if card_discount > 0 else min(appointment.discount_percentage or 0, 15)
         pricing = apply_spa_discount_v2(original_total, discount_pct)
+        
+        # ✅ GUARD: If has_discount, original MUST differ from final
+        has_discount = discount_pct > 0 and pricing["final_price"] < pricing["original_price"]
+        if has_discount and pricing["original_price"] == pricing["final_price"]:
+            logger.error(f"🚨 BUG: original_price == final_price while discount={discount_pct}%")
+            raise ValueError("BUG: original_price == final_price while has_discount=True")
         
         # Create pricing snapshot for immutable record
         pricing_snapshot = create_pricing_snapshot(
@@ -1166,6 +1175,8 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
             reason="SPA_SPECIAL_COUPLE_BOOKING"
         )
         pricing_snapshot["snapshot_at"] = datetime.now().isoformat()
+        pricing_snapshot["card_id"] = card_id
+        pricing_snapshot["has_discount"] = has_discount
         
         spa_apt = SpaAppointment(
             client_first_name=appointment.client_first_name,
