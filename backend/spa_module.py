@@ -29,6 +29,8 @@ import re
 
 # Import discount engine
 from discount_engine import apply_spa_discount_v2, create_pricing_snapshot, enrich_service_with_discount
+# Import pricing utils
+from pricing_utils import compute_pricing, resolve_pricing
 
 logger = logging.getLogger(__name__)
 
