@@ -1295,6 +1295,9 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         response['duration_min'] = doc['duration_min']
         response['spa_zone'] = doc.get('spa_zone', '')
         response['services_snapshot'] = doc['services_snapshot']
+        # 💰 Include pricing snapshot in response
+        response['pricing'] = pricing_snapshot
+        response['total'] = pricing["final_price"]
         
         return response
     
