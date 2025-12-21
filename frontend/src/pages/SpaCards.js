@@ -67,17 +67,17 @@ export default function SpaCards() {
     ['silky_body_ritual', 'gentle_touch_ritual', 'deep_renewal_ritual'].includes(c.card_id)
   );
   const herbalRituals = cards.filter(c => 
-    ['silky_herbal_compress', 'thai_herbal_compress', 'aroma_stone_harmony'].includes(c.card_id)
+    ['silky_herbal_compress_ritual', 'thai_herbal_compress_ritual', 'aroma_stone_harmony_ritual'].includes(c.card_id)
   );
   const otherCards = cards.filter(c => 
-    ['spa_zone', 'romantic_couple_package', 'romantic_peeling_package'].includes(c.card_id)
+    ['spa_zone', 'romantic_couple_package', 'romantic_peeling_couple_package'].includes(c.card_id)
   );
 
   const CardRow = ({ card }) => (
     <div className="flex items-center justify-between p-4 border-b last:border-b-0 hover:bg-gray-50">
       <div className="flex items-center gap-3">
         <CreditCard className="w-5 h-5 text-amber-600" />
-        <span className="font-medium">{card.name}</span>
+        <span className="font-medium">{card.title_sr || card.name}</span>
       </div>
       
       <div className="flex items-center gap-3">
