@@ -377,7 +377,7 @@ const Services = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {(() => {
                   // Determine which services to show based on active tab
-                  const isSpaTab = activeCategory === 'SPA' || activeCategory === 'SPA paketi za posebne prilike' || activeCategory === 'SPA add-ons (doplate)';
+                  const isSpaTab = activeCategory === 'SPA' || activeCategory === 'SPA paketi za posebne prilike' || activeCategory === 'SPA ZONE';
                   let displayServices = [];
                   
                   if (isSpaTab) {
