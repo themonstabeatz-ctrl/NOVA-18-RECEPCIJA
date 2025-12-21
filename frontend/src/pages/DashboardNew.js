@@ -605,7 +605,7 @@ const DashboardNew = () => {
               
               {/* SPA Add-ons */}
               <div className="bg-white rounded-lg shadow p-6 border-l-4 border-amber-500">
-                <h4 className="text-sm font-semibold text-gray-700 mb-4">SPA Add-ons (doplate)</h4>
+                <h4 className="text-sm font-semibold text-gray-700 mb-4">SPA ZONE</h4>
                 <div className="space-y-3">
                   <div>
                     <p className="text-xs text-gray-600">Termini</p>
