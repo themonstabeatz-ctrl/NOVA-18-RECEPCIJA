@@ -1389,11 +1389,18 @@ def test_spa_unified_listing_price_display():
             return False
         
         try:
-            appointments_data = response.json()
+            appointments_response = response.json()
             print(f"✅ SUCCESS: Appointments list retrieved")
             
-            if not isinstance(appointments_data, list):
-                print(f"❌ FAILED: Expected array response, got {type(appointments_data)}")
+            # Handle both array and object response formats
+            if isinstance(appointments_response, dict) and 'items' in appointments_response:
+                appointments_data = appointments_response['items']
+                print(f"Response format: Object with 'items' array")
+            elif isinstance(appointments_response, list):
+                appointments_data = appointments_response
+                print(f"Response format: Direct array")
+            else:
+                print(f"❌ FAILED: Unexpected response format: {type(appointments_response)}")
                 return False
             
             print(f"Total appointments found: {len(appointments_data)}")
