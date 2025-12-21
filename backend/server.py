@@ -2300,22 +2300,22 @@ async def get_unified_appointments_list(
         if apt.get('is_couples_booking'):
             service_name = service.get('description', service_name)
         
-        # ✅ PRICING EXTRACTION - prioritize pricing snapshot, fallback to appt fields
+        # 🔒 PRICING EXTRACTION - prefer original_total over original_price
         pricing = apt.get('pricing') or {}
         discount_pct = int(pricing.get('discount_percent') or apt.get('snapshot_discount_percentage') or 0)
         
-        # Get final price (what client pays)
-        final_price = pricing.get('final_price') or apt.get('snapshot_price') or service.get('price', 0)
+        # 🔒 PREFER NEW KEYS (final_total over final_price)
+        final_price = pricing.get('final_total') or pricing.get('final_price') or apt.get('snapshot_price') or service.get('price', 0)
         
-        # Get original price (before discount)
-        if pricing.get('original_price'):
-            original_price = pricing.get('original_price')
-        elif apt.get('snapshot_original_price') and apt.get('snapshot_original_price') > 0:
+        # Get original price - prefer original_total over original_price
+        original_price = pricing.get('original_total') or pricing.get('original_price')
+        if original_price is None:
             original_price = apt.get('snapshot_original_price')
-        elif discount_pct > 0 and final_price > 0:
-            # Reverse calculate: original = final / (1 - discount/100)
+        
+        # 🧮 REVERSE CALCULATION: Only if orig is missing but we have discount
+        if original_price is None and discount_pct > 0 and final_price > 0:
             original_price = int(round(final_price / (1 - discount_pct / 100)))
-        else:
+        elif original_price is None:
             original_price = service.get('price', 0) or final_price
         
         # Determine if discount is actually applied
@@ -2334,7 +2334,9 @@ async def get_unified_appointments_list(
             "service_name": service_name,
             "service_duration": service.get('duration', 0),
             "service_description": service.get('description', ''),
-            "original_price": original_price,
+            # 🔒 STANDARDIZED PRICING (original_total, final_total)
+            "original_total": original_price,  # NEW
+            "original_price": original_price,  # LEGACY
             "final_total": final_price,
             "total_price": final_price,
             "discount_percentage": discount_pct,
