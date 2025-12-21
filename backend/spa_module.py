@@ -671,14 +671,28 @@ async def get_card_quote(request: CardQuoteRequest):
     """
     🧮 Calculate quote for a SPA CARD with all selections.
     
-    Card discount is applied to the ENTIRE total:
+    Card discount comes from SPA_CARDS configuration (source of truth).
+    Applied to the ENTIRE total:
     original_total = base + variant + spa_zone_sum
     final_total = original_total * (1 - card_discount_percent/100)
     
     Frontend sends service IDs, backend calculates everything.
     """
     
-    # 1) Get base service price
+    # 1) Get card discount from SPA_CARDS (SOURCE OF TRUTH)
+    card_config = SPA_CARDS.get(request.card_id)
+    if not card_config:
+        # Try to find by partial match
+        for cid, cdata in SPA_CARDS.items():
+            if cid in request.card_id or request.card_id in cid:
+                card_config = cdata
+                break
+    
+    card_discount = card_config["discount_percent"] if card_config else 0
+    if card_discount not in ALLOWED_CARD_DISCOUNTS:
+        card_discount = 0
+    
+    # 2) Get base service price
     base_service = await db.spa_services.find_one({"id": request.base_service_id}, {"_id": 0})
     if not base_service:
         raise HTTPException(status_code=404, detail="BASE_SERVICE_NOT_FOUND")
@@ -686,13 +700,7 @@ async def get_card_quote(request: CardQuoteRequest):
     base_price = int(base_service.get("original_price") or base_service.get("price", 0))
     base_name = base_service.get("name", "")
     
-    # Get card discount from base service metadata
-    metadata = base_service.get("metadata", {})
-    card_discount = metadata.get("card_discount_percent", 0)
-    if card_discount not in ALLOWED_CARD_DISCOUNTS:
-        card_discount = 0
-    
-    # 2) Get variant price (if selected)
+    # 3) Get variant price (if selected)
     variant_price = 0
     variant_name = None
     if request.variant_service_id:
@@ -701,7 +709,7 @@ async def get_card_quote(request: CardQuoteRequest):
             variant_price = int(variant_service.get("original_price") or variant_service.get("price", 0))
             variant_name = variant_service.get("name", "")
     
-    # 3) Get SPA ZONE prices
+    # 4) Get SPA ZONE prices
     spa_zone_total = 0
     spa_zone_details = {}
     spa_zone = request.spa_zone or {}
@@ -721,10 +729,10 @@ async def get_card_quote(request: CardQuoteRequest):
                     "price": zone_price
                 }
     
-    # 4) Calculate totals
+    # 5) Calculate totals
     original_total = base_price + variant_price + spa_zone_total
     
-    # 5) Apply card discount to ENTIRE total
+    # 6) Apply card discount to ENTIRE total
     if card_discount > 0:
         final_total = int(round(original_total * (100 - card_discount) / 100))
     else:
