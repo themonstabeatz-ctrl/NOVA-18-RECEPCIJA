@@ -1832,23 +1832,40 @@ def test_spa_pricing_snapshot_with_discount():
     return all_tests_passed
 
 if __name__ == "__main__":
-    """Main execution - run the specific pricing snapshot test"""
-    print("🧖 STARTING SPA PRICING SNAPSHOT WITH DISCOUNT TEST")
-    print(f"API URL: {BACKEND_URL}")
-    print("=" * 80)
-    
-    success = test_spa_pricing_snapshot_with_discount()
+    """Main execution - handle different test types"""
+    if len(sys.argv) > 1:
+        test_type = sys.argv[1].lower()
+        if test_type == "public_booking":
+            print("🧖 STARTING PUBLIC BOOKING FLOW TEST")
+            print(f"API URL: {BACKEND_URL}")
+            print("=" * 80)
+            success = test_public_booking_flow()
+        elif test_type == "spa_pricing":
+            print("🧖 STARTING SPA PRICING SNAPSHOT WITH DISCOUNT TEST")
+            print(f"API URL: {BACKEND_URL}")
+            print("=" * 80)
+            success = test_spa_pricing_snapshot_with_discount()
+        else:
+            print(f"Unknown test type: {test_type}")
+            print("Available test types: public_booking, spa_pricing")
+            sys.exit(1)
+    else:
+        # Default to SPA pricing test for backward compatibility
+        print("🧖 STARTING SPA PRICING SNAPSHOT WITH DISCOUNT TEST")
+        print(f"API URL: {BACKEND_URL}")
+        print("=" * 80)
+        success = test_spa_pricing_snapshot_with_discount()
     
     print("\n" + "=" * 80)
-    print("🧖 SPA PRICING SNAPSHOT TEST SUMMARY")
+    print("🧖 TEST SUMMARY")
     print("=" * 80)
     
     if success:
-        print("✅ SPA PRICING SNAPSHOT WITH DISCOUNT: PASSED")
-        print("🎉 ALL PRICING SNAPSHOT TESTS PASSED!")
+        print("✅ TEST: PASSED")
+        print("🎉 ALL TESTS PASSED!")
     else:
-        print("❌ SPA PRICING SNAPSHOT WITH DISCOUNT: FAILED")
-        print("❌ PRICING SNAPSHOT TESTS FAILED!")
+        print("❌ TEST: FAILED")
+        print("❌ SOME TESTS FAILED!")
     
     sys.exit(0 if success else 1)
 
