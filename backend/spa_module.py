@@ -368,6 +368,23 @@ class CardDiscountUpdate(BaseModel):
     card_discount_percent: int = Field(..., description="Card discount: 0, 5, 10, or 15%")
 
 
+def apply_percent(amount: int, percent: int) -> int:
+    """Apply percentage discount and return rounded integer (RSD)"""
+    if percent <= 0:
+        return int(amount)
+    return int(round(amount * (100 - percent) / 100))
+
+
+def get_card_discount(card_id: str) -> int:
+    """Get card discount percent from SPA_CARDS source of truth"""
+    if not card_id:
+        return 0
+    card = SPA_CARDS.get(card_id)
+    if card:
+        return int(card.get("discount_percent", 0))
+    return 0
+
+
 class CardQuoteRequest(BaseModel):
     """Request for card-level quote calculation"""
     card_id: str = Field(..., description="Card/ritual ID (e.g., 'silky_body_ritual')")
