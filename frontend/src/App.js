@@ -8,6 +8,7 @@ import Therapists from './pages/Therapists';
 import Services from './pages/Services';
 import Settings from './pages/Settings';
 import Contact from './pages/Contact';
+import SpaCards from './pages/SpaCards';
 import './App.css';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/appointments" element={<Appointments />} />
           <Route path="/therapists" element={<Therapists />} />
           <Route path="/services" element={<Services />} />
+          <Route path="/spa-cards" element={<SpaCards />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/contact" element={<Contact />} />
         </Routes>
