@@ -161,7 +161,7 @@ const Services = () => {
         servicesToUpdate = spaServices.filter(s => s.category === 'spa_zone' || s.category === 'spa_ritual');
       } else if (activeCategory === 'SPA paketi za posebne prilike') {
         servicesToUpdate = spaServices.filter(s => s.category === 'spa_special');
-      } else if (activeCategory === 'SPA add-ons (doplate)') {
+      } else if (activeCategory === 'SPA ZONE') {
         servicesToUpdate = spaServices.filter(s => s.category === 'spa_addon');
       }
     } else {
