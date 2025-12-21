@@ -441,6 +441,59 @@ async def get_spa_services(category: Optional[str] = None):
     return enriched_services
 
 
+@spa_router.patch("/services/{service_id}")
+async def update_spa_service(service_id: str, payload: dict):
+    """
+    🔐 ADMIN ENDPOINT: Update SPA service fields (name, category, etc.)
+    
+    Used for:
+    - Migrating services between categories
+    - Renaming services
+    - Updating any service field
+    
+    Preserves ID - no duplication!
+    """
+    existing = await db.spa_services.find_one({"id": service_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="SPA_SERVICE_NOT_FOUND")
+    
+    # Build update dict from allowed fields
+    allowed_fields = ["name", "category", "price", "duration", "description", "booking_type"]
+    updates = {}
+    
+    for field in allowed_fields:
+        if field in payload and payload[field] is not None:
+            value = payload[field]
+            if isinstance(value, str):
+                value = value.strip()
+            updates[field] = value
+    
+    if not updates:
+        raise HTTPException(status_code=400, detail="NO_VALID_FIELDS_TO_UPDATE")
+    
+    logger.info(f"🔄 SPA_SERVICE_UPDATE id={service_id} updates={updates}")
+    
+    await db.spa_services.update_one(
+        {"id": service_id},
+        {"$set": updates}
+    )
+    
+    updated = await db.spa_services.find_one({"id": service_id}, {"_id": 0})
+    
+    # Return with pricing fields
+    original_price = updated.get("original_price") or updated.get("price", 0)
+    discount_pct = updated.get("discount_percent", 0)
+    pricing = apply_spa_discount_v2(int(original_price), int(discount_pct))
+    
+    return {
+        **updated,
+        "original_price": pricing["original_price"],
+        "discount_percent": pricing["discount_percent"],
+        "final_price": pricing["final_price"],
+        "has_discount": pricing["has_discount"]
+    }
+
+
 @spa_router.patch("/services/{service_id}/discount")
 async def update_spa_service_discount(service_id: str, discount: int = Query(...)):
     """
