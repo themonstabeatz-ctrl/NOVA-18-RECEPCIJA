@@ -997,25 +997,27 @@ const DashboardNew = () => {
                                           </p>
                                         </td>
                                         <td className="px-4 py-3 text-right">
-                                          {apt.discount_percentage > 0 ? (
-                                            <div>
-                                              <p className="text-xs text-gray-400 line-through">
-                                                {formatCurrency(apt.original_price)}
-                                              </p>
-                                              <div className="flex items-center justify-end gap-2">
-                                                <span className="price text-sm font-bold text-green-700">
-                                                  {formatCurrency(apt.total_price)}
-                                                </span>
-                                                <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
-                                                  -{apt.discount_percentage}%
-                                                </span>
+                                          {(() => {
+                                            const pr = getPricing(apt);
+                                            return pr.has ? (
+                                              <div>
+                                                <p className="text-xs text-gray-500">
+                                                  <span className="font-medium">Cena (orig):</span>{' '}
+                                                  <span className="line-through text-gray-400">{formatCurrency(pr.original)}</span>
+                                                </p>
+                                                <p className="text-xs text-red-600 font-medium">
+                                                  Popust: -{pr.discount}%
+                                                </p>
+                                                <p className="text-sm font-bold text-green-700 mt-1">
+                                                  Za naplatu: {formatCurrency(pr.final)}
+                                                </p>
                                               </div>
-                                            </div>
-                                          ) : (
-                                            <span className="price text-sm font-bold text-green-700">
-                                              {formatCurrency(apt.total_price)}
-                                            </span>
-                                          )}
+                                            ) : (
+                                              <span className="price text-sm font-bold text-green-700">
+                                                {formatCurrency(pr.final ?? pr.original)}
+                                              </span>
+                                            );
+                                          })()}
                                         </td>
                                       </tr>
                                     );
