@@ -1075,27 +1075,18 @@ async def create_appointment(appointment: AppointmentCreate):
     doc['created_at'] = doc['created_at'].isoformat()
     
     # 🔐 PRICING SNAPSHOT - uniform object for emails/dashboard/listing
-    # 🔒 STANDARDIZED KEYS: original_total, final_total (NOT original_price, final_price)
     doc['pricing'] = {
         "currency": "RSD",
-        "original_total": int(original_price),  # STANDARDIZED KEY
-        "final_total": int(round(final_price)),  # STANDARDIZED KEY
+        "original_price": int(original_price),
+        "final_price": int(round(final_price)),
         "discount_percent": int(best_discount),
         "has_discount": best_discount > 0 and final_price < original_price,
         "discount_source": "SERVICE_LEVEL",
-        "snapshot_at": datetime.now(timezone.utc).isoformat(),
-        # LEGACY ALIASES for backward compatibility
-        "original_price": int(original_price),
-        "final_price": int(round(final_price))
+        "snapshot_at": datetime.now(timezone.utc).isoformat()
     }
     # Also set total_price for dashboard compatibility
     doc['total_price'] = int(round(final_price))
     doc['original_total_price'] = int(original_price)
-    # 🔒 STANDARDIZED top-level fields
-    doc['original_total'] = int(original_price)
-    doc['final_total'] = int(round(final_price))
-    doc['discount_percentage'] = int(best_discount)
-    doc['has_discount'] = best_discount > 0 and final_price < original_price
     
     logger.info(f"💰 PRICING_SNAPSHOT created: {doc['pricing']}")
     
@@ -1111,13 +1102,7 @@ async def create_appointment(appointment: AppointmentCreate):
             'client_email': appointment_obj.client_email,
             'start_time': appointment_obj.start_time,
             'service_name': service.get('name', 'Unknown Service') if service else 'Unknown Service',
-            'notes': '',
-            # 🔒 INCLUDE PRICING SNAPSHOT FOR EMAIL
-            'pricing': doc['pricing'],
-            'original_total': doc['original_total'],
-            'final_total': doc['final_total'],
-            'discount_percentage': doc['discount_percentage'],
-            'has_discount': doc['has_discount']
+            'notes': ''
         }
         await send_booking_emails(email_data)
     except Exception as e:
