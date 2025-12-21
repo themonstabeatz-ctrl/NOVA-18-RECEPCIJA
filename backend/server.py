@@ -2762,7 +2762,10 @@ async def get_unviewed_appointments():
             therapist = therapist_map.get(apt.get('therapist_id'))
             therapist_name = therapist.get('name') if therapist else None
         
-        # Build clean response object with couples snapshot data
+        # Build clean response object with pricing data
+        # 🔒 STANDARDIZED PRICING FIELDS
+        has_discount_flag = discount_percentage > 0 and original_price and service_price and original_price > service_price
+        
         result.append({
             'id': apt.get('id'),
             'client_first_name': apt.get('client_first_name'),
@@ -2773,9 +2776,13 @@ async def get_unviewed_appointments():
             'therapist_name': therapist_name,
             'service_id': apt.get('service_id'),
             'service_name': service_name,
-            'service_price': service_price,
-            'original_price': original_price,
+            # 🔒 STANDARDIZED PRICING
+            'service_price': service_price,          # Final price (what client pays)
+            'original_price': original_price,        # Original price (before discount)
+            'original_total': original_price,        # Alias for frontend
+            'final_total': service_price,            # Alias for frontend
             'discount_percentage': discount_percentage,
+            'has_discount': has_discount_flag,
             'service_duration': service_duration,
             'service_category': service_category,
             'start_time': start_time.isoformat() if start_time else None,
