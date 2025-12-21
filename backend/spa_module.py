@@ -1099,9 +1099,11 @@ async def get_spa_quote(request: SpaQuoteRequest):
     return SpaQuoteResponse(
         services=[{"id": s["id"], "name": s["name"], "price": s["price"], "duration": s["duration"]} for s in services],
         original_total=original_total,
-        discount_percentage=applied_discount,
+        discount_percent=discount_pct,
         discount_amount=discount_amount,
         final_total=final_total,
+        has_discount=has_discount,
+        card_id=card_id,
         total_duration=total_duration,
         breakdown=breakdown
     )
