@@ -1187,6 +1187,10 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         
         # 🔐 PRICING SNAPSHOT - immutable record of prices at booking time
         doc['pricing'] = pricing_snapshot
+        doc['pricing']['card_id'] = None  # Special packages don't use card_id
+        
+        # ✅ CRITICAL: Set total = final_total for dashboard compatibility
+        doc['total'] = pricing["final_price"]
         
         # Add COMPLETE service data for listing (NO N/A allowed)
         doc['service_name'] = pkg['name']
