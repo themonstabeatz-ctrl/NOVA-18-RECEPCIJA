@@ -1111,7 +1111,13 @@ async def create_appointment(appointment: AppointmentCreate):
             'client_email': appointment_obj.client_email,
             'start_time': appointment_obj.start_time,
             'service_name': service.get('name', 'Unknown Service') if service else 'Unknown Service',
-            'notes': ''
+            'notes': '',
+            # 🔒 INCLUDE PRICING SNAPSHOT FOR EMAIL
+            'pricing': doc['pricing'],
+            'original_total': doc['original_total'],
+            'final_total': doc['final_total'],
+            'discount_percentage': doc['discount_percentage'],
+            'has_discount': doc['has_discount']
         }
         await send_booking_emails(email_data)
     except Exception as e:
