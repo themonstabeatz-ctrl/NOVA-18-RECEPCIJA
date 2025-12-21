@@ -71,30 +71,24 @@ def build_client_email_for_spa(appt: dict) -> tuple:
     pricing = appt.get('pricing', {})
     discount_percent = int(pricing.get('discount_percent') or appt.get('discount_percentage') or 0)
     
-    # Get final price first (what client pays)
-    final_price = pricing.get('final_price') or appt.get('final_total') or appt.get('total')
+    # 🔒 PREFER NEW KEYS (original_total, final_total)
+    final_total = pricing.get('final_total') or pricing.get('final_price') or appt.get('final_total') or appt.get('total')
+    original_total = pricing.get('original_total') or pricing.get('original_price') or appt.get('original_total')
     
-    # Get original price - if not available and discount exists, calculate it
-    if pricing.get('original_price'):
-        original_price = pricing.get('original_price')
-    elif appt.get('original_total') and appt.get('original_total') > 0:
-        original_price = appt.get('original_total')
-    elif discount_percent > 0 and final_price:
-        # Reverse calculate: original = final / (1 - discount/100)
-        original_price = int(round(final_price / (1 - discount_percent / 100)))
-    else:
-        original_price = final_price
+    # 🧮 REVERSE CALCULATION: Only if orig is missing but we have discount
+    if original_total is None and discount_percent > 0 and final_total:
+        original_total = int(round(final_total / (1 - discount_percent / 100)))
     
     # Determine if discount is actually applied
-    has_discount = discount_percent > 0 and original_price and final_price and original_price > final_price
+    has_discount = discount_percent > 0 and original_total and final_total and original_total > final_total
     
     if has_discount:
         # Show: Cena (orig) precrtano + Popust + Za naplatu
-        items.append(LineItem("💰", "Cena (orig)", f"<s>{original_price:,.0f}</s> RSD"))
+        items.append(LineItem("💰", "Cena (orig)", f"<s>{original_total:,.0f}</s> RSD"))
         items.append(LineItem("🏷️", "Popust", f"-{discount_percent}%"))
-        items.append(LineItem("✅", "Za naplatu", f"<b>{final_price:,.0f}</b> RSD"))
-    elif final_price:
-        items.append(LineItem("💰", "Cena", f"{final_price:,.0f} RSD"))
+        items.append(LineItem("✅", "Za naplatu", f"<b>{final_total:,.0f}</b> RSD"))
+    elif final_total:
+        items.append(LineItem("💰", "Cena", f"{final_total:,.0f} RSD"))
     
     m = ClientEmailModel(
         salon_name="Bua Luang Thai Spa",
