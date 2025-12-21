@@ -7,32 +7,44 @@ import Login from '../components/Login';
 
 /**
  * 💰 PRICING HELPER - Bulletproof pricing resolver
- * STANDARDIZED FIELD NAMES:
- * - original_total (NOT original_price)
- * - final_total (NOT final_price)
- * - discount_percent
- * - has_discount
+ * 
+ * IZVOR ISTINE: appointment.pricing ili top-level polja
  * 
  * RULES:
  * ❌ NEVER use appointment.total as "orig"
- * ❌ NEVER use original_price if original_total exists
  * ❌ NEVER strikethrough final_total
+ * ✅ Use original_total as orig
+ * ✅ Use final_total as final
  */
 const getPricing = (appt) => {
   const p = appt.pricing || {};
+  
+  // Get discount percent - from pricing or top-level
   const discount = Number(p.discount_percent ?? appt.discount_percentage ?? 0);
   
-  // 🔒 PREFER NEW KEYS (original_total, final_total)
-  let original = p.original_total ?? p.original_price ?? appt.original_price ?? null;
-  let final = p.final_total ?? p.final_price ?? appt.total_price ?? appt.final_total ?? null;
+  // Get has_discount - from pricing or top-level
+  let has = Boolean(p.has_discount ?? appt.has_discount);
+  
+  // 🔒 SOURCE OF TRUTH: original_total and final_total
+  // Priority: pricing object > top-level fields
+  let original = p.original_total ?? appt.original_total ?? appt.original_price ?? null;
+  let final = p.final_total ?? appt.final_total ?? appt.total_price ?? null;
   
   // 🧮 REVERSE CALCULATION: Only if orig is missing but we have discount
-  if (original === null && discount > 0 && final !== null) {
+  if (original === null && has && discount > 0 && final !== null) {
     original = Math.round(final / (1 - discount / 100));
   }
   
-  // Determine if discount is actually applied
-  const has = Boolean(appt.has_discount) || (discount > 0 && original !== null && final !== null && original > final);
+  // Recalculate has based on actual values
+  if (!has && discount > 0 && original !== null && final !== null && original > final) {
+    has = true;
+  }
+  
+  // 🛡️ GUARD: orig must be > final if has discount
+  if (has && original !== null && final !== null && original <= final) {
+    console.warn(`Invalid pricing: orig(${original}) <= final(${final}) with discount ${discount}%`);
+    has = false;
+  }
   
   return { original, final, discount, has };
 };
