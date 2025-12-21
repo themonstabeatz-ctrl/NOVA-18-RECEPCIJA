@@ -200,11 +200,8 @@ def normalize_spa_appt(appt: dict) -> dict:
 async def create_in_app_notification(db, appt: dict):
     """Create in-app notification for new SPA booking"""
     try:
-        # Get pricing info
-        pricing = appt.get('pricing', {})
-        original_price = pricing.get('original_price') or appt.get('original_total', 0)
-        discount_percent = pricing.get('discount_percent') or appt.get('discount_percentage', 0)
-        final_price = pricing.get('final_price') or appt.get('final_total', 0)
+        # Get pricing info using price_view helper
+        final_price, original_price, discount_percent, has_discount = price_view(appt)
         
         notification = {
             "id": str(uuid.uuid4()),
@@ -215,10 +212,10 @@ async def create_in_app_notification(db, appt: dict):
             "details": {
                 "service_name": appt.get("service_name"),
                 "duration_min": appt.get("duration_min"),
-                "price": final_price,
+                "price": final_price,  # ✅ Always final price
                 "original_price": original_price,
                 "discount_percent": discount_percent,
-                "has_discount": discount_percent > 0,
+                "has_discount": has_discount,
                 "client_phone": appt.get("client_phone", ""),
                 "start_time": appt.get("start_time")
             },
