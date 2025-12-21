@@ -2300,6 +2300,28 @@ async def get_unified_appointments_list(
         if apt.get('is_couples_booking'):
             service_name = service.get('description', service_name)
         
+        # ✅ PRICING EXTRACTION - prioritize pricing snapshot, fallback to appt fields
+        pricing = apt.get('pricing') or {}
+        discount_pct = int(pricing.get('discount_percent') or apt.get('snapshot_discount_percentage') or 0)
+        
+        # Get final price (what client pays)
+        final_price = pricing.get('final_price') or apt.get('snapshot_price') or service.get('price', 0)
+        
+        # Get original price (before discount)
+        if pricing.get('original_price'):
+            original_price = pricing.get('original_price')
+        elif apt.get('snapshot_original_price') and apt.get('snapshot_original_price') > 0:
+            original_price = apt.get('snapshot_original_price')
+        elif discount_pct > 0 and final_price > 0:
+            # Reverse calculate: original = final / (1 - discount/100)
+            original_price = int(round(final_price / (1 - discount_pct / 100)))
+        else:
+            original_price = service.get('price', 0) or final_price
+        
+        # Determine if discount is actually applied
+        has_discount = discount_pct > 0 and original_price > final_price
+        discount_amount = original_price - final_price if has_discount else 0
+        
         items.append({
             "id": apt.get('id'),
             "type": "massage",
@@ -2312,11 +2334,12 @@ async def get_unified_appointments_list(
             "service_name": service_name,
             "service_duration": service.get('duration', 0),
             "service_description": service.get('description', ''),
-            "original_price": apt.get('snapshot_original_price') or service.get('price', 0),
-            "final_total": apt.get('snapshot_price') or service.get('price', 0),
-            "total_price": apt.get('snapshot_price') or service.get('price', 0),
-            "discount_percentage": apt.get('snapshot_discount_percentage', 0) or 0,
-            "discount_amount": apt.get('snapshot_discount_amount', 0) or 0,
+            "original_price": original_price,
+            "final_total": final_price,
+            "total_price": final_price,
+            "discount_percentage": discount_pct,
+            "discount_amount": discount_amount,
+            "has_discount": has_discount,
             "is_couples_booking": apt.get('is_couples_booking', False),
             "status": apt.get('status', 'scheduled')
         })
