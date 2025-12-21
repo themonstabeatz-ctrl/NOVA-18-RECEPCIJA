@@ -106,7 +106,7 @@ def apply_spa_discount_v2(
 
 
 def create_pricing_snapshot(
-    original_price: int,
+    original_total: int,
     discount_percent: float = 0,
     discount_id: str = None,
     reason: str = None
@@ -114,17 +114,26 @@ def create_pricing_snapshot(
     """
     Create a pricing snapshot for storing in appointment.
     This snapshot is immutable - represents the price at booking time.
+    
+    Uses STANDARDIZED field names:
+    - original_total (not original_price)
+    - final_total (not final_price)
     """
-    pricing = apply_spa_discount_v2(original_price, discount_percent, discount_id)
+    pricing = apply_spa_discount_v2(original_total, discount_percent, discount_id)
     
     return {
-        "original_price": pricing["original_price"],
+        # 🔒 STANDARDIZED FIELD NAMES
+        "original_total": pricing["original_total"],
+        "final_total": pricing["final_total"],
         "discount_percent": pricing["discount_percent"],
         "discount_amount": pricing["discount_amount"],
-        "final_price": pricing["final_price"],
+        "has_discount": pricing["has_discount"],
         "discount_id": pricing["discount_id"],
         "discount_reason": reason,
-        "snapshot_at": None  # Will be set to ISO timestamp when saved
+        "snapshot_at": None,  # Will be set to ISO timestamp when saved
+        # 🔄 LEGACY ALIASES (for backward compatibility)
+        "original_price": pricing["original_total"],
+        "final_price": pricing["final_total"]
     }
 
 
