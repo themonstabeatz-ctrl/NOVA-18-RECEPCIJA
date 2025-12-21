@@ -2369,19 +2369,18 @@ async def get_unified_appointments_list(
         pricing = apt.get('pricing') or {}
         discount_pct = int(pricing.get('discount_percent') or apt.get('discount_percentage') or 0)
         
-        # Get final price (what client pays)
-        final_price = pricing.get('final_price') or apt.get('final_total') or apt.get('total') or 0
+        # 🔒 PREFER NEW KEYS (original_total, final_total)
+        final_price = pricing.get('final_total') or pricing.get('final_price') or apt.get('final_total') or apt.get('total') or 0
         
-        # Get original price (before discount)
-        # IMPORTANT: If discount exists but no original_price, calculate it
-        if pricing.get('original_price'):
-            original_price = pricing.get('original_price')
-        elif apt.get('original_total') and apt.get('original_total') > 0:
+        # Get original price - prefer original_total over original_price
+        original_price = pricing.get('original_total') or pricing.get('original_price')
+        if original_price is None:
             original_price = apt.get('original_total')
-        elif discount_pct > 0 and final_price > 0:
-            # Reverse calculate: original = final / (1 - discount/100)
+        
+        # 🧮 REVERSE CALCULATION: Only if orig is missing but we have discount
+        if original_price is None and discount_pct > 0 and final_price > 0:
             original_price = int(round(final_price / (1 - discount_pct / 100)))
-        else:
+        elif original_price is None:
             original_price = final_price
         
         # Determine if discount is actually applied
@@ -2404,8 +2403,9 @@ async def get_unified_appointments_list(
             "service_duration": normalized['duration_min'],
             "duration_min": normalized['duration_min'],
             "spa_zone": normalized.get('spa_zone', ''),
-            # ✅ Pricing from snapshot (source of truth)
-            "original_price": original_price,
+            # 🔒 STANDARDIZED PRICING (original_total, final_total)
+            "original_total": original_price,  # NEW: Use original_total
+            "original_price": original_price,  # LEGACY: Keep for backward compat
             "final_total": final_price,
             "total_price": final_price,
             "discount_percentage": discount_pct,
