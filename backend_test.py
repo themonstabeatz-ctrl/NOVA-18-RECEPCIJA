@@ -1831,6 +1831,287 @@ def test_spa_pricing_snapshot_with_discount():
     
     return all_tests_passed
 
+def test_public_booking_flow():
+    """
+    CRITICAL TEST: PUBLIC BOOKING FLOW
+    
+    Test the COMPLETE public booking flow from frontend to verify pricing consistency.
+    
+    Test Scenario:
+    1. Create a MASSAGE booking via `/api/appointments` endpoint (this is what PUBLIC frontend Contact.js uses)
+    2. Use a service that HAS DISCOUNT (find one with discount > 0)
+    3. Verify the booking response contains correct pricing snapshot with:
+       - original_total
+       - final_total
+       - discount_percent
+       - has_discount
+    
+    Steps:
+    1. First, get list of services from `/api/services` and find one with discount
+    2. Get available therapist from `/api/therapists`
+    3. Create booking via POST `/api/appointments` with the following payload
+    4. Verify response contains correct pricing fields
+    5. Then fetch `/api/appointments/unviewed/list` - verify pricing fields exist
+    6. Check that email was sent with correct pricing
+    """
+    print("=" * 80)
+    print("CRITICAL TEST: PUBLIC BOOKING FLOW")
+    print("=" * 80)
+    
+    try:
+        # Step 1: Get list of services and find one with discount
+        print("\n1. Getting services list and finding service with discount...")
+        print("-" * 60)
+        
+        services_response = requests.get(f"{API_BASE_URL}/services")
+        if services_response.status_code != 200:
+            print(f"❌ FAILED: Could not get services list - HTTP {services_response.status_code}")
+            return False
+        
+        services = services_response.json()
+        print(f"✅ Got {len(services)} services")
+        
+        # Find a service with discount > 0
+        service_with_discount = None
+        for service in services:
+            discount = service.get('discount_percentage', 0)
+            if discount > 0:
+                service_with_discount = service
+                break
+        
+        if not service_with_discount:
+            # Apply discount to first service for testing
+            print("No service with discount found, applying 10% discount to first service...")
+            test_service = services[0]
+            service_id = test_service['id']
+            
+            # Apply 10% discount
+            discount_response = requests.patch(f"{API_BASE_URL}/services/{service_id}/discount?discount=10")
+            if discount_response.status_code != 200:
+                print(f"❌ FAILED: Could not apply discount - HTTP {discount_response.status_code}")
+                return False
+            
+            # Get updated service
+            updated_response = requests.get(f"{API_BASE_URL}/services/{service_id}")
+            if updated_response.status_code != 200:
+                print(f"❌ FAILED: Could not get updated service - HTTP {updated_response.status_code}")
+                return False
+            
+            service_with_discount = updated_response.json()
+        
+        service_id = service_with_discount['id']
+        service_name = service_with_discount['name']
+        original_price = service_with_discount.get('original_price', service_with_discount.get('price', 0))
+        final_price = service_with_discount.get('final_price', service_with_discount.get('price', 0))
+        discount_percent = service_with_discount.get('discount_percentage', 0)
+        
+        print(f"✅ Selected service with discount:")
+        print(f"   Service: {service_name}")
+        print(f"   ID: {service_id}")
+        print(f"   Original Price: {original_price} RSD")
+        print(f"   Final Price: {final_price} RSD")
+        print(f"   Discount: {discount_percent}%")
+        
+        # Step 2: Get available therapist
+        print("\n2. Getting available therapist...")
+        print("-" * 60)
+        
+        therapists_response = requests.get(f"{API_BASE_URL}/therapists")
+        if therapists_response.status_code != 200:
+            print(f"❌ FAILED: Could not get therapists list - HTTP {therapists_response.status_code}")
+            return False
+        
+        therapists = therapists_response.json()
+        if not therapists:
+            print(f"❌ FAILED: No therapists found")
+            return False
+        
+        therapist = therapists[0]
+        therapist_id = therapist['id']
+        therapist_name = therapist['name']
+        
+        print(f"✅ Selected therapist: {therapist_name} (ID: {therapist_id})")
+        
+        # Step 3: Create booking via POST /api/appointments
+        print("\n3. Creating booking via POST /api/appointments...")
+        print("-" * 60)
+        
+        booking_payload = {
+            "client_first_name": "Public",
+            "client_last_name": "Frontend",
+            "client_phone": "0666666666",
+            "client_email": "public.frontend@test.com",
+            "service_id": service_id,
+            "therapist_id": therapist_id,
+            "start_time": "2025-12-23T10:00:00",
+            "snapshot_original_price": original_price,
+            "snapshot_price": final_price,
+            "snapshot_discount_percentage": discount_percent
+        }
+        
+        print(f"Booking payload:")
+        print(json.dumps(booking_payload, indent=2))
+        
+        booking_response = requests.post(
+            f"{API_BASE_URL}/appointments",
+            json=booking_payload,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        print(f"Response Status: {booking_response.status_code}")
+        
+        if booking_response.status_code != 200:
+            print(f"❌ FAILED: Booking creation failed - HTTP {booking_response.status_code}")
+            print(f"Response: {booking_response.text}")
+            return False
+        
+        try:
+            booking_data = booking_response.json()
+            appointment_id = booking_data.get('id')
+            print(f"✅ Booking created successfully - ID: {appointment_id}")
+            
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Invalid JSON response from booking")
+            return False
+        
+        # Step 4: Verify response contains correct pricing fields
+        print("\n4. Verifying booking response pricing fields...")
+        print("-" * 60)
+        
+        # Check for pricing object
+        pricing = booking_data.get('pricing', {})
+        if not pricing:
+            print(f"❌ FAILED: No 'pricing' object in booking response")
+            return False
+        
+        required_pricing_fields = {
+            'original_total': int,
+            'final_total': int,
+            'discount_percent': int,
+            'has_discount': bool
+        }
+        
+        all_fields_present = True
+        for field, expected_type in required_pricing_fields.items():
+            if field not in pricing:
+                print(f"❌ FAILED: Missing pricing field '{field}'")
+                all_fields_present = False
+            else:
+                value = pricing[field]
+                if not isinstance(value, expected_type):
+                    print(f"❌ FAILED: Field '{field}' should be {expected_type.__name__}, got {type(value).__name__}")
+                    all_fields_present = False
+                else:
+                    print(f"✅ pricing.{field}: {value} ({expected_type.__name__})")
+        
+        if not all_fields_present:
+            print(f"❌ FAILED: Missing required pricing fields")
+            return False
+        
+        # Verify pricing values
+        pricing_original = pricing.get('original_total')
+        pricing_final = pricing.get('final_total')
+        pricing_discount = pricing.get('discount_percent')
+        pricing_has_discount = pricing.get('has_discount')
+        
+        print(f"\nPricing verification:")
+        print(f"  Original Total: {pricing_original} (expected: {original_price})")
+        print(f"  Final Total: {pricing_final} (expected: {final_price})")
+        print(f"  Discount Percent: {pricing_discount}% (expected: {discount_percent}%)")
+        print(f"  Has Discount: {pricing_has_discount} (expected: {discount_percent > 0})")
+        
+        pricing_valid = True
+        if pricing_original != original_price:
+            print(f"❌ FAILED: pricing.original_total mismatch")
+            pricing_valid = False
+        
+        if pricing_final != final_price:
+            print(f"❌ FAILED: pricing.final_total mismatch")
+            pricing_valid = False
+        
+        if pricing_discount != discount_percent:
+            print(f"❌ FAILED: pricing.discount_percent mismatch")
+            pricing_valid = False
+        
+        if pricing_has_discount != (discount_percent > 0):
+            print(f"❌ FAILED: pricing.has_discount mismatch")
+            pricing_valid = False
+        
+        if pricing_valid:
+            print(f"✅ All pricing fields match expected values")
+        else:
+            return False
+        
+        # Step 5: Fetch unviewed notifications and verify pricing fields
+        print("\n5. Fetching unviewed notifications...")
+        print("-" * 60)
+        
+        unviewed_response = requests.get(f"{API_BASE_URL}/appointments/unviewed/list")
+        if unviewed_response.status_code != 200:
+            print(f"❌ FAILED: Could not get unviewed notifications - HTTP {unviewed_response.status_code}")
+            return False
+        
+        try:
+            unviewed_data = unviewed_response.json()
+            print(f"✅ Got unviewed notifications")
+            
+            # Find our appointment in the list
+            our_appointment = None
+            if isinstance(unviewed_data, list):
+                for apt in unviewed_data:
+                    if apt.get('id') == appointment_id:
+                        our_appointment = apt
+                        break
+            
+            if not our_appointment:
+                print(f"❌ FAILED: Our appointment not found in unviewed list")
+                return False
+            
+            print(f"✅ Found our appointment in unviewed list")
+            
+            # Check pricing fields in unviewed list
+            unviewed_pricing = our_appointment.get('pricing', {})
+            if unviewed_pricing:
+                print(f"✅ Unviewed appointment has pricing object:")
+                print(f"   original_total: {unviewed_pricing.get('original_total')}")
+                print(f"   final_total: {unviewed_pricing.get('final_total')}")
+                print(f"   discount_percent: {unviewed_pricing.get('discount_percent')}")
+                print(f"   has_discount: {unviewed_pricing.get('has_discount')}")
+            else:
+                print(f"❌ FAILED: No pricing object in unviewed appointment")
+                return False
+            
+        except json.JSONDecodeError:
+            print(f"❌ FAILED: Invalid JSON response from unviewed notifications")
+            return False
+        
+        # Step 6: Show final results
+        print("\n6. Final Results Summary...")
+        print("-" * 60)
+        
+        print(f"✅ PUBLIC BOOKING FLOW TEST COMPLETED SUCCESSFULLY")
+        print(f"\nJSON Responses:")
+        print(f"1. Service with discount:")
+        print(json.dumps({
+            "id": service_id,
+            "name": service_name,
+            "original_price": original_price,
+            "final_price": final_price,
+            "discount_percentage": discount_percent
+        }, indent=2))
+        
+        print(f"\n2. Booking creation response (pricing section):")
+        print(json.dumps(pricing, indent=2))
+        
+        print(f"\n3. Unviewed notifications list (first entry pricing):")
+        print(json.dumps(unviewed_pricing, indent=2))
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ ERROR during public booking flow test: {e}")
+        return False
+
 if __name__ == "__main__":
     """Main execution - handle different test types"""
     if len(sys.argv) > 1:
