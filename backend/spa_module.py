@@ -1416,12 +1416,18 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     total_duration = sum(svc["duration"] for svc in services)
     
     # 🎴 SERVER-SIDE RECOMPUTE: Get discount from card_id (source of truth)
-    # DO NOT trust frontend discount_percentage - always recompute from card_id
-    card_id = appointment.spa_category  # spa_zone, spa_ritual, etc.
+    # Priority: appointment.card_id > spa_category > discount_percentage
+    card_id = appointment.card_id or appointment.spa_category
     card_discount = get_card_discount(card_id)
     discount_pct = card_discount if card_discount > 0 else min(appointment.discount_percentage or 0, 15)
     
     pricing = apply_spa_discount_v2(original_total, discount_pct)
+    
+    # ✅ GUARD: If has_discount, original MUST differ from final
+    has_discount = discount_pct > 0 and pricing["final_price"] < pricing["original_price"]
+    if has_discount and pricing["original_price"] == pricing["final_price"]:
+        logger.error(f"🚨 BUG: original_price == final_price while discount={discount_pct}%")
+        raise ValueError("BUG: original_price == final_price while has_discount=True")
     
     # Create pricing snapshot for immutable record
     pricing_snapshot = create_pricing_snapshot(
@@ -1431,6 +1437,7 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     )
     pricing_snapshot["snapshot_at"] = datetime.now().isoformat()
     pricing_snapshot["card_id"] = card_id  # Track which card was used
+    pricing_snapshot["has_discount"] = has_discount
     
     # Create COMPLETE snapshot with all required fields
     services_snapshot = [
