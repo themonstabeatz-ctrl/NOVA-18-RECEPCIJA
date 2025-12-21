@@ -659,8 +659,10 @@ async def get_spa_cards():
     return [
         {
             "card_id": card_id,
-            "name": card_data["name"],
-            "discount_percent": card_data["discount_percent"]
+            "title_sr": card_data["title_sr"],
+            "title_en": card_data["title_en"],
+            "discount_percent": card_data["discount_percent"],
+            "has_discount": card_data["discount_percent"] > 0
         }
         for card_id, card_data in SPA_CARDS.items()
     ]
@@ -681,20 +683,20 @@ async def update_card_discount(card_id: str, discount: int = Query(...)):
     Usage: PATCH /api/spa/cards/silky_body_ritual/discount?discount=10
     """
     if card_id not in SPA_CARDS:
-        raise HTTPException(status_code=404, detail=f"CARD_NOT_FOUND. Valid cards: {list(SPA_CARDS.keys())}")
+        raise HTTPException(status_code=404, detail="CARD_NOT_FOUND")
     
     if discount not in ALLOWED_CARD_DISCOUNTS:
-        raise HTTPException(status_code=400, detail=f"INVALID_DISCOUNT_PERCENT. Allowed: {ALLOWED_CARD_DISCOUNTS}")
+        raise HTTPException(status_code=400, detail="INVALID_DISCOUNT_PERCENT")
     
     # Update the in-memory config (source of truth)
     SPA_CARDS[card_id]["discount_percent"] = discount
     
-    logger.info(f"💳 CARD_DISCOUNT_SET card_id={card_id} name={SPA_CARDS[card_id]['name']} discount={discount}%")
+    logger.info(f"💳 CARD_DISCOUNT_SET card_id={card_id} title={SPA_CARDS[card_id]['title_sr']} discount={discount}%")
     
     return {
         "card_id": card_id,
-        "name": SPA_CARDS[card_id]["name"],
-        "discount_percent": discount
+        "discount_percent": discount,
+        "has_discount": discount > 0
     }
 
 
