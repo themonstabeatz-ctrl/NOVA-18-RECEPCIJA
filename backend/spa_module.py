@@ -130,19 +130,50 @@ def parse_spa_notes(notes: str) -> dict:
 
 def price_view(appt: dict) -> tuple:
     """
-    Helper to extract pricing from appointment for display.
+    🔒 BULLETPROOF pricing resolver for notifications and displays.
+    
     Returns: (final_total, original_total, discount_percent, has_discount)
     
-    Usage in notifications and dashboard:
-        final, original, pct, has_discount = price_view(appt)
+    RULES:
+    ❌ NEVER use appointment.total as "orig"
+    ❌ NEVER use original_price if original_total exists  
+    ❌ NEVER strikethrough final_total
     """
     p = appt.get("pricing") or {}
-    final_total = p.get("final_price") or p.get("final_total") or appt.get("final_total") or appt.get("total") or 0
-    original_total = p.get("original_price") or p.get("original_total") or appt.get("original_total") or final_total
-    discount_percent = int(p.get("discount_percent") or appt.get("discount_percentage") or 0)
-    has_discount = bool(p.get("has_discount")) or (discount_percent > 0 and final_total < original_total)
     
-    return int(final_total), int(original_total), discount_percent, has_discount
+    # Get discount percentage
+    discount_percent = int(p.get("discount_percent") or appt.get("discount_percentage") or 0)
+    
+    # Get has_discount flag
+    has_discount = bool(p.get("has_discount")) and discount_percent > 0
+    
+    # 🔒 PREFER NEW KEYS (original_total, final_total)
+    original_total = p.get("original_total")
+    final_total = p.get("final_total") or appt.get("total")
+    
+    # 🔄 LEGACY FALLBACK: Map old keys to new
+    if original_total is None:
+        original_total = p.get("original_price") or appt.get("original_total")
+    if final_total is None:
+        final_total = p.get("final_price") or appt.get("final_total")
+    
+    # 🧮 REVERSE CALCULATION: Only if orig is missing but we have discount
+    if original_total is None and has_discount and final_total is not None and discount_percent > 0:
+        # orig = final / (1 - discount/100)
+        original_total = round(final_total / (1 - discount_percent / 100))
+    
+    # Convert to int
+    if final_total is not None:
+        final_total = int(final_total)
+    if original_total is not None:
+        original_total = int(original_total)
+    else:
+        original_total = final_total or 0
+    
+    # Recalculate has_discount based on actual values
+    has_discount = discount_percent > 0 and original_total > (final_total or 0)
+    
+    return int(final_total or 0), int(original_total), discount_percent, has_discount
 
 
 def normalize_spa_appt(appt: dict) -> dict:
