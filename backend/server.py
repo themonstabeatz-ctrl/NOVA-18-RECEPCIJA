@@ -3406,8 +3406,7 @@ print(f"🔐 LOCKED BACKEND_PUBLIC_URL = {BACKEND_PUBLIC_URL}")
 print(f"🔐 LOCKED FRONTEND_PUBLIC_URL = {FRONTEND_PUBLIC_URL}")
 
 # Log allowed CORS origins on startup
-cors_origins = os.environ.get('CORS_ORIGINS', FRONTEND_PUBLIC_URL).split(',')
-print(f"🔒 CORS LOCK: Allowed origins = {cors_origins}")
+print(f"🔒 CORS LOCK: Allowed origins = {ALLOWED_ORIGINS}")
 
 # ✅ LOG DISCOUNT ROUTES (proof they exist)
 def log_discount_routes():
