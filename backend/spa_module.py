@@ -613,15 +613,31 @@ async def update_spa_service_discount(service_id: str, discount: int = Query(...
 
 
 # ============================================
-# Card Discount Endpoints (NEW)
+# 🎴 SPA Cards Admin API
 # ============================================
-ALLOWED_CARD_DISCOUNTS = {0, 5, 10, 15}
+
+@spa_router.get("/cards")
+async def get_spa_cards():
+    """
+    📋 Get all SPA cards with their discount settings.
+    
+    Returns list of all cards from SPA_CARDS configuration.
+    This is the source of truth for card-level discounts.
+    """
+    return [
+        {
+            "card_id": card_id,
+            "name": card_data["name"],
+            "discount_percent": card_data["discount_percent"]
+        }
+        for card_id, card_data in SPA_CARDS.items()
+    ]
 
 
 @spa_router.patch("/cards/{card_id}/discount")
 async def update_card_discount(card_id: str, discount: int = Query(...)):
     """
-    🔐 ADMIN ENDPOINT: Set card-level discount for a SPA ritual/card.
+    🔐 ADMIN ENDPOINT: Set card-level discount for a SPA card.
     
     This discount applies to the ENTIRE card total:
     - Base ritual price
@@ -629,42 +645,24 @@ async def update_card_discount(card_id: str, discount: int = Query(...)):
     - SPA ZONE selections (sauna/steam/jacuzzi)
     
     Allowed values: 0, 5, 10, 15
+    
+    Usage: PATCH /api/spa/cards/silky_body_ritual/discount?discount=10
     """
+    if card_id not in SPA_CARDS:
+        raise HTTPException(status_code=404, detail=f"CARD_NOT_FOUND. Valid cards: {list(SPA_CARDS.keys())}")
+    
     if discount not in ALLOWED_CARD_DISCOUNTS:
-        raise HTTPException(status_code=400, detail=f"INVALID_CARD_DISCOUNT. Allowed: {ALLOWED_CARD_DISCOUNTS}")
+        raise HTTPException(status_code=400, detail=f"INVALID_DISCOUNT_PERCENT. Allowed: {ALLOWED_CARD_DISCOUNTS}")
     
-    # Find the card/ritual service by card_id (stored in metadata.card_id or service ID)
-    existing = await db.spa_services.find_one({
-        "$or": [
-            {"id": card_id},
-            {"metadata.card_id": card_id}
-        ]
-    })
+    # Update the in-memory config (source of truth)
+    SPA_CARDS[card_id]["discount_percent"] = discount
     
-    if not existing:
-        raise HTTPException(status_code=404, detail="CARD_NOT_FOUND")
-    
-    # Update card discount in metadata
-    metadata = existing.get("metadata", {})
-    metadata["card_discount_percent"] = discount
-    metadata["discount_scope"] = "CARD_TOTAL"
-    metadata["card_id"] = card_id
-    
-    await db.spa_services.update_one(
-        {"id": existing["id"]},
-        {"$set": {"metadata": metadata}}
-    )
-    
-    logger.info(f"💳 CARD_DISCOUNT_SET card_id={card_id} discount={discount}%")
-    
-    updated = await db.spa_services.find_one({"id": existing["id"]}, {"_id": 0})
+    logger.info(f"💳 CARD_DISCOUNT_SET card_id={card_id} name={SPA_CARDS[card_id]['name']} discount={discount}%")
     
     return {
         "card_id": card_id,
-        "service_id": updated.get("id"),
-        "name": updated.get("name"),
-        "card_discount_percent": discount,
-        "discount_scope": "CARD_TOTAL"
+        "name": SPA_CARDS[card_id]["name"],
+        "discount_percent": discount
     }
 
 
