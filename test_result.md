@@ -218,6 +218,18 @@ backend:
         agent: "testing"
         comment: "✅ SPA PRICING SNAPSHOT WITH DISCOUNT TESTING COMPLETE: Comprehensive test of the specific pricing snapshot functionality PASSED all scenarios. A) Set Card Discount: PATCH /api/spa/cards/deep_renewal_ritual/discount?discount=5 returns correct response {'card_id': 'deep_renewal_ritual', 'discount_percent': 5, 'has_discount': true}. B) Create Booking with Discount: POST /api/spa/appointments with card_id creates appointment with correct pricing (original_total=11600, final_total=11020, discount_percentage=5, total=11020). C) Verify Response Pricing: All required fields present (original_total, final_total, discount_percentage, pricing.original_price, pricing.final_price, pricing.discount_percent, pricing.has_discount, pricing.card_id). D) CRITICAL VALIDATION PASSED: original_price (11600) != final_price (11020) when has_discount=true - this confirms the main bug fix is working correctly. E) Unified Listing: GET /api/appointments/list shows correct pricing from snapshot (original_price=11600, final_total=11020, discount_percentage=5, has_discount=true). F) Reset Discount: Successfully reset to 0%. The pricing snapshot system correctly captures and stores discount information, preventing retroactive price changes."
 
+  - task: "Public Booking Flow Test"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ PUBLIC BOOKING FLOW TEST COMPLETE: Comprehensive test of the complete public booking flow PASSED all scenarios. 1) Service Selection: Found service with discount (Tradicionalna tajlandska masaža - 60 min, 10% discount, 4400 → 3960 RSD). 2) Booking Creation: POST /api/appointments successfully creates appointment with correct snapshot pricing fields (snapshot_original_price: 4400, snapshot_price: 3960, snapshot_discount_percentage: 10). 3) Pricing Verification: All pricing fields match expected values in booking response. 4) Unviewed Notifications: GET /api/appointments/unviewed/list shows appointment with correct pricing fields (original_total: 4400, final_total: 3960, discount_percentage: 10, has_discount: true). 5) Backend Logs: Confirmed pricing snapshot creation and email notifications sent with correct pricing. The public booking flow correctly uses the same pricing snapshot system as admin bookings, ensuring pricing consistency across all booking channels."
+
 frontend:
   - task: "CEO Dashboard UI"
     implemented: true
