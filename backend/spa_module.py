@@ -1865,10 +1865,16 @@ async def get_spa_analytics(
     
     for apt in appointments:
         # Get pricing from snapshot or legacy fields
+        # 🔒 STANDARDIZED: Use original_total/final_total (not original_price/final_price)
         pricing = apt.get("pricing", {})
-        final_total = pricing.get("final_price") or apt.get("final_total", 0)
-        original_total = pricing.get("original_price") or apt.get("original_total", final_total)
+        final_total = pricing.get("final_total") or pricing.get("final_price") or apt.get("final_total", 0)
+        original_total = pricing.get("original_total") or pricing.get("original_price") or apt.get("original_total", final_total)
         discount_amount = pricing.get("discount_amount") or apt.get("discount_amount", 0)
+        
+        # Recalculate discount_amount if not present but has discount
+        if discount_amount == 0 and original_total > final_total:
+            discount_amount = original_total - final_total
+            
         spa_category = apt.get("spa_category", "spa_zone")
         addons_total = apt.get("addons_total", 0)
         
