@@ -1364,21 +1364,41 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         start_time = get_start_time()
         
         # 🔒 GET PRICING FROM INPUT - Use what frontend sent
-        original_total = appointment.total_original or appointment.final_price or 0
-        final_total = appointment.final_price or appointment.total_original or 0
+        # Frontend sends: total_original (orig price), final_price (after discount), discount_percentage
+        original_total = appointment.total_original or 0
+        final_total = appointment.final_price or 0
         discount_pct = appointment.discount_percentage or 0
-        
-        # 🎴 SERVER-SIDE: Get discount from card_id if available
         card_id = appointment.card_id
-        if card_id:
-            card_discount = get_card_discount(card_id)
-            if card_discount > 0:
-                discount_pct = card_discount
-                # Recalculate final if we have original and card discount
-                if original_total > 0:
-                    final_total = int(round(original_total * (1 - discount_pct / 100)))
         
-        # Determine has_discount
+        # 🔒 TRUST FRONTEND DATA - DO NOT recalculate!
+        # Frontend already calculated the discount, we just store it as-is
+        # Only apply card discount if frontend did NOT send discount info
+        if original_total == 0 and final_total > 0:
+            # Frontend only sent final_price, try to get original from card
+            if card_id:
+                card_discount = get_card_discount(card_id)
+                if card_discount > 0:
+                    discount_pct = card_discount
+                    # Reverse calculate original from final
+                    original_total = int(round(final_total / (1 - discount_pct / 100)))
+            else:
+                # No card, no original - use final as original (no discount)
+                original_total = final_total
+                discount_pct = 0
+        elif original_total > 0 and final_total == 0:
+            # Frontend sent original but not final - calculate final
+            if discount_pct > 0:
+                final_total = int(round(original_total * (1 - discount_pct / 100)))
+            else:
+                final_total = original_total
+        elif original_total == 0 and final_total == 0:
+            # No pricing at all - use 0
+            original_total = 0
+            final_total = 0
+            discount_pct = 0
+        # else: Both original and final provided - use as-is (DO NOT recalculate!)
+        
+        # Determine has_discount based on actual values
         has_discount = discount_pct > 0 and original_total > final_total
         discount_amount = original_total - final_total if has_discount else 0
         
