@@ -3464,6 +3464,11 @@ app.add_middleware(
 # 🔒 Security Headers Middleware (BaseHTTPMiddleware already imported at top)
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
+        # 🌍 DEBUG: Log origin for troubleshooting
+        origin = request.headers.get("origin")
+        if origin:
+            print(f"🌍 ORIGIN: {origin} → {request.method} {request.url.path}")
+        
         response = await call_next(request)
         # Prevent clickjacking
         response.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
