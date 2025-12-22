@@ -243,6 +243,18 @@ frontend:
         agent: "testing"
         comment: "Frontend testing not performed as per system limitations. Main agent should verify CEO Dashboard shows 'SPA Paketi za posebne prilike' and combined totals"
 
+  - task: "Public SPA Booking Frontend - Discount Display"
+    implemented: true
+    working: false
+    file: "frontend/public SPA website"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL UI ISSUE: Public SPA booking website at https://booking-system-85.preview.emergentagent.com does NOT display discount badges or pricing correctly. All SPA cards show only final price (7.600 RSD) without: 1) Discount badge (-15%), 2) Strikethrough original price, 3) Visual indication of discount. Users cannot see that discounts exist. Backend pricing works (9.400 RSD → 7.990 RSD confirmed in booking form), but frontend cards lack proper discount visualization. This is a critical UX issue preventing users from seeing promotional pricing."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
