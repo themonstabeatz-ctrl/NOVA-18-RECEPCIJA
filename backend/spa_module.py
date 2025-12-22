@@ -1363,6 +1363,43 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         # Create a minimal appointment without services
         start_time = get_start_time()
         
+        # 🔒 GET PRICING FROM INPUT - Use what frontend sent
+        original_total = appointment.total_original or appointment.final_price or 0
+        final_total = appointment.final_price or appointment.total_original or 0
+        discount_pct = appointment.discount_percentage or 0
+        
+        # 🎴 SERVER-SIDE: Get discount from card_id if available
+        card_id = appointment.card_id
+        if card_id:
+            card_discount = get_card_discount(card_id)
+            if card_discount > 0:
+                discount_pct = card_discount
+                # Recalculate final if we have original and card discount
+                if original_total > 0:
+                    final_total = int(round(original_total * (1 - discount_pct / 100)))
+        
+        # Determine has_discount
+        has_discount = discount_pct > 0 and original_total > final_total
+        discount_amount = original_total - final_total if has_discount else 0
+        
+        # 🔒 CREATE PRICING SNAPSHOT - single source of truth
+        pricing_snapshot = {
+            "original_total": int(original_total),
+            "final_total": int(final_total),
+            "discount_percent": int(discount_pct),
+            "discount_amount": int(discount_amount),
+            "has_discount": has_discount,
+            "discount_id": None,
+            "discount_reason": "MINIMAL_SPA_BOOKING",
+            "snapshot_at": datetime.now().isoformat(),
+            "original_price": int(original_total),  # Legacy alias
+            "final_price": int(final_total),  # Legacy alias
+            "card_id": card_id
+        }
+        
+        # 🔒 [PUBLIC_BOOKING] LOG for debugging
+        logger.info(f"[PUBLIC_BOOKING] source=minimal, card_id={card_id}, original_total={pricing_snapshot['original_total']}, final_total={pricing_snapshot['final_total']}, discount={pricing_snapshot['discount_percent']}%")
+        
         spa_apt = SpaAppointment(
             client_first_name=appointment.client_first_name,
             client_last_name=appointment.client_last_name,
@@ -1372,10 +1409,10 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
             services_snapshot=[],
             start_time=start_time,
             end_time=start_time + timedelta(minutes=60),
-            original_total=appointment.total_original or 0,
-            discount_percentage=appointment.discount_percentage or 0,
-            discount_amount=0,
-            final_total=appointment.final_price or 0,
+            original_total=int(original_total),
+            discount_percentage=float(discount_pct),
+            discount_amount=int(discount_amount),
+            final_total=int(final_total),
             notes=appointment.message or appointment.notes
         )
         
@@ -1386,13 +1423,17 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         doc['spa_category'] = appointment.spa_category or 'spa_zone'
         doc['is_viewed'] = False  # For notification badge on dashboard
         
+        # 🔒 ADD PRICING SNAPSHOT TO DOC
+        doc['pricing'] = pricing_snapshot
+        doc['total'] = int(final_total)
+        
         # 1) INSERT into DB
         await db.spa_appointments.insert_one(doc)
         
         # 2) NORMALIZE - parse notes to get proper fields
         doc = normalize_spa_appt(doc)
         
-        # 3) UPDATE DB with normalized fields
+        # 3) UPDATE DB with normalized fields AND pricing snapshot
         await db.spa_appointments.update_one(
             {"id": doc["id"]},
             {"$set": {
@@ -1400,11 +1441,12 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
                 "service_description": doc["service_description"],
                 "duration_min": doc["duration_min"],
                 "spa_zone": doc.get("spa_zone", ""),
-                "services_snapshot": doc["services_snapshot"]
+                "services_snapshot": doc["services_snapshot"],
+                "pricing": pricing_snapshot  # Ensure pricing is saved
             }}
         )
         
-        logger.info(f"✅ SPA BOOKED id={doc['id']} name={doc['service_name']} email={appointment.client_email} price={doc.get('final_total', 0)}")
+        logger.info(f"✅ SPA BOOKED id={doc['id']} name={doc['service_name']} email={appointment.client_email} pricing={pricing_snapshot}")
         
         # 4) NOTIFICATIONS via CENTRAL DISPATCHER
         notify_result = {"email_sent": False, "notify_status": "pending"}
