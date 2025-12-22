@@ -516,22 +516,22 @@ const DashboardNew = () => {
             </div>
           </div>
 
-          {/* Total Discount Given */}
+          {/* Total Discount Given (Massage + SPA) */}
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Ukupan Popust</p>
                 <p className="text-2xl font-bold text-red-600 mt-1">
-                  {formatCurrency(summary.total_discount_given)}
+                  {formatCurrency((summary.total_discount_given || 0) + (spaAnalytics?.totals?.discount_total || 0))}
                 </p>
               </div>
               <div className="p-3 bg-red-100 rounded-full">
                 <TrendingUp className="w-6 h-6 text-red-600" />
               </div>
             </div>
-            {summary.total_original_revenue > 0 && (
+            {(summary.total_original_revenue > 0 || spaAnalytics?.totals?.revenue_gross > 0) && (
               <p className="text-xs text-gray-500 mt-2">
-                {summary.discount_percentage.toFixed(1)}% od ukupne zarade
+                Masaža: {formatCurrency(summary.total_discount_given || 0)} | SPA: {formatCurrency(spaAnalytics?.totals?.discount_total || 0)}
               </p>
             )}
           </div>
