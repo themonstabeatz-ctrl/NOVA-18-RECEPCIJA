@@ -247,7 +247,7 @@ frontend:
     implemented: true
     working: false
     file: "frontend/public SPA website"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -257,6 +257,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "❌ END-TO-END TEST RESULTS: CRITICAL ISSUES FOUND. 1) DISCOUNT MISMATCH: Public booking form shows '9.400 RSD → 8.930 RSD (-5%)' but should show -15% discount as per review request. 2) FORM SUBMISSION FAILURE: Date/time selection fields missing, form shows 'Greška! Molimo pokušajte ponovo.' (Error! Please try again) after submission. 3) NO BOOKING CREATED: Admin panel shows no new bookings for 'E2E Final Test' customer. 4) ADMIN PANEL WORKING: Successfully verified existing bookings with proper pricing (Savatije Grujovic: 6.460 RSD, -15% discount). The public booking flow is broken and needs immediate attention."
+      - working: false
+        agent: "testing"
+        comment: "❌ RETRY TEST RESULTS: MIXED FINDINGS. ✅ PRICING DISPLAY FIXED: Silky Body Ritual now correctly shows '150 min 9.400 RSD 7.990 RSD' with proper 15% discount (9.400 → 7.990 RSD) on SPA cards. ❌ BOOKING FORM ISSUES: 1) Cannot click Zakažite button due to viewport/overlay issues - button is visible but not clickable. 2) Form submission still fails - no booking created in admin panel. 3) Admin panel verification shows 'Nema rezervacija za izabrani period' (No reservations for selected period), confirming no successful booking. ✅ ADMIN PANEL WORKING: Successfully logged in and accessed reservation listings. The pricing display is now correct, but the booking form interaction and submission process remains broken."
 
 metadata:
   created_by: "testing_agent"
