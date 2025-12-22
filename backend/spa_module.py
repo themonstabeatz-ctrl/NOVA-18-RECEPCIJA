@@ -1287,6 +1287,9 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         notify_result = {"email_sent": False, "notify_status": "pending", "notify_error": None}
         
         if _dispatch_notifications:
+            # 🔒 [PUBLIC_BOOKING] LOG for debugging
+            logger.info(f"[PUBLIC_BOOKING] source=public, card_id={card_id}, original_total={pricing_snapshot['original_total']}, final_total={pricing_snapshot['final_total']}, discount={pricing_snapshot['discount_percent']}%")
+            
             notification_payload = {
                 "type": "spa",
                 "appointment_id": doc["id"],
@@ -1296,12 +1299,12 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
                 "spa_zone": doc.get("spa_zone", ""),
                 "start_time": doc.get("start_time"),
                 "end_time": doc.get("end_time"),
-                # 💰 PRICING - use snapshot for accurate display
-                "price": pricing["final_price"],
-                "original_total": pricing["original_price"],
-                "final_total": pricing["final_price"],
-                "discount_percent": pricing["discount_percent"],
-                "has_discount": pricing["has_discount"],
+                # 💰 PRICING - use SNAPSHOT for accurate display (NOT pricing dict!)
+                "price": pricing_snapshot["final_total"],
+                "original_total": pricing_snapshot["original_total"],
+                "final_total": pricing_snapshot["final_total"],
+                "discount_percent": pricing_snapshot["discount_percent"],
+                "has_discount": pricing_snapshot["has_discount"],
                 "pricing": pricing_snapshot,
                 "client_first_name": doc.get("client_first_name", ""),
                 "client_last_name": doc.get("client_last_name", ""),
