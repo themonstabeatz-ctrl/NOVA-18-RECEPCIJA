@@ -1460,13 +1460,13 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
                 "spa_zone": doc.get("spa_zone", ""),
                 "start_time": doc.get("start_time"),
                 "end_time": doc.get("end_time"),
-                # 💰 PRICING - use doc values for minimal appointments
-                "price": doc.get("final_total", 0),
-                "original_total": doc.get("original_total", doc.get("final_total", 0)),
-                "final_total": doc.get("final_total", 0),
-                "discount_percent": doc.get("discount_percentage", 0),
-                "has_discount": doc.get("discount_percentage", 0) > 0,
-                "pricing": doc.get("pricing", {}),
+                # 💰 PRICING - use PRICING SNAPSHOT (NOT doc values!)
+                "price": pricing_snapshot["final_total"],
+                "original_total": pricing_snapshot["original_total"],
+                "final_total": pricing_snapshot["final_total"],
+                "discount_percent": pricing_snapshot["discount_percent"],
+                "has_discount": pricing_snapshot["has_discount"],
+                "pricing": pricing_snapshot,
                 "client_first_name": doc.get("client_first_name", ""),
                 "client_last_name": doc.get("client_last_name", ""),
                 "client_email": doc.get("client_email", ""),
@@ -1488,6 +1488,7 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         response['duration_min'] = doc['duration_min']
         response['spa_zone'] = doc.get('spa_zone', '')
         response['services_snapshot'] = doc['services_snapshot']
+        response['pricing'] = pricing_snapshot  # Include pricing in response
         response['notify_status'] = notify_result.get("notify_status", "unknown")
         response['email_sent'] = notify_result.get("email_sent", False)
         response['email_sent_admin'] = notify_result.get("email_sent_admin", False)
