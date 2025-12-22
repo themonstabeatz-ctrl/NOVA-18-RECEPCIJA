@@ -263,8 +263,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "SPA Backend API Implementation"
-  stuck_tasks: []
+    - "Public SPA Booking Frontend - Discount Display"
+  stuck_tasks: 
+    - "Public SPA Booking Frontend - Discount Display"
   test_all: false
   test_priority: "high_first"
   completed_tests:
