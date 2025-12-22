@@ -286,6 +286,8 @@ test_plan:
     - "Serbian E2E Discount System Test"
     - "SPA Backend API Implementation"
     - "SPA Pricing Snapshot with Discount Verification"
+    - "Public Booking Flow Test"
+    - "END-TO-END Public SPA Booking Test"
 
 agent_communication:
   - agent: "testing"
