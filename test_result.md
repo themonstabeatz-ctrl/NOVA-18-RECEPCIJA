@@ -247,13 +247,16 @@ frontend:
     implemented: true
     working: false
     file: "frontend/public SPA website"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL UI ISSUE: Public SPA booking website at https://booking-system-85.preview.emergentagent.com does NOT display discount badges or pricing correctly. All SPA cards show only final price (7.600 RSD) without: 1) Discount badge (-15%), 2) Strikethrough original price, 3) Visual indication of discount. Users cannot see that discounts exist. Backend pricing works (9.400 RSD → 7.990 RSD confirmed in booking form), but frontend cards lack proper discount visualization. This is a critical UX issue preventing users from seeing promotional pricing."
+      - working: false
+        agent: "testing"
+        comment: "❌ END-TO-END TEST RESULTS: CRITICAL ISSUES FOUND. 1) DISCOUNT MISMATCH: Public booking form shows '9.400 RSD → 8.930 RSD (-5%)' but should show -15% discount as per review request. 2) FORM SUBMISSION FAILURE: Date/time selection fields missing, form shows 'Greška! Molimo pokušajte ponovo.' (Error! Please try again) after submission. 3) NO BOOKING CREATED: Admin panel shows no new bookings for 'E2E Final Test' customer. 4) ADMIN PANEL WORKING: Successfully verified existing bookings with proper pricing (Savatije Grujovic: 6.460 RSD, -15% discount). The public booking flow is broken and needs immediate attention."
 
 metadata:
   created_by: "testing_agent"
