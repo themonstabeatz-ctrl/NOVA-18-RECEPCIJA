@@ -956,6 +956,12 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
         service['duration_min'] = int(duration) if duration else 0
         # duration_options: for services with multiple durations, extract from service_code or use single value
         service['duration_options'] = [int(duration)] if duration else []
+        
+        # 🌐 LOCALIZATION - Generate name_i18n and description_i18n
+        service_name = service.get('name', '')
+        i18n_data = generate_service_i18n(service_name)
+        service['name_i18n'] = i18n_data['name_i18n']
+        service['description_i18n'] = i18n_data['description_i18n']
         # 🔒 END STABLE ZONE
     
     # DEBUG: Log Aroma sa toplim biljnim kompresama services AFTER processing
