@@ -249,6 +249,9 @@ class ServiceBase(BaseModel):
     # 🔐 UNIFORM PRICING FIELDS (same as SPA)
     original_price: Optional[int] = Field(default=None, description="Original price before discount")
     discount_percent: Optional[int] = Field(default=None, description="Discount percentage (0, 5, 10, 15)")
+    # 🌐 LOCALIZATION FIELDS
+    name_i18n: Optional[Dict[str, str]] = Field(default=None, description="Localized service names: {sr, en, ru, th}")
+    description_i18n: Optional[Dict[str, str]] = Field(default=None, description="Localized descriptions: {sr, en, ru, th}")
 
 class ServiceCreate(ServiceBase):
     pass
