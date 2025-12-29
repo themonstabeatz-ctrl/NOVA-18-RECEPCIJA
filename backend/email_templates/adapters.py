@@ -517,12 +517,26 @@ def build_client_email_for_couples(appt: dict) -> tuple:
         p1_total_duration = 0
         for svc in person1_services:
             name = svc.get('name', 'N/A')
-            # Remove [PAROVI] prefix for cleaner display
-            if name.startswith('[PAROVI] '):
-                name = name[9:]
             dur = svc.get('duration', 0)
             p1_total_duration += dur
-            p1_parts.append(f"{name} ({dur}{t['minutes']})")
+            
+            # 🌐 TRANSLATE SERVICE NAME
+            translated_name = _translate_service_name(name, lang)
+            # Remove prefix for cleaner display
+            if translated_name.startswith('[PAROVI] '):
+                translated_name = translated_name[9:]
+            elif translated_name.startswith('[COUPLES] '):
+                translated_name = translated_name[10:]
+            elif translated_name.startswith('[ПАРЫ] '):
+                translated_name = translated_name[7:]
+            elif translated_name.startswith('[คู่รัก] '):
+                translated_name = translated_name[9:]
+            
+            # Remove duration suffix if already in name (avoid duplication)
+            import re
+            translated_name = re.sub(r'\s*-\s*\d+\s*(min|мин|นาที)$', '', translated_name)
+            
+            p1_parts.append(f"{translated_name} ({dur}{t['minutes']})")
         
         items.append(LineItem("👤", t['person1'], ', '.join(p1_parts)))
     
@@ -534,12 +548,26 @@ def build_client_email_for_couples(appt: dict) -> tuple:
         p2_total_duration = 0
         for svc in person2_services:
             name = svc.get('name', 'N/A')
-            # Remove [PAROVI] prefix for cleaner display
-            if name.startswith('[PAROVI] '):
-                name = name[9:]
             dur = svc.get('duration', 0)
             p2_total_duration += dur
-            p2_parts.append(f"{name} ({dur}{t['minutes']})")
+            
+            # 🌐 TRANSLATE SERVICE NAME
+            translated_name = _translate_service_name(name, lang)
+            # Remove prefix for cleaner display
+            if translated_name.startswith('[PAROVI] '):
+                translated_name = translated_name[9:]
+            elif translated_name.startswith('[COUPLES] '):
+                translated_name = translated_name[10:]
+            elif translated_name.startswith('[ПАРЫ] '):
+                translated_name = translated_name[7:]
+            elif translated_name.startswith('[คู่รัก] '):
+                translated_name = translated_name[9:]
+            
+            # Remove duration suffix if already in name (avoid duplication)
+            import re
+            translated_name = re.sub(r'\s*-\s*\d+\s*(min|мин|นาที)$', '', translated_name)
+            
+            p2_parts.append(f"{translated_name} ({dur}{t['minutes']})")
         
         items.append(LineItem("👤", t['person2'], ', '.join(p2_parts)))
     
