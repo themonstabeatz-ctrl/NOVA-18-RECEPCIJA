@@ -1108,7 +1108,13 @@ async def create_appointment(appointment: AppointmentCreate):
     doc['total_price'] = int(round(final_price))
     doc['original_total_price'] = int(original_price)
     
+    # 🌐 LOCALIZATION - Save lang and message
+    doc['lang'] = appointment.lang or 'sr'
+    doc['message'] = appointment.message
+    doc['duration_min'] = service.get('duration', 0) if service else 0
+    
     logger.info(f"💰 PRICING_SNAPSHOT created: {doc['pricing']}")
+    logger.info(f"🌐 LANG={doc['lang']}, message={doc['message'][:50] if doc['message'] else 'N/A'}...")
     
     await db.appointments.insert_one(doc)
     
