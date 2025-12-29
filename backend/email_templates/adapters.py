@@ -344,10 +344,20 @@ def build_client_email_for_massage(appt: dict) -> tuple:
     
     full_name = f"{appt.get('client_first_name', '')} {appt.get('client_last_name', '')}".strip()
     
-    # Get service name and details
-    service_name = appt.get('service_name') or 'Masaža'
+    # Get service name and translate to selected language
+    service_name_orig = appt.get('service_name') or 'Masaža'
+    
+    # 🌐 TRANSLATE SERVICE NAME - Check if name_i18n is available, otherwise use translation function
+    name_i18n = appt.get('name_i18n')
+    if name_i18n and lang in name_i18n:
+        service_name = name_i18n[lang]
+    else:
+        service_name = _translate_service_name(service_name_orig, lang)
+    
     message = appt.get('message')  # Localized message from frontend
     duration_min = appt.get('duration_min', 0)
+    
+    logger.info(f"📧 TRANSLATED SERVICE: '{service_name_orig}' -> '{service_name}' (lang={lang})")
     
     items = [
         LineItem("💆", t['treatment'], service_name),
