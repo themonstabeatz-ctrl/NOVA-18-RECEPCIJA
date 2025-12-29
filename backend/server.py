@@ -3469,9 +3469,8 @@ FRONTEND_PUBLIC_URL = "https://discount-system-fix.preview.emergentagent.com"
 # 🌐 CORS ALLOWLIST - All valid frontend origins
 # ============================================
 ALLOWED_ORIGINS = [
-    "https://discount-system-fix.preview.emergentagent.com",
-    "https://discount-system-fix.preview.emergentagent.com",  # Public frontend
-    "https://discount-system-fix.preview.emergentagent.com",  # NEW Public frontend
+    "https://booking-system-85.preview.emergentagent.com",  # ✅ PUBLIC FRONTEND - CRITICAL
+    "https://discount-system-fix.preview.emergentagent.com",  # Admin panel
     "http://localhost:3000",
     "http://localhost:5173",
     FRONTEND_PUBLIC_URL,  # Include the main frontend URL
