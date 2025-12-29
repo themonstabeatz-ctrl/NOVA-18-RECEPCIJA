@@ -3,14 +3,163 @@
 Convert SPA/MASSAGE appointment data to shared ClientEmailModel
 
 🔒 USES resolve_pricing FROM pricing_utils.py AS SINGLE SOURCE OF TRUTH
+🌐 SUPPORTS LOCALIZED SERVICE NAMES via name_i18n
 """
 
 from datetime import datetime
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 from .client_shared import ClientEmailModel, LineItem, render_client_shared
 import sys
+import re
 sys.path.insert(0, '/app/backend')
 from pricing_utils import resolve_pricing
+
+
+# 🌐 SERVICE NAME TRANSLATIONS (for email localization)
+SERVICE_TRANSLATIONS = {
+    "Tradicionalna tajlandska masaža": {
+        "sr": "Tradicionalna tajlandska masaža",
+        "en": "Traditional Thai Massage",
+        "ru": "Традиционный тайский массаж",
+        "th": "นวดแผนไทยโบราณ"
+    },
+    "Aroma terapija": {
+        "sr": "Aroma terapija",
+        "en": "Aromatherapy Massage",
+        "ru": "Ароматерапевтический массаж",
+        "th": "นวดอโรม่าเทอราพี"
+    },
+    "Aromaterapija & topli kamen": {
+        "sr": "Aromaterapija & topli kamen",
+        "en": "Aromatherapy & Hot Stone",
+        "ru": "Ароматерапия и горячие камни",
+        "th": "อโรม่าเทอราพีและหินร้อน"
+    },
+    "Thai masaža sa toplim biljnim kompresama": {
+        "sr": "Thai masaža sa toplim biljnim kompresama",
+        "en": "Thai Massage with Hot Herbal Compress",
+        "ru": "Тайский массаж с горячими травяными компрессами",
+        "th": "นวดไทยพร้อมประคบสมุนไพรร้อน"
+    },
+    "Aroma sa toplim biljnim kompresama": {
+        "sr": "Aroma sa toplim biljnim kompresama",
+        "en": "Aromatherapy with Hot Herbal Compress",
+        "ru": "Ароматерапия с горячими травяными компрессами",
+        "th": "อโรม่าพร้อมประคบสมุนไพรร้อน"
+    },
+    "Opuštajuća masaža": {
+        "sr": "Opuštajuća masaža",
+        "en": "Relaxing Massage",
+        "ru": "Расслабляющий массаж",
+        "th": "นวดผ่อนคลาย"
+    },
+    "Masaža stopala": {
+        "sr": "Masaža stopala",
+        "en": "Foot Massage",
+        "ru": "Массаж стоп",
+        "th": "นวดเท้า"
+    },
+    "Masaža glave, vrata i ramena": {
+        "sr": "Masaža glave, vrata i ramena",
+        "en": "Head, Neck and Shoulder Massage",
+        "ru": "Массаж головы, шеи и плеч",
+        "th": "นวดศีรษะ คอ และไหล่"
+    },
+    "Masaža leđa": {
+        "sr": "Masaža leđa",
+        "en": "Back Massage",
+        "ru": "Массаж спины",
+        "th": "นวดหลัง"
+    },
+    "Masaža za parove": {
+        "sr": "Masaža za parove",
+        "en": "Couples Massage",
+        "ru": "Массаж для пар",
+        "th": "นวดคู่รัก"
+    },
+    "Deep tissue masaža": {
+        "sr": "Deep tissue masaža",
+        "en": "Deep Tissue Massage",
+        "ru": "Глубокий массаж тканей",
+        "th": "นวดเนื้อเยื่อลึก"
+    },
+    "Sportska masaža": {
+        "sr": "Sportska masaža",
+        "en": "Sports Massage",
+        "ru": "Спортивный массаж",
+        "th": "นวดกีฬา"
+    }
+}
+
+
+def _translate_service_name(service_name: str, lang: str) -> str:
+    """
+    🌐 Translate service name to specified language.
+    Handles [PAROVI] prefix and duration suffix.
+    
+    Args:
+        service_name: Original service name (e.g., "[PAROVI] Tradicionalna tajlandska masaža - 60 min")
+        lang: Target language code (sr, en, ru, th)
+    
+    Returns:
+        Translated service name
+    """
+    if not service_name:
+        return service_name
+    
+    # Default to Serbian if unknown language
+    if lang not in ['sr', 'en', 'ru', 'th']:
+        lang = 'sr'
+    
+    # Remove [PAROVI] prefix if present
+    clean_name = service_name
+    is_parovi = False
+    if clean_name.startswith("[PAROVI] "):
+        clean_name = clean_name[9:]
+        is_parovi = True
+    
+    # Extract base name and duration
+    base_match = re.match(r'^(.+?)\s*-\s*(\d+)\s*min', clean_name)
+    if base_match:
+        base_name = base_match.group(1).strip()
+        duration = base_match.group(2)
+    else:
+        base_name = clean_name
+        duration = None
+    
+    # Look up translation
+    translations = SERVICE_TRANSLATIONS.get(base_name)
+    if translations and lang in translations:
+        translated_base = translations[lang]
+    else:
+        # Fallback to original
+        translated_base = base_name
+    
+    # Build translated prefix
+    if is_parovi:
+        if lang == "en":
+            prefix = "[COUPLES] "
+        elif lang == "ru":
+            prefix = "[ПАРЫ] "
+        elif lang == "th":
+            prefix = "[คู่รัก] "
+        else:
+            prefix = "[PAROVI] "
+    else:
+        prefix = ""
+    
+    # Build translated duration suffix
+    if duration:
+        if lang == "ru":
+            suffix = f" - {duration} мин"
+        elif lang == "th":
+            suffix = f" - {duration} นาที"
+        else:
+            suffix = f" - {duration} min"
+    else:
+        suffix = ""
+    
+    return f"{prefix}{translated_base}{suffix}"
 
 
 def _format_date(dt: Any) -> str:
