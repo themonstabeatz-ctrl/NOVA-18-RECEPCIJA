@@ -258,6 +258,9 @@ class Service(ServiceBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     created_at: datetime = Field(default_factory=lambda: datetime.now())
     final_price: Optional[float] = Field(default=None, description="Calculated price after discount")
+    # 🕐 DURATION FIELDS - numeric values for frontend (language-independent)
+    duration_min: Optional[int] = Field(default=None, description="Duration in minutes (numeric)")
+    duration_options: Optional[List[int]] = Field(default=None, description="Available duration options in minutes")
 
 
 # ============================================
