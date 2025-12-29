@@ -2078,21 +2078,39 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         
         # Send email notifications (non-blocking)
         try:
-            # Get service name from the couple service
-            couple_service_name = couple_service.get('name', 'Masaža za parove') if couple_service else 'Masaža za parove'
-            
-            # Include notes with person selections
-            notes_text = couple.notes or ''
+            # 🌐 LOCALIZED COUPLES EMAIL
+            lang = couple.lang or 'sr'
             
             email_data = {
+                'id': appointment_obj.id,  # Appointment ID for logging
                 'client_first_name': couple.client_first_name,
                 'client_last_name': couple.client_last_name,
                 'client_phone': couple.client_phone,
                 'client_email': couple.client_email,
                 'start_time': appointment_obj.start_time,
-                'service_name': couple_service_name,
-                'notes': notes_text
+                'service_name': service_name,
+                'notes': couple.notes or '',
+                # 🌐 LOCALIZATION
+                'lang': lang,
+                'message': couple.message,
+                # 👫 COUPLES-SPECIFIC DATA
+                'is_couples_booking': True,
+                'person1_services_snapshot': person1_services_snapshot,
+                'person2_services_snapshot': person2_services_snapshot,
+                'duration_min': total_duration,
+                # 💰 PRICING
+                'original_total': original_total,
+                'final_total': discounted_price,
+                'snapshot_original_price': original_total,
+                'snapshot_price': discounted_price,
+                'discount_percentage': discount_percentage,
+                'snapshot_discount_percentage': discount_percentage,
+                'discounted_price': discounted_price,
+                'pricing_breakdown': f"{person1_total} + {person2_total} = {original_total}"
             }
+            
+            logger.info(f"📧 COUPLES EMAIL DATA: lang={lang}, p1_services={len(person1_services_snapshot)}, p2_services={len(person2_services_snapshot)}, price={discounted_price}")
+            
             await send_booking_emails(email_data)
         except Exception as e:
             logger.error(f"Email notification failed for couples booking (non-blocking): {e}")
