@@ -1016,6 +1016,11 @@ async def create_appointment(appointment: AppointmentCreate):
     if not service:
         raise HTTPException(status_code=404, detail="Service not found")
     
+    # 🧪 E2E TEST LOG - Detailed booking info
+    service_code = service.get('service_code', 'N/A')
+    duration = service.get('duration', 0)
+    logger.info(f"🧪 [E2E_BOOKING] service_code={service_code}, duration={duration}, service_id={appointment.service_id}, client_email={appointment.client_email}")
+    
     # Remove timezone info if present to use naive datetime (local time)
     start_time = appointment.start_time.replace(tzinfo=None) if appointment.start_time.tzinfo else appointment.start_time
     
