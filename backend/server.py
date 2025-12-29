@@ -3502,7 +3502,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # 🌍 DEBUG: Log origin for troubleshooting
         origin = request.headers.get("origin")
         if origin:
-            print(f"🌍 ORIGIN: {origin} → {request.method} {request.url.path}")
+            is_allowed = origin in ALLOWED_ORIGINS
+            status = "✅ ALLOWED" if is_allowed else "❌ BLOCKED"
+            print(f"🌐 ORIGIN={origin} PATH={request.url.path} STATUS={status}")
         
         response = await call_next(request)
         # Prevent clickjacking
