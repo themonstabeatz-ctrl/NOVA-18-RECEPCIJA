@@ -1128,7 +1128,17 @@ async def create_appointment(appointment: AppointmentCreate):
             'client_email': appointment_obj.client_email,
             'start_time': appointment_obj.start_time,
             'service_name': service.get('name', 'Unknown Service') if service else 'Unknown Service',
-            'notes': ''
+            'notes': '',
+            # 🌐 LOCALIZATION fields
+            'lang': doc['lang'],
+            'message': doc['message'],
+            'duration_min': doc['duration_min'],
+            # 💰 PRICING fields
+            'pricing': doc['pricing'],
+            'original_price': int(original_price),
+            'final_price': int(round(final_price)),
+            'discount_percent': int(best_discount),
+            'has_discount': best_discount > 0 and final_price < original_price
         }
         await send_booking_emails(email_data)
     except Exception as e:
