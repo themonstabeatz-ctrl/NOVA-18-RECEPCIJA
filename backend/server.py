@@ -3462,16 +3462,16 @@ async def api_root():
 # ============================================
 # 🔐 HARD-LOCKED URLs - ONLY THESE ARE VALID
 # ============================================
-BACKEND_PUBLIC_URL = "https://price-consistency.preview.emergentagent.com"
-FRONTEND_PUBLIC_URL = "https://price-consistency.preview.emergentagent.com"
+BACKEND_PUBLIC_URL = "https://discount-system-fix.preview.emergentagent.com"
+FRONTEND_PUBLIC_URL = "https://discount-system-fix.preview.emergentagent.com"
 
 # ============================================
 # 🌐 CORS ALLOWLIST - All valid frontend origins
 # ============================================
 ALLOWED_ORIGINS = [
-    "https://price-consistency.preview.emergentagent.com",
-    "https://relax-reserve-5.preview.emergentagent.com",  # Public frontend
-    "https://booking-system-85.preview.emergentagent.com",  # NEW Public frontend
+    "https://discount-system-fix.preview.emergentagent.com",
+    "https://discount-system-fix.preview.emergentagent.com",  # Public frontend
+    "https://discount-system-fix.preview.emergentagent.com",  # NEW Public frontend
     "http://localhost:3000",
     "http://localhost:5173",
     FRONTEND_PUBLIC_URL,  # Include the main frontend URL

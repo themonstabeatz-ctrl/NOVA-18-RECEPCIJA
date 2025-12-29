@@ -36,10 +36,10 @@
 ## 🎯 ŠTA WEBSAJT AGENT TREBA DA URADI
 
 ### RADNA VERZIJA WEBSAJTA:
-**URL:** https://price-consistency.preview.emergentagent.com/
+**URL:** https://discount-system-fix.preview.emergentagent.com/
 
 ### API ENDPOINT ZA POZIVANJE:
-**Base URL:** https://price-consistency.preview.emergentagent.com/api
+**Base URL:** https://discount-system-fix.preview.emergentagent.com/api
 
 ---
 
@@ -58,7 +58,7 @@ U fajlu gde pozivas API (npr. `bookingApi.js` ili `services.js`):
 const BOOKING_API = 'https://spabooking.emergent.host/api';
 
 // U:
-const BOOKING_API = 'https://price-consistency.preview.emergentagent.com/api';
+const BOOKING_API = 'https://discount-system-fix.preview.emergentagent.com/api';
 ```
 
 #### 2. Dodaj funkciju za proveru
@@ -121,7 +121,7 @@ Korisnik dobija grešku "Greška! Molimo pokušajte ponovo." pri zakazivanju.
 
 ### API Endpoint:
 ```
-POST https://price-consistency.preview.emergentagent.com/api/book-couple-appointment
+POST https://discount-system-fix.preview.emergentagent.com/api/book-couple-appointment
 ```
 
 ### Format Podataka:
@@ -186,7 +186,7 @@ async function bookCoupleAppointment(formData) {
   };
   
   const response = await fetch(
-    'https://price-consistency.preview.emergentagent.com/api/book-couple-appointment',
+    'https://discount-system-fix.preview.emergentagent.com/api/book-couple-appointment',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -254,7 +254,7 @@ function showBookingConfirmation(appointment) {
 ## 🧪 TESTIRANJE
 
 ### Test 1: Popusti
-1. Otvori booking sistem: https://price-consistency.preview.emergentagent.com/services
+1. Otvori booking sistem: https://discount-system-fix.preview.emergentagent.com/services
 2. Idi na "Kartica Masaza za parove"
 3. Postavi 15% popust
 4. Refresh websajt
@@ -276,7 +276,7 @@ async function testBooking() {
   };
   
   const response = await fetch(
-    'https://price-consistency.preview.emergentagent.com/api/book-couple-appointment',
+    'https://discount-system-fix.preview.emergentagent.com/api/book-couple-appointment',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -294,7 +294,7 @@ async function testBooking() {
 ```
 
 ### Test 3: Proveri u Dashboard-u
-1. Idi na: https://price-consistency.preview.emergentagent.com/
+1. Idi na: https://discount-system-fix.preview.emergentagent.com/
 2. Login sa `studio149`
 3. Proveri da li se termin pojavio u "Pregled Po Kategorijama"
 

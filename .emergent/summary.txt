@@ -1,143 +1,156 @@
 <analysis>**original_problem_statement:**
-Korisnik je zatražio seriju kritičnih ažuriranja, fokusirajući se na ispravnost i konzistentnost sistema za popuste. Glavni problem je bio što se popusti nisu ispravno izračunavali, čuvali i prikazivali na svim mestima u admin panelu (notifikacije, listing rezervacija, kalendar termina) i u email potvrdama. Često je originalna cena bila pogrešno prikazana kao finalna cena (cena sa popustom), što je stvaralo konfuziju.
+Korisnik je zatražio seriju kritičnih ažuriranja fokusiranih na ispravnost i konzistentnost sistema za popuste. Glavni problem je bio što se popusti nisu ispravno izračunavali, čuvali i prikazivali na svim mestima (admin panel, notifikacije, emailovi). Problem se manifestovao kao neusklađenost između testnih rezervacija (preko -a) i stvarnih rezervacija napravljenih sa odvojenog, javnog frontend sajta.
 
-Ključni zahtevi su bili:
-1.  **Standardizacija Pricing Logike**: Implementirati jedinstvenu, bulletproof Python funkciju () na backendu koja će biti jedini izvor istine za izračunavanje i prikaz cena.
-2.  **Ispravan Pricing Snapshot**: Osigurati da se prilikom svake rezervacije u bazi podataka sačuva kompletan i tačan  objekat sa ključevima: , , , .
-3.  **Konzistentan Prikaz u Admin Panelu**: Na svim mestima gde se prikazuje cena (notifikacije, listing, termini), mora se koristiti  logika. Kada postoji popust, prikaz mora biti:
-    *   Cena (orig):  (precrtano)
-    *   Popust: 
-    *   Za naplatu:  (zelenom bojom)
-4.  **Unifikacija Email Template-a**: Osigurati da SVI emailovi (i testni i oni za stvarne klijente) koriste isti template i istu  logiku za prikaz cena.
-5.  **Ispravka Baza Cena**: Uskladiti osnovne cene za SPA rituale u bazi podataka sa cenovnikom koji je korisnik dostavio.
-6.  **CORS Konfiguracija**: Ažurirati CORS politiku da dozvoli pristup sa specifičnih frontend domena.
+Ključni zahtevi su evoluirali i uključivali su:
+1.  **Standardizacija Pricing Logike**: Implementirati jedinstvenu Python funkciju () na backendu kao jedini izvor istine za cene.
+2.  **Konzistentan Pricing Snapshot**: Osigurati da SVE vrste rezervacija (SPA, masaže, sa javnog sajta) u bazi sačuvaju kompletan  objekat (, , , ).
+3.  **Ispravan Prikaz svuda**: Na svim mestima gde se prikazuje cena (notifikacije, listing, termini, email), mora se koristiti ista logika prikaza (precrtana originalna cena, popust, finalna cena).
+4.  **Backend kao jedini autoritet za popuste**: Frontend ne sme da računa popuste; mora da pošalje originalnu cenu, a backend primenjuje popust na osnovu .
+5.  **Rešavanje problema sa prikazom popusta**: Popraviti prikaz popusta za specifične SPA kartice (, romantični paketi) i u analitici na dashboard-u.
+6.  **API za masaže**: Osigurati da endpoint  vraća numerička polja  i  za sve jezike.
+7.  **Lokalizacija Email-a za Masaže**: Implementirati slanje email potvrda za masaže na jeziku korisnika (, , , ) na osnovu  parametra poslatog sa frontenda.
 
 **User's preferred language**: srpski (Serbian)
 
 **what currently exists?**
-- Backend je u potpunosti refaktorisan da koristi jedinstveni sistem za obradu cena. Postoji centralna funkcija  u  koja služi kao jedini izvor istine za cene.
-- Svi API endpointi koji kreiraju rezervacije () sada kreiraju i čuvaju standardizovan  snapshot u bazi podataka.
-- Svi API endpointi koji vraćaju podatke o rezervacijama ( i  u ) koriste  kako bi osigurali da su podaci poslati frontendu uvek konzistentni.
-- Frontend komponente (, , ) su ažurirane da ispravno čitaju standardizovane podatke i prikazuju cene u traženom formatu (precrtana originalna, popust, i finalna cena).
-- Svi email templejti su unificirani i sada koriste isti adapter i  logiku, osiguravajući da klijenti dobijaju ispravan prikaz cena sa popustom.
-- Konfiguracija popusta za SPA kartice () je i dalje **in-memory** unutar , što znači da se resetuje pri svakom restartu backend servera.
+- Backend ima centralizovanu i bulletproof logiku za obradu cena u .
+- Svi SPA booking flow-ovi (, , ) su unificirani u  i sada ispravno kreiraju i čuvaju standardizovan  snapshot, rešavajući ključni problem neusklađenosti između testnih i javnih rezervacija.
+- Backend je konfigurisan kao jedini autoritet za obračun popusta; ignoriše snižene cene sa frontenda i primenjuje popust na osnovu poslatog .
+- Admin panel (notifikacije, listing, termini) i analitika na dashboard-u ispravno prikazuju cene sa popustom za sve vrste SPA rezervacija.
+- Endpoint za masaže () je ažuriran i sada vraća  i  nezavisno od jezika.
+- Backend je pripremljen za lokalizaciju email-ova za masaže: modeli i endpoint () prihvataju  i , a  sadrži logiku za slanje email-ova na različitim jezicima.
+- CORS je ispravno konfigurisan da prihvata zahteve sa svih potrebnih frontend domena.
+- **Kritični tehnički dug**: Konfiguracija popusta za SPA kartice () je i dalje **in-memory** unutar , što znači da se svi popusti resetuju pri svakom restartu backend servera.
 
 **Last working item**:
--   **Last item agent was working**: Agent je radio na finalnom bulletproof zahtevu korisnika da se osigura apsolutna konzistentnost u prikazu cena. Korisnik je prijavio da i dalje vidi neispravne podatke, sumnjajući da test i public flowovi koriste različitu logiku. Agent je sproveo dubinsku dijagnostiku i utvrdio da je problem bio u neusklađenosti podataka koje su API endpointi (, ) vraćali i načina na koji su ih frontend komponente (, ) čitale. Agent je uspešno uskladio backend i frontend, i finalno verifikovao ispravnost na sve četiri tražene lokacije (notifikacije, listing, termini, email) putem screenshotova.
--   **Status**: USER VERIFICATION PENDING
+-   **Last item agent was working**: Agent je radio na implementaciji lokalizacije email potvrda za MASAŽE. Cilj je bio da backend prihvati  parametar (, , , ) pri rezervaciji i pošalje email na odgovarajućem jeziku, koristeći  polje iz payload-a za telo email-a. Agent je ažurirao Pydantic modele, endpoint  da čuva  i , i  da sadrži logiku za lokalizaciju.
+-   **Status**: IN PROGRESS
 -   **Agent Testing Done**: Y
--   **Which testing method agent to use?**: Manual testing by user. Agent treba da predstavi dokaze (screenshotove) i zatraži od korisnika da potvrdi ispravku.
+-   **Which testing method agent to use?**: Korisnik je eksplicitno zahtevao E2E test. Agent treba da koristi  da simulira payload sa javnog frontenda za svaki od 4 jezika, sa  postavljenim na . Nakon toga, treba zatražiti od korisnika da potvrdi prijem i ispravnost sva četiri email-a.
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: (P0) Korisnička potvrda bulletproof rešenja za prikaz cena.
-    -   **Description**: Korisnik je više puta izrazio sumnju da sistem nije konzistentan. Iako je agent implementirao sve tražene izmene i verifikovao ih, korisnik još uvek nije potvrdio da je problem rešen sa njegove strane.
-    -   **Attempted fixes**: Agent je uspešno refaktorisao ceo backend i frontend da koriste jedinstvenu  logiku. U poslednjoj iteraciji, ispravljena je neusklađenost između API odgovora i frontend komponenti, i napravljeni su screenshotovi kao dokaz.
+-   **Issue 1**: (P0) Korisnička verifikacija lokalizovanih email-ova za masaže.
+    -   **Description**: Backend logika za slanje lokalizovanih email-ova je implementirana i testirana -om. Čeka se potvrda od korisnika da su email-ovi zaista stigli na  i da je sadržaj ispravan za svaki jezik.
+    -   **Attempted fixes**: Agent je uspešno implementirao backend izmene i poslao testne email-ove.
     -   **Next debug checklist**:
-        1.  Ne menjati kod.
-        2.  Prezentovati korisniku poslednji set dokaza: screenshotove notifikacije, listinga, termina i sadržaj email-a za **isti booking ID**.
-        3.  Kratko objasniti da je ceo sistem sada unificiran i da se oslanja na jednu centralnu funkciju, tačno po njegovom zahtevu.
-        4.  Zamoliti korisnika da sam napravi test rezervaciju i potvrdi da li je sada sve ispravno.
+        1.  Pitati korisnika da li je primio 4 test email-a (SR, EN, RU, TH) na .
+        2.  Ako email-ovi nisu stigli, pregledati SMTP logiku slanja u , posebno  funkciju i dodati još detaljniji logging.
+        3.  Zatražiti od korisnika screenshot-ove primljenih email-ova da se proveri sadržaj.
     -   **Status**: USER VERIFICATION PENDING
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: Backend (verifikacija email-a).
+    -   **Blocked on other issue**: None
+
+-   **Issue 2**: (P1) JAVNI FRONTEND ne prikazuje popust bedževe za sve kartice.
+    -   **Description**: Korisnik je prijavio da se na javnom frontend sajtu ne prikazuju bedževi sa popustom za nekoliko SPA kartica (Herbal, Romantic, SPA Zone), iako backend API () vraća tačne podatke o popustima.
+    -   **Attempted fixes**: Agent je potvrdio da backend radi ispravno i pripremio detaljne instrukcije za frontend developera kako da dinamički prikazuje bedževe koristeći podatke sa  endpointa.
+    -   **Next debug checklist**: Ovo je problem na eksternom frontend projektu. Ne zahteva izmene na backendu. Ako korisnik ponovo pokrene temu, agent treba da ponovi da je backend ispravan i da prosledi instrukcije za frontend tim.
+    -   **Status**: BLOCKED (čeka se implementacija na eksternom frontend projektu).
     -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: N/A (čeka se korisnik)
+    -   **Should Test frontend/backend/both after fix?**: Frontend.
     -   **Blocked on other issue**: None
 
 **In progress Task List**:
--   Nema.
+-   **Task 1**: (P0) Finalizacija i verifikacija lokalizacije email-ova za masaže.
+    -   **Where to resume**: Sačekati povratnu informaciju od korisnika o primljenim email-ovima.
+    -   **What will be achieved with this?**: Korisničko iskustvo će biti poboljšano slanjem potvrda o rezervaciji na jeziku koji je korisnik izabrao.
+    -   **Status**: USER VERIFICATION PENDING
+    -   **Should Test frontend/backend/both after fix?**: Backend (Email).
+    -   **Blocked on something**: Čeka se odgovor korisnika.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   (P1) **Refactoring**: Prebaciti  konfiguraciju iz in-memory rečnika u  u perzistentno skladište (baza podataka ili konfiguracioni fajl) kako se popusti ne bi gubili nakon restarta servera.
--   **Future Tasks** (preuzeto iz originalne primopredaje, trenutno niskog prioriteta):
-    -   **Public Frontend**: Implementirati ispravke na javnom SPA sajtu (prikaz popusta na učitavanje, tačna cena na booking stranici).
-    -   **Public Frontend**: Na SPA booking formi, prikazati cene pored vremena za svaku SPA zonu.
-    -   **Public Frontend**: Prikazati jedinstvenu, generičku poruku o uspešnoj rezervaciji i za SPA i za masaže.
+    -   (P0) **Refactoring**: Prebaciti  konfiguraciju popusta iz in-memory rečnika u  u perzistentnu MongoDB kolekciju. Ovo je tehnički dug najvišeg prioriteta jer se popusti gube nakon svakog restarta servera, što otežava testiranje i rad.
+-   **Future Tasks**:
     -   E2E testiranje kompletnog booking flow-a.
     -   Integracija sa POS/kasa i terminalom za kartice.
     -   Sistem za recenzije (reviews).
     -   Loyalty program.
 
 **Completed work in this session**
--   **Bulletproof Pricing System**: Uspešno implementiran jedinstven sistem za obradu i prikaz cena.
-    -   Kreiran  helper u  kao jedini izvor istine.
-    -   Standardizovan  snapshot koji se čuva u bazi na  i .
-    -   Svi relevantni API endpointi (, ) i interni servisi (notifikacije) su refaktorisani da koriste .
--   **Frontend UI Fixes**: Ispravljen prikaz cena na svim traženim mestima u admin panelu.
-    -   Notifikacije () sada ispravno prikazuju precrtanu originalnu cenu, popust i finalnu cenu.
-    -   Listing rezervacija () sada ispravno prikazuje cene.
-    -   Stranica sa terminima () sada ispravno prikazuje cene.
--   **Email Unification**: Svi emailovi (za klijente i administratore, za masaže i SPA) sada koriste isti, unificirani template adapter koji se oslanja na  logiku.
--   **Email Template Design**: Ažuriran email template sa novom pozadinskom slikom i logom po zahtevu korisnika.
--   **Data Integrity**: Ispravljene osnovne cene za SPA rituale u bazi podataka.
--   **CORS & Security**: Ažurirana CORS polisa i izvršena normalizacija API endpoint-a i  objekata.
+-   **Bulletproof Pricing System**: Uspešno refaktorisana i centralizovana logika za cene, rešavajući fundamentalni problem nekonzistentnosti. Svi SPA booking flow-ovi su sada unificirani.
+-   **Test vs. Public Flow Fix**: Identifikovan i rešen bug gde su javne rezervacije koristile minimalni flow bez kreiranja  snapshot-a.
+-   **Discount Logic Fix**: Backend je uspostavljen kao jedini autoritet za obračun popusta.
+-   **Admin Panel UI & Analytics**: Ispravljen prikaz cena i popusta na svim delovima admin panela, uključujući i glavnu analitiku na dashboardu.
+-   **CORS & API Fixes**: Ažurirana CORS polisa i ispravljen  endpoint za masaže da vraća numerička trajanja.
+-   **Email Localization (Masaže)**: Implementirana kompletna backend logika za slanje lokalizovanih email potvrda za masaže.
 
 **Earlier issues found/mentioned but not fixed**
 -   Nema.
 
 **Known issue recurrence from previous fork**
--   Problem sa nekonzistentnim prikazom cena bio je rekurentan tokom cele sesije, ali je sada, čini se, fundamentalno rešen uvođenjem  helpera i standardizacijom podataka.
+-   Problem sa nekonzistentnim prikazom cena bio je rekurentan, ali je fundamentalno rešen uvođenjem  i unifikacijom svih SPA booking tokova u .
 
 **Code Architecture**
-
+build_client_email_for_massage
 
 **Key Technical Concepts**
--   **Single Source of Truth**: Ključni koncept je  funkcija u  koja eliminiše dupliranje logike i osigurava konzistentnost.
--   **Defensive Programming**:  funkcija sadrži guard koji baca grešku ako je  kada postoji popust, sprečavajući logičke greške.
--   **Legacy Data Handling**: Funkcija  implementira fallback logiku za unazad izračunavanje originalne cene za stare zapise koji nemaju kompletan  snapshot.
--   **Data Snapshotting**: Prilikom kreiranja rezervacije,  objekat se zamrzava i čuva u bazi, osiguravajući istorijsku tačnost. Sada je standardizovan na  i .
--   **In-Memory Configuration**:  konfiguracija za popuste je i dalje u memoriji, što je tehnički dug koji treba rešiti.
+-   **Single Source of Truth**: Ključni koncept je  funkcija koja osigurava konzistentnost.
+-   **Data Snapshotting**: Svi booking endpointi sada kreiraju i čuvaju nepromenljivi  objekat u bazi.
+-   **Flow Unification**: Svi SPA booking tokovi (regular, special couple, minimal) su objedinjeni da koriste istu logiku, rešavajući test vs. public problem.
+-   **In-Memory Configuration**:  konfiguracija za popuste je kritičan tehnički dug koji se mora rešiti.
+-   **Email Localization**: Korišćenje  parametra za slanje lokalizovanih email-ova.
 
 **key DB schema**
--   **appointments** & **spa_appointments**: Sada sadrže standardizovan  objekat: . Polje  uvek sadrži vrednost .
--   **notifications**: Sada sadrži , , ,  kako bi UI mogao ispravno da ih prikaže.
+-   **appointments** & **spa_appointments**: Sada sadrže standardizovan  objekat: . Kolekcija  (masaže) sada sadrži i polja  i .
 
 **All files of reference**
--    (Ključni novi fajl)
--    (Izmenjeni endpointi: , , i centralni dispatcher notifikacija)
--    (Izmenjen booking flow)
--    (Standardizovani nazivi ključeva)
--    (Refaktorisan da koristi )
--    (Refaktorisan prikaz cena)
--    (Refaktorisan prikaz cena)
--    (Refaktorisan prikaz cena u notifikacijama)
+-    (Ažuriran za lokalizaciju email-a za masaže i CORS)
+-    (Ključne izmene za unifikaciju SPA booking tokova)
+-    (Centralna logika za cene)
+-    (Ažuriran za lokalizaciju email-a za masaže)
+-    (Ažuriran za prikaz ukupnog popusta)
 
 **Areas that need refactoring**:
--    konfiguracija u  treba da se prebaci iz in-memory rečnika u bazu podataka da bi popusti bili perzistentni.
+-   **KRITIČNO**: Konfiguracija za popuste  u  mora biti prebačena iz in-memory rečnika u MongoDB bazu podataka kako bi popusti bili perzistentni nakon restarta servera.
 
 **key api endpoints**
--   : Kreira SPA rezervaciju i sada čuva standardizovan  snapshot.
--   : Vraća unificiranu listu svih rezervacija sa konzistentnim  podacima.
--   : Vraća listu nepregledanih notifikacija sa konzistentnim  podacima.
--   : Vraća cene u realnom vremenu.
+-   : Kreira SPA rezervaciju.
+-   : Kreira rezervaciju za masažu (sada prihvata ).
+-   : Vraća listu usluga za masaže (sada uključuje ).
+-   : Vraća listu SPA kartica sa statusom popusta.
+-   : Postavlja popuste za SPA kartice (koristi se za testiranje zbog in-memory prirode).
 
 **Critical Info for New Agent**
--   Korisnik je veoma osetljiv na nekonzistentnost u prikazu cena. Pre bilo kakvih daljih izmena, morate potvrditi sa korisnikom da je trenutno stanje ispravno.
--   Nemojte menjati kod pre nego što dobijete potvrdu od korisnika. Predstavite mu dokaze (screenshotove) iz prethodne sesije.
--   Glavni preostali tehnički dug je in-memory konfiguracija za popuste (). Ako restartujete backend, moraćete ručno (preko UI-ja ili -a) ponovo da postavite popuste za potrebe testiranja.
--   Problem koji je korisnik prvobitno prijavio (vezan za javni frontend sajt) je stavljen u drugi plan. Nemojte raditi na tome dok se ne reši trenutni prioritet i dok korisnik to eksplicitno ne zatraži.
+-   **Popusti za SPA se resetuju posle svakog restarta!** Pre testiranja bilo kakve funkcionalnosti vezane za popuste, **OBAVEZNO** je ponovo postaviti popuste koristeći  API. Ovo je najčešći uzrok problema tokom testiranja.
+-   **Postoje dva frontend projekta**: Jedan je admin panel u , a drugi je javni sajt čiji kod NIJE u ovom radnom prostoru. Problemi na javnom sajtu (npr. bedževi koji se ne prikazuju) su frontend problemi i ne mogu se rešiti izmenama na backendu.
+-   Korisnik je veoma osetljiv na razliku između testnih i stvarnih rezervacija. Svako rešenje mora biti potvrđeno objašnjenjem kako funkcioniše za stvarni, javni tok rezervacije.
+-   Ne dirati logiku za masaže osim ako to nije eksplicitno zatraženo.
 
-**documents and test_reports created in this job**
--   
+**documents and test reports created in this job**
+-   Nema.
 
 **Last 10 User Messages and any pending HUMAN messages**
--   The last user messages are a cycle of reporting pricing inconsistencies, the agent fixing them, and the user reporting them again with more specific bulletproof requirements. The last message (559) is a forceful demand for absolute consistency and a specific architectural approach ( helper), which the agent has already implemented and verified in the immediately preceding steps. The core issue is user mistrust and a potential misunderstanding of the latest fixes.
+1.  **User**: Zahteva lokalizaciju email-ova za masaže (SR/EN/RU/TH).
+2.  **User**: Ponovo zahteva E2E test za  i email potvrdu na .
+3.  **User**: Prihvata da je  rešeno, ali i dalje insistira na E2E testu sa email dokazom.
+4.  **User**: Prijavljuje da romantični paketi ne prikazuju popust u admin panelu.
+5.  **User**: Potvrđuje da backend ispravno radi za .
+6.  **User**: Potvrđuje da je backend OK i zabranjuje dalje izmene na SPA pricing logici, navodeći da je problem sa bedževima na frontendu.
+7.  **User**: Zahteva kompletan E2E test sa javnog frontenda, uključujući screenshot-ove i stvarne email-ove, odbijajući sve radi odgovore bez dokaza.
+8.  **User**: Potvrđuje da je backend (CORS, API) spreman za novi frontend.
+9.  **User**: Prijavljuje da bedževi za popust rade za , ali ne i za ostale nove kartice.
+10. **User**: Prijavljuje problem duplog popusta i pita šta da kaže frontend developeru.
+
+**Pending Message:** Korisnik čeka E2E dokaz (stvarne email-ove) za implementiranu lokalizaciju email-ova za masaže.
 
 **Project Health Check:**
--   **Broken**: Ništa. Sistem je funkcionalan i stabilan, ali čeka na finalnu verifikaciju korisnika.
+-   **Broken**: Ništa na backendu.
 -   **Mocked**: Ništa.
 
 **3rd Party Integrations**
 -   **aiosmtplib (Gmail SMTP)**: Koristi se za slanje email notifikacija.
 
 **Testing status**
--   **Testing agent used after significant changes**: NO
--   **Troubleshoot agent used after agent stuck in loop**: NO
+-   **Testing agent used after significant changes**: YES
+-   **Troubleshoot agent used after agent stuck in loop**: YES
 -   **Test files created**: Nema.
--   **Known regressions**: Bilo je privremenih regresija tokom refaktorisanja, ali su sve ispravljene. Finalno stanje je stabilno.
+-   **Known regressions**: Popusti za SPA se resetuju nakon restarta servera zbog in-memory konfiguracije.
 
 **Credentials to test flow:**
 -   **Dashboard lozinka**: 
 
 **What agent forgot to execute**
--   Agent je u početku prevideo da centralni dispatcher za notifikacije u  ne čuva sve  podatke, što je bio uzrok bug-a u notifikacijama. Takođe, prevideo je neusklađenost strukture podataka između API odgovora i frontend komponenti. Oba propusta su kasnije uspešno identifikovana i ispravljena.</analysis>
+-   Agent je u više navrata zaboravljao da su popusti za SPA kartice in-memory i gubio vreme dijagnostikujući probleme koji su bili posledica resetovanih popusta. Sledeći agent mora ovo imati na umu.
+-   Agent je u početku promašio pravi uzrok test vs. public neusklađenosti (minimalni booking flow), što je dovelo do frustracije korisnika. Problem je kasnije uspešno identifikovan i rešen.</analysis>
