@@ -429,6 +429,173 @@ def get_service_category_display(service_name: str, category: str = None) -> str
 
 
 # ============================================
+# 🌐 LOCALIZATION - Service Name Translations
+# ============================================
+SERVICE_TRANSLATIONS = {
+    # Tradicionalna tajlandska masaža
+    "Tradicionalna tajlandska masaža": {
+        "sr": "Tradicionalna tajlandska masaža",
+        "en": "Traditional Thai Massage",
+        "ru": "Традиционный тайский массаж",
+        "th": "นวดแผนไทยโบราณ"
+    },
+    # Aroma terapija
+    "Aroma terapija": {
+        "sr": "Aroma terapija",
+        "en": "Aromatherapy Massage",
+        "ru": "Ароматерапевтический массаж",
+        "th": "นวดอโรม่าเทอราพี"
+    },
+    # Aromaterapija & topli kamen
+    "Aromaterapija & topli kamen": {
+        "sr": "Aromaterapija & topli kamen",
+        "en": "Aromatherapy & Hot Stone",
+        "ru": "Ароматерапия и горячие камни",
+        "th": "อโรม่าเทอราพีและหินร้อน"
+    },
+    # Thai masaža sa toplim biljnim kompresama
+    "Thai masaža sa toplim biljnim kompresama": {
+        "sr": "Thai masaža sa toplim biljnim kompresama",
+        "en": "Thai Massage with Hot Herbal Compress",
+        "ru": "Тайский массаж с горячими травяными компрессами",
+        "th": "นวดไทยพร้อมประคบสมุนไพรร้อน"
+    },
+    # Aroma sa toplim biljnim kompresama
+    "Aroma sa toplim biljnim kompresama": {
+        "sr": "Aroma sa toplim biljnim kompresama",
+        "en": "Aromatherapy with Hot Herbal Compress",
+        "ru": "Ароматерапия с горячими травяными компрессами",
+        "th": "อโรม่าพร้อมประคบสมุนไพรร้อน"
+    },
+    # Opuštajuća masaža
+    "Opuštajuća masaža": {
+        "sr": "Opuštajuća masaža",
+        "en": "Relaxing Massage",
+        "ru": "Расслабляющий массаж",
+        "th": "นวดผ่อนคลาย"
+    },
+    # Masaža stopala
+    "Masaža stopala": {
+        "sr": "Masaža stopala",
+        "en": "Foot Massage",
+        "ru": "Массаж стоп",
+        "th": "นวดเท้า"
+    },
+    # Masaža glave, vrata i ramena
+    "Masaža glave, vrata i ramena": {
+        "sr": "Masaža glave, vrata i ramena",
+        "en": "Head, Neck and Shoulder Massage",
+        "ru": "Массаж головы, шеи и плеч",
+        "th": "นวดศีรษะ คอ และไหล่"
+    },
+    # Masaža leđa
+    "Masaža leđa": {
+        "sr": "Masaža leđa",
+        "en": "Back Massage",
+        "ru": "Массаж спины",
+        "th": "นวดหลัง"
+    },
+    # Masaža za parove
+    "Masaža za parove": {
+        "sr": "Masaža za parove",
+        "en": "Couples Massage",
+        "ru": "Массаж для пар",
+        "th": "นวดคู่รัก"
+    },
+    # Deep tissue
+    "Deep tissue masaža": {
+        "sr": "Deep tissue masaža",
+        "en": "Deep Tissue Massage",
+        "ru": "Глубокий массаж тканей",
+        "th": "นวดเนื้อเยื่อลึก"
+    },
+    # Sportska masaža
+    "Sportska masaža": {
+        "sr": "Sportska masaža",
+        "en": "Sports Massage",
+        "ru": "Спортивный массаж",
+        "th": "นวดกีฬา"
+    }
+}
+
+
+def generate_service_i18n(service_name: str) -> Dict[str, Dict[str, str]]:
+    """
+    Generate i18n translations for a service name.
+    Extracts base name (without duration/prefix) and returns translations.
+    
+    Returns: {"name_i18n": {...}, "description_i18n": {...}}
+    """
+    # Remove [PAROVI] prefix if present
+    clean_name = service_name
+    is_parovi = False
+    if clean_name.startswith("[PAROVI] "):
+        clean_name = clean_name[9:]  # Remove "[PAROVI] "
+        is_parovi = True
+    
+    # Extract base name (remove duration like "- 60 min")
+    import re
+    base_match = re.match(r'^(.+?)\s*-\s*\d+\s*min', clean_name)
+    if base_match:
+        base_name = base_match.group(1).strip()
+        duration_part = clean_name[len(base_name):].strip()
+    else:
+        base_name = clean_name
+        duration_part = ""
+    
+    # Look up translations
+    translations = SERVICE_TRANSLATIONS.get(base_name, None)
+    
+    if translations:
+        name_i18n = {}
+        for lang, trans_base in translations.items():
+            # Reconstruct full name with duration
+            if is_parovi:
+                if lang == "sr":
+                    prefix = "[PAROVI] "
+                elif lang == "en":
+                    prefix = "[COUPLES] "
+                elif lang == "ru":
+                    prefix = "[ПАРЫ] "
+                elif lang == "th":
+                    prefix = "[คู่รัก] "
+                else:
+                    prefix = "[PAROVI] "
+            else:
+                prefix = ""
+            
+            # Translate duration part
+            if duration_part:
+                duration_trans = duration_part
+                if lang == "en":
+                    duration_trans = duration_part.replace("min", "min")
+                elif lang == "ru":
+                    duration_trans = duration_part.replace("min", "мин")
+                elif lang == "th":
+                    duration_trans = duration_part.replace("min", "นาที")
+                
+                name_i18n[lang] = f"{prefix}{trans_base} {duration_trans}"
+            else:
+                name_i18n[lang] = f"{prefix}{trans_base}"
+        
+        return {
+            "name_i18n": name_i18n,
+            "description_i18n": {
+                "sr": f"Profesionalni tretman u trajanju od {duration_part}" if duration_part else "Profesionalni tretman",
+                "en": f"Professional treatment lasting {duration_part}" if duration_part else "Professional treatment",
+                "ru": f"Профессиональная процедура длительностью {duration_part}" if duration_part else "Профессиональная процедура",
+                "th": f"การรักษาระดับมืออาชีพ {duration_part}" if duration_part else "การรักษาระดับมืออาชีพ"
+            }
+        }
+    
+    # Fallback: use original name for all languages
+    return {
+        "name_i18n": {"sr": service_name, "en": service_name, "ru": service_name, "th": service_name},
+        "description_i18n": {"sr": "", "en": "", "ru": "", "th": ""}
+    }
+
+
+# ============================================
 # Models - Business Hours
 # ============================================
 class BusinessHours(BaseModel):
