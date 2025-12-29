@@ -767,6 +767,12 @@ async def get_services(service_type: Optional[str] = Query(None, description="Fi
         service['has_discount'] = discount_pct > 0 and final_price < original_price
         # Keep legacy field for backward compatibility
         service['discount_percentage'] = discount_pct
+        
+        # 🕐 DURATION FIELDS - numeric values for frontend (language-independent)
+        duration = service.get('duration', 0)
+        service['duration_min'] = int(duration) if duration else 0
+        # duration_options: for services with multiple durations, extract from service_code or use single value
+        service['duration_options'] = [int(duration)] if duration else []
         # 🔒 END STABLE ZONE
     
     # DEBUG: Log Aroma sa toplim biljnim kompresama services AFTER processing
