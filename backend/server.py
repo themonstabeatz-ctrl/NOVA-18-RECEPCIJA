@@ -398,6 +398,10 @@ class CoupleAppointmentWebsite(BaseModel):
     # Old fields for backward compatibility (optional)
     duration_type: Optional[int] = None
     discount_couples_massage: Optional[float] = None
+    
+    # 🌐 LOCALIZATION fields for email
+    lang: Optional[str] = Field(default="sr", description="Language code: sr, en, ru, th")
+    message: Optional[str] = Field(default=None, description="Localized message/details from frontend")
 
 
 # ============================================
