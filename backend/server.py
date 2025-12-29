@@ -320,6 +320,9 @@ class Appointment(AppointmentBase):
     original_total: Optional[float] = None
     discount_percentage: Optional[float] = None  # Same as snapshot_discount_percentage
     discount_amount: Optional[float] = None  # Same as snapshot_discount_amount
+    # 🌐 LOCALIZATION fields
+    lang: Optional[str] = Field(default="sr", description="Language code: sr, en, ru, th")
+    message: Optional[str] = Field(default=None, description="Localized message/details from frontend")
 
 
 # ============================================
