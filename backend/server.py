@@ -3832,13 +3832,16 @@ async def send_booking_emails(appointment_data: dict):
     IMPORTANT: Admin gets ADMIN template, Client gets CLIENT template!
     Template choice does NOT depend on booking type (massage/spa).
     
+    🌐 LOCALIZATION: Uses 'lang' field from appointment_data for localized client emails
+    👫 COUPLES: Uses build_client_email_for_couples for couples bookings
+    
     Args:
         appointment_data: Dictionary containing appointment details
         
     Note: This function will NOT raise exceptions to prevent blocking booking creation.
     """
     from email_templates import BookingEmailData, render_admin_email
-    from email_templates.adapters import build_client_email_for_massage
+    from email_templates.adapters import build_client_email_for_massage, build_client_email_for_couples
     
     logger.info(f"📧 EMAIL FUNCTION CALLED for: {appointment_data.get('client_email')}")
     try:
