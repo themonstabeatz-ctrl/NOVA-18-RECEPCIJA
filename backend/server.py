@@ -3938,7 +3938,18 @@ async def send_booking_emails(appointment_data: dict):
         TEST_CC_EMAIL = "grujovicsavatije@gmail.com"
         
         if client_email:
-            client_subject, client_html = build_client_email_for_massage(appointment_data)
+            # 👫 CHOOSE ADAPTER BASED ON BOOKING TYPE
+            is_couples = appointment_data.get('is_couples_booking', False)
+            lang = appointment_data.get('lang', 'sr')
+            
+            if is_couples:
+                # Use COUPLES adapter for couples bookings
+                client_subject, client_html = build_client_email_for_couples(appointment_data)
+                logger.info(f"📧 Using COUPLES adapter (lang={lang})")
+            else:
+                # Use MASSAGE adapter for regular bookings
+                client_subject, client_html = build_client_email_for_massage(appointment_data)
+                logger.info(f"📧 Using MASSAGE adapter (lang={lang})")
             
             client_msg = MIMEMultipart()
             client_msg['From'] = smtp_from
