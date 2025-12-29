@@ -295,6 +295,9 @@ class AppointmentCreate(AppointmentBase):
     original_price: Optional[float] = None
     discount_percentage: Optional[float] = None
     final_price: Optional[float] = None
+    # 🌐 LOCALIZATION fields
+    lang: Optional[str] = Field(default="sr", description="Language code: sr, en, ru, th")
+    message: Optional[str] = Field(default=None, description="Localized message/details from frontend")
 
 class Appointment(AppointmentBase):
     model_config = ConfigDict(extra="ignore")
