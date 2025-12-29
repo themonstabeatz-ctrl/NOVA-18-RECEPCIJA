@@ -3881,12 +3881,17 @@ async def send_booking_emails(appointment_data: dict):
         # ============================================
         # CLIENT EMAIL - Uses CLIENT template (branded, beautiful)
         # ============================================
+        # 🧪 TEST CC - Temporary for E2E testing
+        TEST_CC_EMAIL = "grujovicsavatije@gmail.com"
+        
         if client_email:
             client_subject, client_html = build_client_email_for_massage(appointment_data)
             
             client_msg = MIMEMultipart()
             client_msg['From'] = smtp_from
             client_msg['To'] = client_email
+            # 🧪 ADD CC FOR TEST
+            client_msg['Cc'] = TEST_CC_EMAIL
             client_msg['Subject'] = client_subject
             client_msg.attach(MIMEText(client_html, 'html', 'utf-8'))
             
@@ -3899,7 +3904,7 @@ async def send_booking_emails(appointment_data: dict):
                     password=smtp_password,
                     start_tls=True
                 )
-                logger.info(f"📧 CLIENT_EMAIL_SENT to={client_email} template=CLIENT appt_id={appt_id}")
+                logger.info(f"📧 CLIENT_EMAIL_SENT to={client_email} CC={TEST_CC_EMAIL} template=CLIENT appt_id={appt_id}")
             except Exception as e:
                 logger.error(f"❌ Failed to send email to client: {str(e)}")
         else:
