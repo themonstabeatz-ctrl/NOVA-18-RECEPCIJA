@@ -599,6 +599,93 @@ def generate_service_i18n(service_name: str) -> Dict[str, Dict[str, str]]:
 
 
 # ============================================
+# 🔒 COUPLES BOOKING - SHARED LOGIC (SINGLE SOURCE OF TRUTH)
+# ============================================
+# Both /api/appointments/couple and /api/book-couple-appointment MUST use this
+# ============================================
+
+def create_standardized_pricing_snapshot(original_total: int, final_total: int, discount_percent: float) -> dict:
+    """
+    🔒 SINGLE SOURCE OF TRUTH for couples pricing snapshot.
+    Creates standardized pricing object that MUST be used everywhere.
+    
+    Returns:
+        dict: Standardized pricing snapshot
+    """
+    has_discount = discount_percent > 0 and final_total < original_total
+    
+    # GUARD: Validate discount logic
+    if has_discount and original_total <= final_total:
+        logger.error(f"❌ PRICING GUARD FAILED: has_discount=True but original_total({original_total}) <= final_total({final_total})")
+        has_discount = False
+    
+    return {
+        "original_total": int(original_total),
+        "final_total": int(final_total),
+        "discount_percent": int(discount_percent),
+        "has_discount": has_discount,
+        "currency": "RSD"
+    }
+
+
+async def send_couples_booking_email(
+    appointment_id: str,
+    client_data: dict,
+    service_name: str,
+    start_time: datetime,
+    pricing: dict,
+    person1_services_snapshot: list,
+    person2_services_snapshot: list,
+    duration_min: int,
+    lang: str,
+    message: str = None,
+    pricing_breakdown: str = None
+):
+    """
+    🔒 SINGLE SOURCE OF TRUTH for couples email.
+    Both endpoints MUST use this function.
+    """
+    try:
+        # CRITICAL: Use lang from parameter, NOT default
+        email_lang = lang if lang in ['sr', 'en', 'ru', 'th'] else 'sr'
+        
+        email_data = {
+            'id': appointment_id,
+            'client_first_name': client_data.get('first_name', ''),
+            'client_last_name': client_data.get('last_name', ''),
+            'client_phone': client_data.get('phone', ''),
+            'client_email': client_data.get('email', ''),
+            'start_time': start_time,
+            'service_name': service_name,
+            'notes': client_data.get('notes', ''),
+            # 🌐 LOCALIZATION - CRITICAL: Use lang from request
+            'lang': email_lang,
+            'message': message,
+            # 👫 COUPLES-SPECIFIC DATA
+            'is_couples_booking': True,
+            'person1_services_snapshot': person1_services_snapshot,
+            'person2_services_snapshot': person2_services_snapshot,
+            'duration_min': duration_min,
+            # 💰 PRICING - COMPLETE DATA FROM STANDARDIZED SNAPSHOT
+            'original_total': pricing['original_total'],
+            'final_total': pricing['final_total'],
+            'snapshot_original_price': pricing['original_total'],
+            'snapshot_price': pricing['final_total'],
+            'discount_percentage': pricing['discount_percent'],
+            'snapshot_discount_percentage': pricing['discount_percent'],
+            'has_discount': pricing['has_discount'],
+            'pricing_breakdown': pricing_breakdown or ''
+        }
+        
+        logger.info(f"📧 COUPLES EMAIL (SHARED): lang={email_lang}, orig={pricing['original_total']}, final={pricing['final_total']}, discount={pricing['discount_percent']}%, has_discount={pricing['has_discount']}")
+        
+        await send_booking_emails(email_data)
+        
+    except Exception as e:
+        logger.error(f"❌ COUPLES EMAIL FAILED: {e}")
+
+
+# ============================================
 # Models - Business Hours
 # ============================================
 class BusinessHours(BaseModel):
