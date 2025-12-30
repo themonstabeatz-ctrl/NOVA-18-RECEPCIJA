@@ -2047,21 +2047,27 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         
         logger.info(f"💰 CALCULATING COUPLES PRICE FROM [PAROVI] COMPONENTS:")
         
-        # Calculate from Person1 services
+        # Calculate from Person1 services - USE ORIGINAL PRICE (before discount)
         person1_total = 0.0
         for sid in person1_service_ids:
             if sid in service_map:
-                service_price = float(service_map[sid].get('price', 0))
+                svc = service_map[sid]
+                meta = svc.get('metadata') or {}
+                # 🔒 USE ORIGINAL PRICE from metadata if available (before discount)
+                service_price = float(meta.get('original_price') or svc.get('price', 0))
                 person1_total += service_price
-                logger.info(f"   Person1: {service_map[sid]['name']} = {service_price} RSD")
+                logger.info(f"   Person1: {svc['name']} = {service_price} RSD (original)")
         
-        # Calculate from Person2 services
+        # Calculate from Person2 services - USE ORIGINAL PRICE (before discount)
         person2_total = 0.0
         for sid in person2_service_ids:
             if sid in service_map:
-                service_price = float(service_map[sid].get('price', 0))
+                svc = service_map[sid]
+                meta = svc.get('metadata') or {}
+                # 🔒 USE ORIGINAL PRICE from metadata if available (before discount)
+                service_price = float(meta.get('original_price') or svc.get('price', 0))
                 person2_total += service_price
-                logger.info(f"   Person2: {service_map[sid]['name']} = {service_price} RSD")
+                logger.info(f"   Person2: {svc['name']} = {service_price} RSD (original)")
         
         # TOTAL = Person1 + Person2 (NO addons, NO fees, NO magic)
         calculated_total = person1_total + person2_total
