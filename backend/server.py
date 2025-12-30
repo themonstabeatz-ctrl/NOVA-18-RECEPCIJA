@@ -3570,10 +3570,11 @@ async def get_detailed_analytics(
             date_end = date_start.replace(year=now.year + 1)
     
     # Get appointments
+    # 🔒 FIX: Remove timezone from query to match DB format (appointments stored without timezone)
     query = {
         "start_time": {
-            "$gte": date_start.isoformat(),
-            "$lt": date_end.isoformat()
+            "$gte": date_start.strftime('%Y-%m-%dT%H:%M:%S'),
+            "$lt": date_end.strftime('%Y-%m-%dT%H:%M:%S')
         },
         "status": {"$in": [AppointmentStatus.SCHEDULED.value, AppointmentStatus.COMPLETED.value]}
     }
