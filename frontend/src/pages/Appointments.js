@@ -798,20 +798,36 @@ const Appointments = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         {(() => {
-                          // PRIORITY: Use snapshot prices from appointment if available
+                          // 🔒 PRICING RESOLVER - SINGLE SOURCE OF TRUTH
+                          // Priority: pricing object > snapshot fields > service fallback
                           let originalPrice = 0;
                           let finalPrice = 0;
                           let discountPct = 0;
                           let hasDiscount = false;
-
-                          if (appointment.snapshot_price !== undefined) {
-                            // Use snapshot values from booking time
+                          
+                          // First try: pricing object (STANDARDIZED FORMAT)
+                          if (appointment.pricing && typeof appointment.pricing === 'object') {
+                            originalPrice = appointment.pricing.original_total || 0;
+                            finalPrice = appointment.pricing.final_total || 0;
+                            discountPct = appointment.pricing.discount_percent || 0;
+                            hasDiscount = appointment.pricing.has_discount === true;
+                          }
+                          // Second try: snapshot fields (legacy)
+                          else if (appointment.snapshot_price !== undefined) {
                             finalPrice = appointment.snapshot_price || 0;
                             originalPrice = appointment.snapshot_original_price || finalPrice;
                             discountPct = appointment.snapshot_discount_percentage || 0;
                             hasDiscount = discountPct > 0 && originalPrice > finalPrice;
-                          } else {
-                            // Fallback: Use current service price (for old appointments)
+                          }
+                          // Third try: top-level fields
+                          else if (appointment.final_total !== undefined || appointment.original_total !== undefined) {
+                            finalPrice = appointment.final_total || 0;
+                            originalPrice = appointment.original_total || finalPrice;
+                            discountPct = appointment.discount_percentage || 0;
+                            hasDiscount = discountPct > 0 && originalPrice > finalPrice;
+                          }
+                          // Last fallback: Use current service price (for old appointments)
+                          else {
                             const service = services.find(s => s.id === appointment.service_id);
                             if (service) {
                               originalPrice = service.price || 0;
@@ -845,7 +861,7 @@ const Appointments = () => {
                                 </>
                               ) : (
                                 <span className="text-sm font-medium text-gray-900">
-                                  {formatPrice(finalPrice)}
+                                  {formatPrice(finalPrice || originalPrice)}
                                 </span>
                               )}
                             </div>
