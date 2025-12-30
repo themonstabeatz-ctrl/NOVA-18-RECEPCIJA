@@ -3575,10 +3575,13 @@ async def get_detailed_analytics(
             "$gte": date_start.isoformat(),
             "$lt": date_end.isoformat()
         },
-        "status": {"$in": [AppointmentStatus.SCHEDULED, AppointmentStatus.COMPLETED]}
+        "status": {"$in": [AppointmentStatus.SCHEDULED.value, AppointmentStatus.COMPLETED.value]}
     }
     
+    logger.info(f"📊 ANALYTICS QUERY: {query}")
+    
     appointments = await db.appointments.find(query, {"_id": 0}).to_list(10000)
+    logger.info(f"📊 ANALYTICS: Found {len(appointments)} appointments")
     
     # Get all services
     services = await db.services.find({}, {"_id": 0}).to_list(1000)
