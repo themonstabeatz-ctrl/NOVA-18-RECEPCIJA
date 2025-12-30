@@ -3726,7 +3726,18 @@ async def get_detailed_analytics(
     appointments_by_service = {}
     for apt in appointments:
         service = service_map.get(apt['service_id'])
-        if not service:
+        
+        # 🔒 FALLBACK for COUPLES appointments (same as above)
+        is_couples = apt.get('is_couples_booking', False)
+        if not service and is_couples:
+            service = {
+                'id': apt.get('service_id'),
+                'name': 'Masaža za parove',
+                'category': 'Kartica masaza za parove',
+                'price': apt.get('final_total') or apt.get('snapshot_price') or 0,
+                'duration': 60
+            }
+        elif not service:
             continue
         
         service_id = service['id']
