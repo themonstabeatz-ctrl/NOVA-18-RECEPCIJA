@@ -3611,12 +3611,28 @@ async def get_detailed_analytics(
     # Process each appointment
     for apt in appointments:
         service = service_map.get(apt['service_id'])
-        if not service:
+        
+        # 🔒 FALLBACK for COUPLES appointments - they have dynamic service not in DB
+        is_couples = apt.get('is_couples_booking', False)
+        if not service and is_couples:
+            # Create virtual service from appointment data
+            service = {
+                'id': apt.get('service_id'),
+                'name': 'Masaža za parove',
+                'category': 'Kartica masaza za parove',
+                'price': apt.get('final_total') or apt.get('snapshot_price') or 0,
+                'duration': 60
+            }
+            logger.info(f"📊 ANALYTICS: Created virtual service for couples apt {apt['id']}")
+        elif not service:
             continue
         
         # Determine category using official [PAROVI] prefix logic
         service_name = service.get('name', '')
-        category = get_service_category_display(service_name, service.get('category'))
+        if is_couples:
+            category = "Kartica masaza za parove"
+        else:
+            category = get_service_category_display(service_name, service.get('category'))
         
         # PRIORITY: Use pricing object first, then snapshot fields, then service fallback
         # 🔒 PRICING RESOLVER - SINGLE SOURCE OF TRUTH
