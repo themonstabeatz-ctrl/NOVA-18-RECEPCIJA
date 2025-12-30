@@ -584,20 +584,38 @@ def build_client_email_for_couples(appt: dict) -> tuple:
         LineItem("📞", t['phone'], appt.get('client_phone') or 'N/A'),
     ])
     
-    # --- PRICING ---
-    # Get pricing from appointment data
+    # Add email if available
+    client_email = appt.get('client_email')
+    if client_email:
+        items.append(LineItem("📧", "Email", client_email))
+    
+    # --- PRICING --- 🔒 USE SAME LOGIC AS MASSAGE
+    # Get pricing from appointment data - try multiple sources
     original_total = appt.get('original_total') or appt.get('snapshot_original_price') or 0
     final_total = appt.get('final_total') or appt.get('snapshot_price') or appt.get('discounted_price') or 0
     discount_percent = appt.get('discount_percentage') or appt.get('snapshot_discount_percentage') or 0
+    
+    # Ensure numeric values
+    try:
+        original_total = int(float(original_total)) if original_total else 0
+        final_total = int(float(final_total)) if final_total else 0
+        discount_percent = int(float(discount_percent)) if discount_percent else 0
+    except (ValueError, TypeError):
+        original_total = 0
+        final_total = 0
+        discount_percent = 0
+    
     has_discount = discount_percent > 0 and final_total < original_total
     
+    logger.info(f"📧 COUPLES PRICING: original={original_total}, final={final_total}, discount={discount_percent}%, has_discount={has_discount}")
+    
     if has_discount:
-        # Show: Cena (orig) precrtano + Popust + Za naplatu
-        items.append(LineItem("💰", t['price_orig'], f"<s>{int(original_total):,}</s> RSD"))
-        items.append(LineItem("🏷️", t['discount'], f"-{int(discount_percent)}%"))
-        items.append(LineItem("✅", t['to_pay'], f"<b>{int(final_total):,}</b> RSD"))
+        # Show: Cena (orig) precrtano + Popust + Za naplatu - IDENTICAL TO MASSAGE/SPA
+        items.append(LineItem("💰", t['price_orig'], f"<s>{original_total:,}</s> RSD"))
+        items.append(LineItem("🏷️", t['discount'], f"-{discount_percent}%"))
+        items.append(LineItem("✅", t['to_pay'], f"<b>{final_total:,}</b> RSD"))
     elif final_total:
-        items.append(LineItem("💰", t['price'], f"{int(final_total):,} RSD"))
+        items.append(LineItem("💰", t['price'], f"{final_total:,} RSD"))
     
     m = ClientEmailModel(
         salon_name="Bua Luang Thai Spa",
