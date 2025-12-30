@@ -2082,23 +2082,27 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         
         price_validation_errors = []
         
-        # Check Person1 prices
+        # Check Person1 prices - use ORIGINAL price for validation
         for sid in person1_service_ids:
             if sid in service_map:
-                price = float(service_map[sid].get('price', 0))
+                svc = service_map[sid]
+                meta = svc.get('metadata') or {}
+                price = float(meta.get('original_price') or svc.get('price', 0))
                 if price % 10 != 0:
-                    error_msg = f"Person1 service '{service_map[sid]['name']}' has non-round price: {price} RSD (must end with 0)"
+                    error_msg = f"Person1 service '{svc['name']}' has non-round price: {price} RSD (must end with 0)"
                     price_validation_errors.append(error_msg)
                     logger.error(f"❌ PRICE VALIDATION FAILED: {error_msg}")
                 else:
                     logger.info(f"   ✅ Person1: {price} RSD - Round price OK")
         
-        # Check Person2 prices
+        # Check Person2 prices - use ORIGINAL price for validation
         for sid in person2_service_ids:
             if sid in service_map:
-                price = float(service_map[sid].get('price', 0))
+                svc = service_map[sid]
+                meta = svc.get('metadata') or {}
+                price = float(meta.get('original_price') or svc.get('price', 0))
                 if price % 10 != 0:
-                    error_msg = f"Person2 service '{service_map[sid]['name']}' has non-round price: {price} RSD (must end with 0)"
+                    error_msg = f"Person2 service '{svc['name']}' has non-round price: {price} RSD (must end with 0)"
                     price_validation_errors.append(error_msg)
                     logger.error(f"❌ PRICE VALIDATION FAILED: {error_msg}")
                 else:
