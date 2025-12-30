@@ -3723,11 +3723,21 @@ async def get_detailed_analytics(
                 "appointments": []
             }
         
-        # PRIORITY: Use snapshot price from appointment if available (prevents retroactive price changes)
-        if 'snapshot_price' in apt:
+        # 🔒 PRICING RESOLVER - SINGLE SOURCE OF TRUTH (same as above)
+        pricing = apt.get('pricing') or {}
+        
+        if pricing and isinstance(pricing, dict) and pricing.get('final_total'):
+            final_price = pricing.get('final_total', 0)
+            original_price = pricing.get('original_total', final_price)
+            discount_percentage = pricing.get('discount_percent', 0)
+        elif 'snapshot_price' in apt:
             final_price = apt['snapshot_price']
             original_price = apt.get('snapshot_original_price', final_price)
             discount_percentage = apt.get('snapshot_discount_percentage', 0)
+        elif apt.get('final_total') or apt.get('original_total'):
+            final_price = apt.get('final_total') or apt.get('snapshot_price') or 0
+            original_price = apt.get('original_total') or apt.get('snapshot_original_price') or final_price
+            discount_percentage = apt.get('discount_percentage') or apt.get('snapshot_discount_percentage') or 0
         else:
             # Fallback: Get price from service (for old appointments without snapshot)
             final_price = service.get('price', 0)
