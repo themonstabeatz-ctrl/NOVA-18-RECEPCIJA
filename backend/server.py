@@ -3622,11 +3622,12 @@ async def get_detailed_analytics(
         # 🔒 PRICING RESOLVER - SINGLE SOURCE OF TRUTH
         pricing = apt.get('pricing') or {}
         
-        if pricing and isinstance(pricing, dict) and pricing.get('final_total'):
+        if pricing and isinstance(pricing, dict) and (pricing.get('final_total') or pricing.get('final_price')):
             # NEW FORMAT: Use standardized pricing object
-            service_price = pricing.get('final_total', 0)
-            original_price = pricing.get('original_total', service_price)
-            discount_percentage = pricing.get('discount_percent', 0)
+            # Support both naming conventions: final_total/original_total AND final_price/original_price
+            service_price = pricing.get('final_total') or pricing.get('final_price') or 0
+            original_price = pricing.get('original_total') or pricing.get('original_price') or service_price
+            discount_percentage = pricing.get('discount_percent') or 0
             logger.info(f"📊 ANALYTICS: Using pricing object for {apt['id']}: orig={original_price}, final={service_price}, disc={discount_percentage}%")
         elif 'snapshot_price' in apt:
             # LEGACY: Use snapshot price from appointment
