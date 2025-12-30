@@ -2328,10 +2328,12 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
             "body_map_gender": None,
             "body_map_points": [],
             "is_couples_booking": True,  # CRITICAL: Flag for couples booking
-            # 🌐 LOCALIZATION - Store language for future reference
-            "lang": couple.lang or 'sr',
+            # 🌐 LOCALIZATION - Store language from REQUEST (not default!)
+            "lang": couple.lang if couple.lang in ['sr', 'en', 'ru', 'th'] else 'sr',
             "message": couple.message,
-            # CRITICAL: Add snapshot fields to appointment object
+            # 🔒 STANDARDIZED PRICING SNAPSHOT - SINGLE SOURCE OF TRUTH
+            "pricing": create_standardized_pricing_snapshot(original_total, discounted_price, discount_percentage),
+            # Legacy fields for backward compatibility
             "snapshot_price": discounted_price,
             "snapshot_original_price": original_total,
             "snapshot_discount_percentage": discount_percentage,
@@ -2356,45 +2358,27 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         
         await db.appointments.insert_one(doc)
         
-        # Send email notifications (non-blocking)
-        try:
-            # 🌐 LOCALIZED COUPLES EMAIL
-            lang = couple.lang or 'sr'
-            
-            email_data = {
-                'id': appointment_obj.id,  # Appointment ID for logging
-                'client_first_name': couple.client_first_name,
-                'client_last_name': couple.client_last_name,
-                'client_phone': couple.client_phone,
-                'client_email': couple.client_email,
-                'start_time': appointment_obj.start_time,
-                'service_name': service_name,
-                'notes': couple.notes or '',
-                # 🌐 LOCALIZATION
-                'lang': lang,
-                'message': couple.message,
-                # 👫 COUPLES-SPECIFIC DATA
-                'is_couples_booking': True,
-                'person1_services_snapshot': person1_services_snapshot,
-                'person2_services_snapshot': person2_services_snapshot,
-                'duration_min': total_duration,
-                # 💰 PRICING - COMPLETE DATA FOR EMAIL
-                'original_total': original_total,
-                'final_total': discounted_price,
-                'snapshot_original_price': original_total,
-                'snapshot_price': discounted_price,
-                'discount_percentage': discount_percentage,
-                'snapshot_discount_percentage': discount_percentage,
-                'discounted_price': discounted_price,
-                'has_discount': discount_percentage > 0,
-                'pricing_breakdown': f"{person1_total} + {person2_total} = {original_total}"
-            }
-            
-            logger.info(f"📧 COUPLES EMAIL DATA: lang={lang}, p1={len(person1_services_snapshot)}, p2={len(person2_services_snapshot)}, orig={original_total}, final={discounted_price}, discount={discount_percentage}%")
-            
-            await send_booking_emails(email_data)
-        except Exception as e:
-            logger.error(f"Email notification failed for couples booking (non-blocking): {e}")
+        # 🔒 SEND EMAIL USING SHARED FUNCTION - SINGLE SOURCE OF TRUTH
+        pricing_snapshot = create_standardized_pricing_snapshot(original_total, discounted_price, discount_percentage)
+        await send_couples_booking_email(
+            appointment_id=appointment_obj.id,
+            client_data={
+                'first_name': couple.client_first_name,
+                'last_name': couple.client_last_name,
+                'phone': couple.client_phone,
+                'email': couple.client_email,
+                'notes': couple.notes or ''
+            },
+            service_name=service_name,
+            start_time=appointment_obj.start_time,
+            pricing=pricing_snapshot,
+            person1_services_snapshot=person1_services_snapshot,
+            person2_services_snapshot=person2_services_snapshot,
+            duration_min=total_duration,
+            lang=couple.lang if couple.lang else 'sr',  # CRITICAL: Use lang from request
+            message=couple.message,
+            pricing_breakdown=f"{person1_total} + {person2_total} = {original_total}"
+        )
         
         logger.info(f"✅ Couple appointment created successfully: {appointment_obj.id}")
         logger.info(f"   Service ID: {couple_service_id}")
