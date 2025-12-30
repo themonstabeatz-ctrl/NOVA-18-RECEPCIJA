@@ -2141,28 +2141,39 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
         # --- DETERMINE DISCOUNT INTENT FROM WEBSITE PAYLOAD ---
         discount_intent = couple.discount_percentage
         
-        logger.info(f"🔍 COUPLES DISCOUNT OVERRIDE: request_discount={discount_intent}")
+        logger.info(f"🔍 COUPLES DISCOUNT FROM FRONTEND: request_discount={discount_intent}")
         
-        # If website explicitly says 0 => FORCE NO DISCOUNT
-        if discount_intent is not None and float(discount_intent) == 0:
-            applied_discount = 0.0
-            snap_final = snap_original  # FORCE equal - NO DISCOUNT
-            snap_discount_amount = 0.0
-            logger.info(f"🔒 EXPLICIT NO DISCOUNT: applied={applied_discount}, original={snap_original}, final={snap_final}")
+        # 🔒 CRITICAL: Backend is SINGLE SOURCE OF TRUTH for discounts
+        # If frontend sends 0 or nothing, CHECK SERVICE METADATA for actual discount
+        service_discount = 0.0
+        first_service_id = person1_service_ids[0] if person1_service_ids else (person2_service_ids[0] if person2_service_ids else None)
+        if first_service_id and first_service_id in service_map:
+            first_service = service_map[first_service_id]
+            svc_metadata = first_service.get('metadata') or {}
+            service_discount = svc_metadata.get('discount_applied') or first_service.get('discount_percentage') or 0
+            if service_discount > 0:
+                logger.info(f"🔒 DISCOUNT FROM SERVICE METADATA: {service_discount}% (backend is source of truth)")
+        
+        # If frontend explicitly says 0 BUT service has discount => USE SERVICE DISCOUNT
+        if (discount_intent is None or float(discount_intent) == 0) and service_discount > 0:
+            applied_discount = float(service_discount)
+            snap_final = snap_original * (1 - applied_discount / 100)
+            snap_discount_amount = snap_original - snap_final
+            logger.info(f"💰 BACKEND APPLIED DISCOUNT: {applied_discount}%, original={snap_original}, final={snap_final}")
         
         # If website explicitly sends discount > 0 => apply that discount
         elif discount_intent is not None and float(discount_intent) > 0:
             applied_discount = float(discount_intent)
             snap_final = float(couple.final_price or snap_original * (1 - applied_discount / 100))
             snap_discount_amount = snap_original - snap_final
-            logger.info(f"💰 EXPLICIT DISCOUNT: applied={applied_discount}%, original={snap_original}, final={snap_final}")
+            logger.info(f"💰 FRONTEND DISCOUNT: applied={applied_discount}%, original={snap_original}, final={snap_final}")
         
-        # If website doesn't specify discount => DEFAULT IS NO DISCOUNT
+        # No discount from frontend AND no discount from service => NO DISCOUNT
         else:
             applied_discount = 0.0
             snap_final = snap_original  # FORCE equal - NO DISCOUNT
             snap_discount_amount = 0.0
-            logger.info(f"🔒 DEFAULT NO DISCOUNT: applied={applied_discount}, original={snap_original}, final={snap_final}")
+            logger.info(f"🔒 NO DISCOUNT (service has none): applied={applied_discount}, original={snap_original}, final={snap_final}")
         
         # Assign final values
         original_total = snap_original
