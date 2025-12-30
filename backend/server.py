@@ -1669,8 +1669,24 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     # Round to integer RSD
     original_total = int(round(original_total))
     
-    # Apply couple discount if provided (from request, not from service)
+    # 🔒 CRITICAL FIX: Get discount from SERVICE metadata if frontend sends 0
+    # [PAROVI] services have discount in metadata.discount_applied
     discount_pct = couple.discount_couples_massage if couple.discount_couples_massage else 0.0
+    
+    # If frontend sends 0, check if services have discount in metadata
+    if discount_pct == 0:
+        # Check first service for discount (all [PAROVI] services should have same discount)
+        first_service_id = couple.person1_services[0] if couple.person1_services else (couple.person2_services[0] if couple.person2_services else None)
+        if first_service_id:
+            first_service = service_map.get(first_service_id)
+            if first_service:
+                svc_metadata = first_service.get('metadata') or {}
+                svc_discount = svc_metadata.get('discount_applied') or first_service.get('discount_percentage') or 0
+                if svc_discount > 0:
+                    discount_pct = float(svc_discount)
+                    logger.info(f"🔒 DISCOUNT FROM SERVICE METADATA: {discount_pct}% (frontend sent 0)")
+    
+    logger.info(f"🔒 FINAL DISCOUNT: {discount_pct}%")
     
     # 🔒 PRICE LOCK: Validate ONLY original_total (before discount) ends in 00
     # Final price after discount does NOT need to end in 00
