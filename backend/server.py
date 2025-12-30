@@ -1695,18 +1695,41 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     
     await db.appointments.insert_one(doc)
     
-    # Send email notification (non-blocking)
+    # Send email notification (non-blocking) - COMPLETE DATA FOR COUPLES EMAIL
     try:
         notes_text = f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}"
+        
+        # 🌐 COMPLETE COUPLES EMAIL DATA - identical to book-couple-appointment
         email_data = {
+            'id': appointment_obj.id,
             'client_first_name': couple.client_first_name,
             'client_last_name': couple.client_last_name,
             'client_phone': couple.client_phone,
             'client_email': couple.client_email,
             'start_time': appointment_obj.start_time,
             'service_name': service_name,
-            'notes': notes_text
+            'notes': notes_text,
+            # 👫 COUPLES-SPECIFIC DATA
+            'is_couples_booking': True,
+            'person1_services_snapshot': person1_services_snapshot,
+            'person2_services_snapshot': person2_services_snapshot,
+            'duration_min': total_duration,
+            # 💰 PRICING - CRITICAL FOR DISCOUNT DISPLAY
+            'original_total': original_total,
+            'final_total': final_total,
+            'snapshot_original_price': original_total,
+            'snapshot_price': final_total,
+            'discount_percentage': discount_pct,
+            'snapshot_discount_percentage': discount_pct,
+            'has_discount': discount_pct > 0,
+            'pricing_breakdown': f"{person1_total} + {person2_total} = {original_total}",
+            # 🌐 LOCALIZATION - use 'sr' as default for old endpoint
+            'lang': 'sr',
+            'message': None
         }
+        
+        logger.info(f"📧 OLD COUPLES EMAIL DATA: original={original_total}, final={final_total}, discount={discount_pct}%")
+        
         await send_booking_emails(email_data)
     except Exception as e:
         logger.error(f"Email notification failed for couples booking (non-blocking): {e}")
