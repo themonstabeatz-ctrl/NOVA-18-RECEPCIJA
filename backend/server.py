@@ -365,6 +365,9 @@ class CoupleAppointmentCreateOld(BaseModel):
     person2_services: List[str]  # List of service IDs for person 2
     discount_couples_massage: float = 0.0  # Added: percentage discount (default 0)
     status: AppointmentStatus = AppointmentStatus.SCHEDULED
+    # 🌐 LOCALIZATION fields for email
+    lang: Optional[str] = Field(default="sr", description="Language code: sr, en, ru, th")
+    message: Optional[str] = Field(default=None, description="Localized message/details from frontend")
 
 
 # Service item for person1/person2 arrays in couple booking
