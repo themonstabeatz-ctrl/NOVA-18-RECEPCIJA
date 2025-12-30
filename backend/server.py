@@ -1760,10 +1760,12 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
         "body_map_gender": None,
         "body_map_points": [],
         "is_couples_booking": True,  # CRITICAL: Flag for couples booking
-        # 🌐 LOCALIZATION - Store language for future reference
-        "lang": couple.lang or 'sr',
+        # 🌐 LOCALIZATION - Store language from REQUEST (not default!)
+        "lang": couple.lang if couple.lang in ['sr', 'en', 'ru', 'th'] else 'sr',
         "message": couple.message,
-        # CRITICAL: Add snapshot fields to appointment object
+        # 🔒 STANDARDIZED PRICING SNAPSHOT - SINGLE SOURCE OF TRUTH
+        "pricing": create_standardized_pricing_snapshot(original_total, final_total, discount_pct),
+        # Legacy fields for backward compatibility
         "snapshot_price": final_total,
         "snapshot_original_price": original_total,
         "snapshot_discount_percentage": discount_pct,
@@ -1788,47 +1790,27 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     
     await db.appointments.insert_one(doc)
     
-    # Send email notification (non-blocking) - COMPLETE DATA FOR COUPLES EMAIL
-    try:
-        notes_text = f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}"
-        
-        # 🌐 Get language from payload (frontend sends it)
-        lang = couple.lang or 'sr'
-        
-        # 🌐 COMPLETE COUPLES EMAIL DATA - identical to book-couple-appointment
-        email_data = {
-            'id': appointment_obj.id,
-            'client_first_name': couple.client_first_name,
-            'client_last_name': couple.client_last_name,
-            'client_phone': couple.client_phone,
-            'client_email': couple.client_email,
-            'start_time': appointment_obj.start_time,
-            'service_name': service_name,
-            'notes': notes_text,
-            # 👫 COUPLES-SPECIFIC DATA
-            'is_couples_booking': True,
-            'person1_services_snapshot': person1_services_snapshot,
-            'person2_services_snapshot': person2_services_snapshot,
-            'duration_min': total_duration,
-            # 💰 PRICING - CRITICAL FOR DISCOUNT DISPLAY
-            'original_total': original_total,
-            'final_total': final_total,
-            'snapshot_original_price': original_total,
-            'snapshot_price': final_total,
-            'discount_percentage': discount_pct,
-            'snapshot_discount_percentage': discount_pct,
-            'has_discount': discount_pct > 0,
-            'pricing_breakdown': f"{person1_total} + {person2_total} = {original_total}",
-            # 🌐 LOCALIZATION - use lang from frontend
-            'lang': lang,
-            'message': couple.message
-        }
-        
-        logger.info(f"📧 OLD COUPLES EMAIL DATA: lang={lang}, original={original_total}, final={final_total}, discount={discount_pct}%")
-        
-        await send_booking_emails(email_data)
-    except Exception as e:
-        logger.error(f"Email notification failed for couples booking (non-blocking): {e}")
+    # 🔒 SEND EMAIL USING SHARED FUNCTION - SINGLE SOURCE OF TRUTH
+    pricing_snapshot = create_standardized_pricing_snapshot(original_total, final_total, discount_pct)
+    await send_couples_booking_email(
+        appointment_id=appointment_obj.id,
+        client_data={
+            'first_name': couple.client_first_name,
+            'last_name': couple.client_last_name,
+            'phone': couple.client_phone,
+            'email': couple.client_email,
+            'notes': f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}"
+        },
+        service_name=service_name,
+        start_time=appointment_obj.start_time,
+        pricing=pricing_snapshot,
+        person1_services_snapshot=person1_services_snapshot,
+        person2_services_snapshot=person2_services_snapshot,
+        duration_min=total_duration,
+        lang=couple.lang if couple.lang else 'sr',  # CRITICAL: Use lang from request
+        message=couple.message,
+        pricing_breakdown=f"{person1_total} + {person2_total} = {original_total}"
+    )
     
     return appointment_obj
 
