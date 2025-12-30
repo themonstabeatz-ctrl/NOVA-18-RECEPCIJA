@@ -2256,6 +2256,9 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
             "body_map_gender": None,
             "body_map_points": [],
             "is_couples_booking": True,  # CRITICAL: Flag for couples booking
+            # 🌐 LOCALIZATION - Store language for future reference
+            "lang": couple.lang or 'sr',
+            "message": couple.message,
             # CRITICAL: Add snapshot fields to appointment object
             "snapshot_price": discounted_price,
             "snapshot_original_price": original_total,
