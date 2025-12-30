@@ -1702,6 +1702,9 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
     try:
         notes_text = f"Osoba 1: {', '.join(person1_service_names)} | Osoba 2: {', '.join(person2_service_names)}"
         
+        # 🌐 Get language from payload (frontend sends it)
+        lang = couple.lang or 'sr'
+        
         # 🌐 COMPLETE COUPLES EMAIL DATA - identical to book-couple-appointment
         email_data = {
             'id': appointment_obj.id,
@@ -1726,12 +1729,12 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
             'snapshot_discount_percentage': discount_pct,
             'has_discount': discount_pct > 0,
             'pricing_breakdown': f"{person1_total} + {person2_total} = {original_total}",
-            # 🌐 LOCALIZATION - use 'sr' as default for old endpoint
-            'lang': 'sr',
-            'message': None
+            # 🌐 LOCALIZATION - use lang from frontend
+            'lang': lang,
+            'message': couple.message
         }
         
-        logger.info(f"📧 OLD COUPLES EMAIL DATA: original={original_total}, final={final_total}, discount={discount_pct}%")
+        logger.info(f"📧 OLD COUPLES EMAIL DATA: lang={lang}, original={original_total}, final={final_total}, discount={discount_pct}%")
         
         await send_booking_emails(email_data)
     except Exception as e:
