@@ -2303,7 +2303,7 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
                 'person1_services_snapshot': person1_services_snapshot,
                 'person2_services_snapshot': person2_services_snapshot,
                 'duration_min': total_duration,
-                # 💰 PRICING
+                # 💰 PRICING - COMPLETE DATA FOR EMAIL
                 'original_total': original_total,
                 'final_total': discounted_price,
                 'snapshot_original_price': original_total,
@@ -2311,10 +2311,11 @@ async def book_couple_appointment_website(couple: CoupleAppointmentWebsite):
                 'discount_percentage': discount_percentage,
                 'snapshot_discount_percentage': discount_percentage,
                 'discounted_price': discounted_price,
+                'has_discount': discount_percentage > 0,
                 'pricing_breakdown': f"{person1_total} + {person2_total} = {original_total}"
             }
             
-            logger.info(f"📧 COUPLES EMAIL DATA: lang={lang}, p1_services={len(person1_services_snapshot)}, p2_services={len(person2_services_snapshot)}, price={discounted_price}")
+            logger.info(f"📧 COUPLES EMAIL DATA: lang={lang}, p1={len(person1_services_snapshot)}, p2={len(person2_services_snapshot)}, orig={original_total}, final={discounted_price}, discount={discount_percentage}%")
             
             await send_booking_emails(email_data)
         except Exception as e:
