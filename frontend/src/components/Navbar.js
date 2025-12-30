@@ -303,30 +303,41 @@ const Navbar = () => {
                         </div>
                         
                         {/* Price - 🔒 USE STANDARDIZED PRICING */}
-                        {(notification.service_price || notification.final_total) && (
-                          <div className="mt-3 p-2 bg-green-50 rounded-lg border border-green-200">
-                            {notification.has_discount && notification.original_total > notification.final_total ? (
-                              <div className="space-y-1">
-                                <p className="text-xs text-gray-600">
-                                  <span className="font-medium">Cena (orig):</span>{' '}
-                                  <span className="line-through text-gray-400">
-                                    {(notification.original_total || notification.original_price || 0).toLocaleString()} RSD
-                                  </span>
+                        {(() => {
+                          // 🔒 PRICING RESOLVER - SINGLE SOURCE OF TRUTH
+                          const p = notification.pricing || {};
+                          let originalPrice = p.original_total ?? notification.original_total ?? notification.original_price ?? 0;
+                          let finalPrice = p.final_total ?? notification.final_total ?? notification.service_price ?? 0;
+                          let discountPct = p.discount_percent ?? notification.discount_percentage ?? 0;
+                          let hasDiscount = p.has_discount ?? (discountPct > 0 && originalPrice > finalPrice);
+                          
+                          if (!finalPrice && !originalPrice) return null;
+                          
+                          return (
+                            <div className="mt-3 p-2 bg-green-50 rounded-lg border border-green-200">
+                              {hasDiscount && originalPrice > finalPrice ? (
+                                <div className="space-y-1">
+                                  <p className="text-xs text-gray-600">
+                                    <span className="font-medium">Cena (orig):</span>{' '}
+                                    <span className="line-through text-gray-400">
+                                      {originalPrice.toLocaleString()} RSD
+                                    </span>
+                                  </p>
+                                  <p className="text-xs text-red-600 font-medium">
+                                    Popust: -{discountPct}%
+                                  </p>
+                                  <p className="text-sm font-bold text-green-700">
+                                    Za naplatu: {finalPrice.toLocaleString()} RSD
+                                  </p>
+                                </div>
+                              ) : (
+                                <p className="text-base font-bold text-green-700 flex items-center gap-2">
+                                  💰 Cena: {(finalPrice || originalPrice).toLocaleString()} RSD
                                 </p>
-                                <p className="text-xs text-red-600 font-medium">
-                                  Popust: -{notification.discount_percentage}%
-                                </p>
-                                <p className="text-sm font-bold text-green-700">
-                                  Za naplatu: {(notification.final_total || notification.service_price || 0).toLocaleString()} RSD
-                                </p>
-                              </div>
-                            ) : (
-                              <p className="text-base font-bold text-green-700 flex items-center gap-2">
-                                💰 Cena: {(notification.final_total || notification.service_price || 0).toLocaleString()} RSD
-                              </p>
-                            )}
-                          </div>
-                        )}
+                              )}
+                            </div>
+                          );
+                        })()}
                         
                         {/* Contact Info */}
                         <div className="mt-3 space-y-1 text-sm">
