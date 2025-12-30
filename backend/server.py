@@ -1673,6 +1673,9 @@ async def create_couple_appointment(couple: CoupleAppointmentCreateOld):
         "body_map_gender": None,
         "body_map_points": [],
         "is_couples_booking": True,  # CRITICAL: Flag for couples booking
+        # 🌐 LOCALIZATION - Store language for future reference
+        "lang": couple.lang or 'sr',
+        "message": couple.message,
         # CRITICAL: Add snapshot fields to appointment object
         "snapshot_price": final_total,
         "snapshot_original_price": original_total,
