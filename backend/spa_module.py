@@ -1435,6 +1435,11 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         doc['spa_category'] = appointment.spa_category or 'spa_zone'
         doc['is_viewed'] = False  # For notification badge on dashboard
         
+        # ✅ CARD ID & TITLE - za analytics "Termini sa popustom"
+        doc['card_id'] = card_id
+        card_config = SPA_CARDS.get(card_id)
+        doc['card_title'] = card_config.get('title_sr') if card_config else None
+        
         # 🔒 ADD PRICING SNAPSHOT TO DOC
         doc['pricing'] = pricing_snapshot
         doc['total'] = int(final_total)
