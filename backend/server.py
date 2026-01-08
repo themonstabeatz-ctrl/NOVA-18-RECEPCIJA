@@ -599,6 +599,100 @@ def generate_service_i18n(service_name: str) -> Dict[str, Dict[str, str]]:
 
 
 # ============================================
+# 🔒 UNIFIED PRICING RESOLVER - SINGLE SOURCE OF TRUTH
+# ============================================
+# Used by: CEO Dashboard, Analytics, Termini list, Reports
+# Works for: Masaže, Parovi, SPA - ALL appointment types
+# ============================================
+
+def resolve_pricing_from_appointment(appt: dict) -> dict:
+    """
+    🔒 SINGLE SOURCE OF TRUTH - Returns unified pricing for ANY appointment type.
+    
+    Priority:
+    1. pricing object (new standardized format)
+    2. snapshot fields (legacy masaže/parovi)
+    3. top-level fields (fallback)
+    
+    Returns: {original_total, final_total, discount_percent, has_discount}
+    """
+    # 1) Prefer new unified pricing object
+    pricing = appt.get("pricing")
+    if pricing and isinstance(pricing, dict):
+        original_total = int(pricing.get("original_total") or pricing.get("original_price") or 0)
+        final_total = int(pricing.get("final_total") or pricing.get("final_price") or 0)
+        discount_percent = int(pricing.get("discount_percent") or 0)
+        has_discount = bool(pricing.get("has_discount"))
+        
+        # Normalize if missing has_discount
+        if not has_discount and discount_percent > 0 and original_total > final_total:
+            has_discount = True
+        
+        if original_total > 0 or final_total > 0:
+            return {
+                "original_total": original_total,
+                "final_total": final_total or original_total,
+                "discount_percent": discount_percent,
+                "has_discount": has_discount
+            }
+    
+    # 2) Backward compatibility for snapshots (masaže/parovi)
+    orig = appt.get("snapshot_original_price") or appt.get("original_total") or 0
+    final = appt.get("snapshot_price") or appt.get("final_total") or 0
+    disc = appt.get("snapshot_discount_percentage") or appt.get("discount_percentage") or 0
+    
+    original_total = int(float(orig) if orig else 0)
+    final_total = int(float(final) if final else 0)
+    discount_percent = int(float(disc) if disc else 0)
+    
+    # If no final, use original
+    if final_total == 0 and original_total > 0:
+        final_total = original_total
+    
+    has_discount = (discount_percent > 0 and original_total > final_total)
+    
+    return {
+        "original_total": original_total,
+        "final_total": final_total,
+        "discount_percent": discount_percent,
+        "has_discount": has_discount
+    }
+
+
+def build_category_stats(appointments: list) -> dict:
+    """
+    🔒 UNIFIED CATEGORY STATS - Same logic for Masaže, Parovi, SPA
+    
+    Returns: {termin, zarada, original, popust_dat, sa_popustom, bez_popusta}
+    """
+    total_count = len(appointments)
+    revenue = 0
+    original_sum = 0
+    discounted_count = 0
+    discount_value_sum = 0
+    
+    for appt in appointments:
+        p = resolve_pricing_from_appointment(appt)
+        revenue += p["final_total"] or p["original_total"]
+        original_sum += p["original_total"]
+        
+        if p["has_discount"]:
+            discounted_count += 1
+            discount_value_sum += max(0, p["original_total"] - p["final_total"])
+    
+    no_discount_count = total_count - discounted_count
+    
+    return {
+        "termin": total_count,
+        "zarada": revenue,
+        "original": original_sum,
+        "popust_dat": discount_value_sum,
+        "sa_popustom": discounted_count,
+        "bez_popusta": no_discount_count
+    }
+
+
+# ============================================
 # 🔒 COUPLES BOOKING - SHARED LOGIC (SINGLE SOURCE OF TRUTH)
 # ============================================
 # Both /api/appointments/couple and /api/book-couple-appointment MUST use this
