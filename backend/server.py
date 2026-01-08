@@ -2582,18 +2582,21 @@ async def get_appointments(
         if isinstance(apt['created_at'], str):
             apt['created_at'] = datetime.fromisoformat(apt['created_at'])
         
-        # 🔐 PRICING: Add standardized pricing object for massage appointments
-        if not apt.get('pricing'):
-            apt['pricing'] = {
-                'original_price': int(apt.get('snapshot_original_price') or apt.get('price', 0)),
-                'final_price': int(apt.get('snapshot_price') or apt.get('price', 0)),
-                'discount_percent': int(apt.get('snapshot_discount_percentage', 0)),
-                'has_discount': apt.get('snapshot_discount_percentage', 0) > 0
-            }
-        # Add total_price for dashboard compatibility
-        apt['total_price'] = int(apt.get('snapshot_price') or apt.get('pricing', {}).get('final_price', 0) or apt.get('price', 0))
-        apt['original_price'] = int(apt.get('snapshot_original_price') or apt.get('pricing', {}).get('original_price', 0) or apt.get('price', 0))
-        apt['discount_percentage'] = int(apt.get('snapshot_discount_percentage') or apt.get('pricing', {}).get('discount_percent', 0))
+        # 🔒 UNIFIED PRICING - Use resolve_pricing_from_appointment
+        p = resolve_pricing_from_appointment(apt)
+        apt['pricing'] = {
+            'original_total': p['original_total'],
+            'final_total': p['final_total'],
+            'original_price': p['original_total'],  # Alias for compatibility
+            'final_price': p['final_total'],        # Alias for compatibility
+            'discount_percent': p['discount_percent'],
+            'has_discount': p['has_discount'],
+            'currency': 'RSD'
+        }
+        # Add top-level fields for dashboard compatibility
+        apt['total_price'] = p['final_total']
+        apt['original_price'] = p['original_total']
+        apt['discount_percentage'] = p['discount_percent']
     
     # Fetch SPA appointments if requested
     if include_spa and start_date and end_date:
