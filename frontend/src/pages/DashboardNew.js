@@ -672,25 +672,6 @@ const DashboardNew = () => {
                   </div>
                 </div>
               </div>
-              
-              {/* SPA ZONE */}
-              <div className="bg-white rounded-lg shadow p-6 border-l-4 border-amber-500">
-                <h4 className="text-sm font-semibold text-gray-700 mb-4">SPA ZONE</h4>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-xs text-gray-600">Termini</p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {spaAnalytics.breakdown?.spa_addons?.count || 0}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Zarada</p>
-                    <p className="text-lg font-semibold text-amber-600">
-                      {formatCurrency(spaAnalytics.breakdown?.spa_addons?.revenue || 0)}
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
             
             {/* SPA Total Summary */}
