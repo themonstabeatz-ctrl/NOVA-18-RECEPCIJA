@@ -3887,6 +3887,17 @@ async def get_detailed_analytics(
     total_discount_given = sum(cat["discount_given"] for cat in categories.values())
     total_appointments = sum(cat["appointments_count"] for cat in categories.values())
     
+    # 🔒 LOG SPA revenue for verification
+    spa_categories_revenue = sum(
+        cat["revenue"] for name, cat in categories.items() 
+        if name.lower().startswith('spa') or 'spa' in name.lower()
+    )
+    spa_categories_count = sum(
+        cat["appointments_count"] for name, cat in categories.items() 
+        if name.lower().startswith('spa') or 'spa' in name.lower()
+    )
+    logger.info(f"📊 ANALYTICS revenue_by_category spa_count={spa_categories_count} spa_revenue={spa_categories_revenue}")
+    
     # Group appointments by service for detailed listing
     appointments_by_service = {}
     for apt in appointments:
