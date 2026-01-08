@@ -211,8 +211,8 @@ Frontend errors (ako postoje):
 ✅ Dashboard prikazuje tačne cene  
 
 ### Preview URLs:
-✅ Backend API: `https://discount-system-fix.preview.emergentagent.com/api`  
-✅ Recepcija: `https://discount-system-fix.preview.emergentagent.com`  
+✅ Backend API: `https://price-analyzer-8.preview.emergentagent.com/api`  
+✅ Recepcija: `https://price-analyzer-8.preview.emergentagent.com`  
 ✅ Website povezan sa backend-om (čekamo website team fix)  
 
 ---

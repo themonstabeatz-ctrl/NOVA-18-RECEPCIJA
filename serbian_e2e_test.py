@@ -3,7 +3,7 @@
 E2E Test Script for Serbian Review Request
 Testiraj kompletan sistem popusta za Bua Luang Thai Spa
 
-Backend URL: https://discount-system-fix.preview.emergentagent.com
+Backend URL: https://price-analyzer-8.preview.emergentagent.com
 """
 
 import requests
@@ -11,7 +11,7 @@ import json
 import subprocess
 import sys
 
-BACKEND_URL = "https://discount-system-fix.preview.emergentagent.com"
+BACKEND_URL = "https://price-analyzer-8.preview.emergentagent.com"
 
 def run_curl_command(command):
     """Execute curl command and return result"""

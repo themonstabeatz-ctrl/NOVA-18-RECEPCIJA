@@ -4,8 +4,8 @@ Backend API Testing Script for Bua Luang Spa Application
 Testing discount system for massage and SPA services as specified in review request
 
 REVIEW REQUEST: Testiraj backend-only sistem popusta za Bua Luang Thai Spa:
-- Backend URL: https://discount-system-fix.preview.emergentagent.com
-- Frontend origin: https://discount-system-fix.preview.emergentagent.com
+- Backend URL: https://price-analyzer-8.preview.emergentagent.com
+- Frontend origin: https://price-analyzer-8.preview.emergentagent.com
 """
 
 import requests
@@ -15,15 +15,15 @@ import sys
 import subprocess
 
 # URLs from review request
-BACKEND_URL = "https://discount-system-fix.preview.emergentagent.com"
+BACKEND_URL = "https://price-analyzer-8.preview.emergentagent.com"
 API_BASE_URL = f"{BACKEND_URL}/api"
-FRONTEND_ORIGIN = "https://discount-system-fix.preview.emergentagent.com"
+FRONTEND_ORIGIN = "https://price-analyzer-8.preview.emergentagent.com"
 
 def test_cors_configuration():
     """
     Test 1: CORS Configuration Test
-    OPTIONS /api/health sa Origin: https://discount-system-fix.preview.emergentagent.com
-    Očekivano: access-control-allow-origin: https://discount-system-fix.preview.emergentagent.com
+    OPTIONS /api/health sa Origin: https://price-analyzer-8.preview.emergentagent.com
+    Očekivano: access-control-allow-origin: https://price-analyzer-8.preview.emergentagent.com
     """
     print("=" * 80)
     print("TEST 1: CORS CONFIGURATION")
@@ -889,7 +889,7 @@ def test_spa_cors_configuration():
     """
     A) CORS Configuration Test
     Test that CORS allows requests from:
-    - https://discount-system-fix.preview.emergentagent.com
+    - https://price-analyzer-8.preview.emergentagent.com
     - http://localhost:3000
     - http://localhost:5173
     Send OPTIONS preflight request to `/api/spa/quote` and verify `Access-Control-Allow-Origin` header includes all origins.
@@ -899,7 +899,7 @@ def test_spa_cors_configuration():
     print("=" * 80)
     
     origins_to_test = [
-        "https://discount-system-fix.preview.emergentagent.com",
+        "https://price-analyzer-8.preview.emergentagent.com",
         "http://localhost:3000", 
         "http://localhost:5173"
     ]
