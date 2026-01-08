@@ -3930,17 +3930,14 @@ async def api_root():
 # 🔐 HARD-LOCKED URLs - ONLY THESE ARE VALID
 # ============================================
 BACKEND_PUBLIC_URL = "https://price-analyzer-8.preview.emergentagent.com"
-FRONTEND_PUBLIC_URL = "https://price-analyzer-8.preview.emergentagent.com"
+FRONTEND_PUBLIC_URL = "https://spa-booking-site-1.preview.emergentagent.com"
 
 # ============================================
-# 🌐 CORS ALLOWLIST - All valid frontend origins
+# 🌐 CORS ALLOWLIST - SAMO NOVI FRONTEND (čišćenje starih domena)
 # ============================================
 ALLOWED_ORIGINS = [
-    "https://price-analyzer-8.preview.emergentagent.com",  # ✅ PUBLIC FRONTEND - CRITICAL
-    "https://price-analyzer-8.preview.emergentagent.com",  # Admin panel
-    "http://localhost:3000",
-    "http://localhost:5173",
-    FRONTEND_PUBLIC_URL,  # Include the main frontend URL
+    "https://spa-booking-site-1.preview.emergentagent.com",  # ✅ JEDINI DOZVOLJENI FRONTEND
+    "http://localhost:3000",  # Development
 ]
 
 # Root endpoint - returns JSON to confirm this is API server
