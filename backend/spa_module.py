@@ -86,11 +86,15 @@ SPA_CARDS = {
         "title_sr": "Romantični paket za parove",
         "title_en": "Romantic Couple Package",
         "discount_percent": 0,
+        "base_price": 22000,  # ✅ SOURCE OF TRUTH
+        "duration_min": 210,
     },
     "romantic_peeling_couple_package": {
         "title_sr": "Romantični piling paket za parove",
         "title_en": "Romantic Peeling Couple Package",
         "discount_percent": 0,
+        "base_price": 19000,  # ✅ SOURCE OF TRUTH
+        "duration_min": 210,
     },
 }
 
@@ -286,18 +290,19 @@ async def create_in_app_notification(db, appt: dict):
 
 # ============================================
 # SPECIAL COUPLE PACKAGES (Romantični paketi)
+# ISPRAVNE CENE: 22.000 i 19.000 RSD (ne fantomskih 25.000!)
 # ============================================
 SPECIAL_PACKAGES = {
     "ROMANTIC_COUPLE_1": {
         "name": "Romantični paket za parove",
         "duration": 210,
-        "price": 25000,
+        "price": 22000,  # ✅ ISPRAVNA CENA
         "description": "Savršen romantični doživljaj za dvoje"
     },
     "ROMANTIC_COUPLE_2": {
         "name": "Romantični piling paket za parove",
         "duration": 210,
-        "price": 25000,
+        "price": 19000,  # ✅ ISPRAVNA CENA
         "description": "Piling tretman za parove"
     }
 }
