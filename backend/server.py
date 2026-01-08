@@ -3824,33 +3824,12 @@ async def get_detailed_analytics(
                 "appointments": []
             }
         
-        # 🔒 PRICING RESOLVER - SINGLE SOURCE OF TRUTH (same as above)
-        pricing = apt.get('pricing') or {}
-        
-        if pricing and isinstance(pricing, dict) and (pricing.get('final_total') or pricing.get('final_price')):
-            # Support both naming conventions
-            final_price = pricing.get('final_total') or pricing.get('final_price') or 0
-            original_price = pricing.get('original_total') or pricing.get('original_price') or final_price
-            discount_percentage = pricing.get('discount_percent') or 0
-        elif 'snapshot_price' in apt:
-            final_price = apt['snapshot_price']
-            original_price = apt.get('snapshot_original_price', final_price)
-            discount_percentage = apt.get('snapshot_discount_percentage', 0)
-        elif apt.get('final_total') or apt.get('original_total'):
-            final_price = apt.get('final_total') or apt.get('snapshot_price') or 0
-            original_price = apt.get('original_total') or apt.get('snapshot_original_price') or final_price
-            discount_percentage = apt.get('discount_percentage') or apt.get('snapshot_discount_percentage') or 0
-        else:
-            # Fallback: Get price from service (for old appointments without snapshot)
-            final_price = service.get('price', 0)
-            discount_percentage = service.get('discount_percentage', 0)
-            
-            # Get original price from metadata if available
-            metadata = service.get('metadata')
-            if metadata and isinstance(metadata, dict):
-                original_price = metadata.get('original_price', final_price)
-            else:
-                original_price = final_price
+        # 🔒 USE UNIFIED PRICING RESOLVER - SINGLE SOURCE OF TRUTH
+        p = resolve_pricing_from_appointment(apt)
+        final_price = p['final_total']
+        original_price = p['original_total']
+        discount_percentage = p['discount_percent']
+        has_discount_flag = p['has_discount']
         
         appointments_by_service[service_id]["appointments"].append({
             "id": apt['id'],
