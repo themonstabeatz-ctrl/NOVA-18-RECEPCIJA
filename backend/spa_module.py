@@ -1915,14 +1915,29 @@ async def get_spa_analytics(
             breakdown["spa_special_couple"]["count"] += 1
             breakdown["spa_special_couple"]["revenue"] += final_total
             breakdown["spa_special_couple"]["revenue_gross"] += original_total
+            breakdown["spa_special_couple"]["discount_given"] += discount_amount
+            if has_discount:
+                breakdown["spa_special_couple"]["with_discount"] += 1
+            else:
+                breakdown["spa_special_couple"]["without_discount"] += 1
         elif spa_category == "spa_ritual":
             breakdown["spa_ritual"]["count"] += 1
             breakdown["spa_ritual"]["revenue"] += final_total
             breakdown["spa_ritual"]["revenue_gross"] += original_total
+            breakdown["spa_ritual"]["discount_given"] += discount_amount
+            if has_discount:
+                breakdown["spa_ritual"]["with_discount"] += 1
+            else:
+                breakdown["spa_ritual"]["without_discount"] += 1
         else:
             breakdown["spa_zone"]["count"] += 1
             breakdown["spa_zone"]["revenue"] += final_total
             breakdown["spa_zone"]["revenue_gross"] += original_total
+            breakdown["spa_zone"]["discount_given"] += discount_amount
+            if has_discount:
+                breakdown["spa_zone"]["with_discount"] += 1
+            else:
+                breakdown["spa_zone"]["without_discount"] += 1
     
     logger.info(f"📊 SPA Analytics: {totals['count']} appointments, gross={totals['revenue_gross']}, net={totals['revenue_net']}, discounts={totals['discount_total']}")
     
