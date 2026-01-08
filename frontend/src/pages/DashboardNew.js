@@ -343,15 +343,9 @@ const DashboardNew = () => {
 
   const { summary, by_category, by_discount, appointments_with_discount } = detailedData;
 
-  // Filter out ALL SPA categories from massage analytics (SPA data comes from /api/spa/analytics)
-  // This removes: "SPA", "SPA Special kartica", and any other SPA-related categories
-  const filteredCategories = Object.entries(by_category || {})
-    .filter(([name]) => {
-      const nameLower = name.toLowerCase();
-      // Exclude any category that starts with "spa" or contains "spa "
-      return !nameLower.startsWith('spa') && !nameLower.includes('spa ');
-    })
-    .reduce((acc, [name, data]) => ({ ...acc, [name]: data }), {});
+  // 🔒 INCLUDE ALL CATEGORIES (masaže + SPA) in the chart
+  // SPA data now comes from the unified /api/analytics/detailed endpoint
+  const filteredCategories = by_category || {};
   
   // Calculate SPA revenue/count from massage analytics that we're filtering out
   const spaFromMassageAnalytics = Object.entries(by_category || {})
