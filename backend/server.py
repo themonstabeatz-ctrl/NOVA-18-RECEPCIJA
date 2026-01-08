@@ -3753,24 +3753,24 @@ async def get_detailed_analytics(
             
             # 🔒 FALLBACK for COUPLES appointments - they have dynamic service not in DB
             if not service and is_couples:
-            # Create virtual service from appointment data
-            service = {
-                'id': apt.get('service_id'),
-                'name': 'Masaža za parove',
-                'category': 'Kartica masaza za parove',
-                'price': apt.get('final_total') or apt.get('snapshot_price') or 0,
-                'duration': 60
-            }
-            logger.info(f"📊 ANALYTICS: Created virtual service for couples apt {apt['id']}")
-        elif not service:
-            continue
-        
-        # Determine category using official [PAROVI] prefix logic
-        service_name = service.get('name', '')
-        if is_couples:
-            category = "Kartica masaza za parove"
-        else:
-            category = get_service_category_display(service_name, service.get('category'))
+                # Create virtual service from appointment data
+                service = {
+                    'id': apt.get('service_id'),
+                    'name': 'Masaža za parove',
+                    'category': 'Kartica masaza za parove',
+                    'price': apt.get('final_total') or apt.get('snapshot_price') or 0,
+                    'duration': 60
+                }
+                logger.info(f"📊 ANALYTICS: Created virtual service for couples apt {apt['id']}")
+            elif not service:
+                continue
+            
+            # Determine category using official [PAROVI] prefix logic
+            service_name = service.get('name', '')
+            if is_couples:
+                category = "Kartica masaza za parove"
+            else:
+                category = get_service_category_display(service_name, service.get('category'))
         
         # 🔒 USE UNIFIED PRICING RESOLVER - SINGLE SOURCE OF TRUTH
         p = resolve_pricing_from_appointment(apt)
