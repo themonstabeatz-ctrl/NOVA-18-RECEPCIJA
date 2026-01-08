@@ -3679,7 +3679,22 @@ async def get_detailed_analytics(
     logger.info(f"📊 ANALYTICS QUERY: {query}")
     
     appointments = await db.appointments.find(query, {"_id": 0}).to_list(10000)
-    logger.info(f"📊 ANALYTICS: Found {len(appointments)} appointments")
+    logger.info(f"📊 ANALYTICS: Found {len(appointments)} massage appointments")
+    
+    # 🔒 ALSO LOAD SPA APPOINTMENTS - They must be included in analytics
+    spa_appointments = await db.spa_appointments.find(query, {"_id": 0}).to_list(10000)
+    logger.info(f"📊 ANALYTICS: Found {len(spa_appointments)} SPA appointments")
+    
+    # Normalize SPA appointments to match massage format
+    for spa in spa_appointments:
+        spa['type'] = 'spa'
+        spa['is_spa_booking'] = True
+        # SPA appointments don't have service_id, create virtual one
+        spa['service_id'] = f"spa_{spa.get('card_id', 'unknown')}"
+    
+    # Combine both lists
+    all_appointments = appointments + spa_appointments
+    logger.info(f"📊 ANALYTICS: Total {len(all_appointments)} appointments (massage + SPA)")
     
     # Get all services
     services = await db.services.find({}, {"_id": 0}).to_list(1000)
