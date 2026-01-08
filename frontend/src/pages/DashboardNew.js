@@ -624,6 +624,19 @@ const DashboardNew = () => {
                     <p className="text-lg font-semibold text-teal-600">
                       {formatCurrency((spaAnalytics.breakdown?.spa_zone?.revenue || 0) + (spaAnalytics.breakdown?.spa_ritual?.revenue || 0))}
                     </p>
+                    <p className="text-xs text-gray-500">
+                      Original: {formatCurrency((spaAnalytics.breakdown?.spa_zone?.revenue_gross || 0) + (spaAnalytics.breakdown?.spa_ritual?.revenue_gross || 0))}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Popust Dat</p>
+                    <p className="text-sm font-medium text-red-500">
+                      -{formatCurrency((spaAnalytics.breakdown?.spa_zone?.discount_given || 0) + (spaAnalytics.breakdown?.spa_ritual?.discount_given || 0))}
+                    </p>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-blue-600">Sa popustom: {(spaAnalytics.breakdown?.spa_zone?.with_discount || 0) + (spaAnalytics.breakdown?.spa_ritual?.with_discount || 0)}</span>
+                    <span className="text-gray-600">Bez popusta: {(spaAnalytics.breakdown?.spa_zone?.without_discount || 0) + (spaAnalytics.breakdown?.spa_ritual?.without_discount || 0)}</span>
                   </div>
                 </div>
               </div>
@@ -643,11 +656,24 @@ const DashboardNew = () => {
                     <p className="text-lg font-semibold text-pink-600">
                       {formatCurrency(spaAnalytics.breakdown?.spa_special_couple?.revenue || 0)}
                     </p>
+                    <p className="text-xs text-gray-500">
+                      Original: {formatCurrency(spaAnalytics.breakdown?.spa_special_couple?.revenue_gross || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Popust Dat</p>
+                    <p className="text-sm font-medium text-red-500">
+                      -{formatCurrency(spaAnalytics.breakdown?.spa_special_couple?.discount_given || 0)}
+                    </p>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-blue-600">Sa popustom: {spaAnalytics.breakdown?.spa_special_couple?.with_discount || 0}</span>
+                    <span className="text-gray-600">Bez popusta: {spaAnalytics.breakdown?.spa_special_couple?.without_discount || 0}</span>
                   </div>
                 </div>
               </div>
               
-              {/* SPA Add-ons */}
+              {/* SPA ZONE */}
               <div className="bg-white rounded-lg shadow p-6 border-l-4 border-amber-500">
                 <h4 className="text-sm font-semibold text-gray-700 mb-4">SPA ZONE</h4>
                 <div className="space-y-3">
