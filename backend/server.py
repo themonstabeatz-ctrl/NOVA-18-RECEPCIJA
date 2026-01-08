@@ -3735,41 +3735,15 @@ async def get_detailed_analytics(
         else:
             category = get_service_category_display(service_name, service.get('category'))
         
-        # PRIORITY: Use pricing object first, then snapshot fields, then service fallback
-        # 🔒 PRICING RESOLVER - SINGLE SOURCE OF TRUTH
-        pricing = apt.get('pricing') or {}
-        
-        if pricing and isinstance(pricing, dict) and (pricing.get('final_total') or pricing.get('final_price')):
-            # NEW FORMAT: Use standardized pricing object
-            # Support both naming conventions: final_total/original_total AND final_price/original_price
-            service_price = pricing.get('final_total') or pricing.get('final_price') or 0
-            original_price = pricing.get('original_total') or pricing.get('original_price') or service_price
-            discount_percentage = pricing.get('discount_percent') or 0
-            logger.info(f"📊 ANALYTICS: Using pricing object for {apt['id']}: orig={original_price}, final={service_price}, disc={discount_percentage}%")
-        elif 'snapshot_price' in apt:
-            # LEGACY: Use snapshot price from appointment
-            service_price = apt['snapshot_price']
-            original_price = apt.get('snapshot_original_price', service_price)
-            discount_percentage = apt.get('snapshot_discount_percentage', 0)
-        elif apt.get('final_total') or apt.get('original_total'):
-            # TOP-LEVEL fields (for couples)
-            service_price = apt.get('final_total') or apt.get('snapshot_price') or 0
-            original_price = apt.get('original_total') or apt.get('snapshot_original_price') or service_price
-            discount_percentage = apt.get('discount_percentage') or apt.get('snapshot_discount_percentage') or 0
-        else:
-            # Fallback: Get price from service (for old appointments without snapshot)
-            service_price = service.get('price', 0)
-            discount_percentage = service.get('discount_percentage', 0)
-            
-            # Get original price from metadata if available
-            metadata = service.get('metadata')
-            if metadata and isinstance(metadata, dict):
-                original_price = metadata.get('original_price', service_price)
-            else:
-                original_price = service_price
+        # 🔒 USE UNIFIED PRICING RESOLVER - SINGLE SOURCE OF TRUTH
+        p = resolve_pricing_from_appointment(apt)
+        service_price = p['final_total']
+        original_price = p['original_total']
+        discount_percentage = p['discount_percent']
+        has_discount = p['has_discount']
         
         # Calculate actual discount amount
-        discount_amount = original_price - service_price
+        discount_amount = original_price - service_price if has_discount else 0
         
         # Get or create category (if not in predefined list)
         if category not in categories:
