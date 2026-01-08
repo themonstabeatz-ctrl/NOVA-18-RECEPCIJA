@@ -1853,13 +1853,15 @@ async def get_spa_analytics(
         "revenue_net": 0,       # sum(final_price) - Za naplatu
         "revenue_gross": 0,     # sum(original_price) - Bruto
         "count": 0,
-        "discount_total": 0     # sum(discount_amount)
+        "discount_total": 0,    # sum(discount_amount)
+        "with_discount": 0,     # Count with discount
+        "without_discount": 0   # Count without discount
     }
     
     breakdown = {
-        "spa_zone": {"count": 0, "revenue": 0, "revenue_gross": 0},
-        "spa_ritual": {"count": 0, "revenue": 0, "revenue_gross": 0},
-        "spa_special_couple": {"count": 0, "revenue": 0, "revenue_gross": 0},
+        "spa_zone": {"count": 0, "revenue": 0, "revenue_gross": 0, "discount_given": 0, "with_discount": 0, "without_discount": 0},
+        "spa_ritual": {"count": 0, "revenue": 0, "revenue_gross": 0, "discount_given": 0, "with_discount": 0, "without_discount": 0},
+        "spa_special_couple": {"count": 0, "revenue": 0, "revenue_gross": 0, "discount_given": 0, "with_discount": 0, "without_discount": 0},
         "spa_addons": {"count": 0, "revenue": 0}
     }
     
@@ -1869,11 +1871,15 @@ async def get_spa_analytics(
         pricing = apt.get("pricing", {})
         final_total = pricing.get("final_total") or pricing.get("final_price") or apt.get("final_total", 0)
         original_total = pricing.get("original_total") or pricing.get("original_price") or apt.get("original_total", final_total)
+        discount_percent = pricing.get("discount_percent") or apt.get("discount_percentage", 0)
         discount_amount = pricing.get("discount_amount") or apt.get("discount_amount", 0)
         
         # Recalculate discount_amount if not present but has discount
         if discount_amount == 0 and original_total > final_total:
             discount_amount = original_total - final_total
+        
+        # Determine has_discount
+        has_discount = (discount_percent > 0 or discount_amount > 0) and original_total > final_total
             
         spa_category = apt.get("spa_category", "spa_zone")
         addons_total = apt.get("addons_total", 0)
