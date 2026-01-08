@@ -1890,6 +1890,12 @@ async def get_spa_analytics(
         totals["count"] += 1
         totals["discount_total"] += discount_amount
         
+        # Track with/without discount
+        if has_discount:
+            totals["with_discount"] += 1
+        else:
+            totals["without_discount"] += 1
+        
         # Track add-ons separately (from new addons field OR from services_snapshot)
         if addons_total > 0:
             breakdown["spa_addons"]["count"] += 1
