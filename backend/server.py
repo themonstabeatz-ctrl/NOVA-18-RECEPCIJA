@@ -659,6 +659,61 @@ def resolve_pricing_from_appointment(appt: dict) -> dict:
     }
 
 
+# ============================================
+# 🔒 SPA DISPLAY NAME RESOLVER
+# ============================================
+# Koristi se za: Termini sa popustom lista, Analytics
+# Prioritet: card_title > SPA_CARDS lookup > service_name > notes > fallback
+# ============================================
+
+def resolve_spa_display_name(appt: dict) -> str:
+    """
+    Vraća ispravan naziv SPA usluge za prikaz u listama.
+    
+    Prioritet:
+    1. card_title (sačuvan pri bookingu)
+    2. card_id mapiran preko SPA_CARDS[card_id].title_sr
+    3. service_name iz appointment-a
+    4. Parsiran naziv iz notes polja
+    5. Fallback: "SPA tretman"
+    """
+    # 1) Ako imamo sačuvan card_title
+    card_title = appt.get("card_title")
+    if card_title and card_title != "SPA Tretman":
+        return card_title
+    
+    # 2) Pokušaj mapirati card_id na SPA_CARDS
+    card_id = appt.get("card_id")
+    if not card_id:
+        # Može biti u pricing objektu
+        pricing = appt.get("pricing") or {}
+        card_id = pricing.get("card_id")
+    
+    if card_id and card_id in SPA_CARDS:
+        card_config = SPA_CARDS[card_id]
+        title = card_config.get("title_sr") or card_config.get("title") or card_config.get("name")
+        if title:
+            return title
+    
+    # 3) Pokušaj service_name
+    service_name = appt.get("service_name")
+    if service_name and service_name not in ("SPA", "SPA Tretman", "SPA tretman"):
+        return service_name
+    
+    # 4) Parsiraj iz notes
+    notes = appt.get("notes") or ""
+    if "SPA paket:" in notes:
+        import re
+        m = re.search(r"SPA paket:\s*([^\n\r]+?)(?:\s+Varijanta:|\s+SPA zona:|\s+Ukupno|\s*$)", notes)
+        if m:
+            parsed_name = m.group(1).strip()
+            if parsed_name:
+                return parsed_name
+    
+    # 5) Fallback
+    return "SPA tretman"
+
+
 def build_category_stats(appointments: list) -> dict:
     """
     🔒 UNIFIED CATEGORY STATS - Same logic for Masaže, Parovi, SPA
