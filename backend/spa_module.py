@@ -1254,7 +1254,11 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         
         # 🔐 PRICING SNAPSHOT - immutable record of prices at booking time
         doc['pricing'] = pricing_snapshot
-        doc['pricing']['card_id'] = None  # Special packages don't use card_id
+        doc['pricing']['card_id'] = card_id  # ✅ Čuvaj card_id za analytics
+        
+        # ✅ CARD TITLE - za prikaz u analytics "Termini sa popustom"
+        doc['card_id'] = card_id
+        doc['card_title'] = pkg['name']  # Koristi naziv paketa kao card_title
         
         # ✅ CRITICAL: Set total = final_total for dashboard compatibility
         doc['total'] = pricing["final_price"]
