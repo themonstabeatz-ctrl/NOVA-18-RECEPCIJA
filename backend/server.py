@@ -3786,12 +3786,12 @@ async def get_detailed_analytics(
         is_couples = apt.get('is_couples_booking', False)
         
         if is_spa:
-            # SPA appointment - create virtual service
+            # SPA appointment - koristi resolver za ispravan naziv
             spa_category = apt.get('spa_category', 'spa_zone')
-            card_title = apt.get('card_title', 'SPA Tretman')
+            display_name = resolve_spa_display_name(apt)  # ✅ KORISTI RESOLVER
             service = {
                 'id': apt.get('service_id', f"spa_{apt.get('id')}"),
-                'name': card_title,
+                'name': display_name,  # ✅ ISPRAVAN NAZIV
                 'category': 'SPA',
                 'price': 0,
                 'duration': 60
