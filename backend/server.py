@@ -3724,13 +3724,35 @@ async def get_detailed_analytics(
     # Individual appointments with discounts
     appointments_with_discount = []
     
-    # Process each appointment
-    for apt in appointments:
-        service = service_map.get(apt['service_id'])
-        
-        # 🔒 FALLBACK for COUPLES appointments - they have dynamic service not in DB
+    # Process each appointment (massage + SPA)
+    for apt in all_appointments:
+        # 🔒 HANDLE SPA APPOINTMENTS
+        is_spa = apt.get('is_spa_booking', False) or apt.get('type') == 'spa'
         is_couples = apt.get('is_couples_booking', False)
-        if not service and is_couples:
+        
+        if is_spa:
+            # SPA appointment - create virtual service
+            spa_category = apt.get('spa_category', 'spa_zone')
+            card_title = apt.get('card_title', 'SPA Tretman')
+            service = {
+                'id': apt.get('service_id', f"spa_{apt.get('id')}"),
+                'name': card_title,
+                'category': 'SPA',
+                'price': 0,
+                'duration': 60
+            }
+            # Map spa_category to display category
+            if spa_category == 'spa_special_couple':
+                category = "SPA Paketi za posebne prilike"
+            elif spa_category == 'spa_ritual':
+                category = "SPA Ritual"
+            else:
+                category = "SPA"
+        else:
+            service = service_map.get(apt['service_id'])
+            
+            # 🔒 FALLBACK for COUPLES appointments - they have dynamic service not in DB
+            if not service and is_couples:
             # Create virtual service from appointment data
             service = {
                 'id': apt.get('service_id'),
