@@ -2917,6 +2917,9 @@ async def get_unified_appointments_list(
             "service_duration": normalized['duration_min'],
             "duration_min": normalized['duration_min'],
             "spa_zone": normalized.get('spa_zone', ''),
+            # ✅ CARD TITLE - za edit modal "Usluga" prikaz
+            "card_title": apt.get('card_title') or normalized['service_name'],
+            "card_id": apt.get('card_id'),
             # 🔒 STANDARDIZED PRICING (original_total, final_total)
             "original_total": original_price,  # NEW: Use original_total
             "original_price": original_price,  # LEGACY: Keep for backward compat
