@@ -1102,20 +1102,31 @@ const Appointments = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Usluga *
                   </label>
-                  <select
-                    required
-                    value={formData.service_id}
-                    onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    data-testid="service-select"
-                  >
-                    <option value="">Izaberite uslugu</option>
-                    {services.map((service) => (
-                      <option key={service.id} value={service.id}>
-                        {service.name} - {service.duration} min - {service.price} RSD
-                      </option>
-                    ))}
-                  </select>
+                  {/* 🔒 SPA termini: prikaži read-only polje sa nazivom usluge */}
+                  {editingAppointment?.type === 'spa' ? (
+                    <input
+                      type="text"
+                      readOnly
+                      value={`${editingAppointment.service_name || editingAppointment.card_title || 'SPA Tretman'} - ${editingAppointment.duration_min || editingAppointment.service_duration || 0} min - ${editingAppointment.original_total || editingAppointment.total_price || 0} RSD`}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+                      data-testid="spa-service-display"
+                    />
+                  ) : (
+                    <select
+                      required
+                      value={formData.service_id}
+                      onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      data-testid="service-select"
+                    >
+                      <option value="">Izaberite uslugu</option>
+                      {services.map((service) => (
+                        <option key={service.id} value={service.id}>
+                          {service.name} - {service.duration} min - {service.price} RSD
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <div>
