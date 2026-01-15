@@ -3073,6 +3073,16 @@ async def update_appointment(appointment_id: str, appointment: AppointmentCreate
         if appointment.client_email:
             update_data['client_email'] = appointment.client_email
         
+        # Therapist
+        if appointment.therapist_id:
+            update_data['therapist_id'] = appointment.therapist_id
+        
+        # Body Map (za print)
+        if appointment.body_map_gender:
+            update_data['body_map_gender'] = appointment.body_map_gender
+        if appointment.body_map_points:
+            update_data['body_map_points'] = appointment.body_map_points
+        
         # Time
         if appointment.start_time:
             start_time = appointment.start_time.replace(tzinfo=None) if appointment.start_time.tzinfo else appointment.start_time
