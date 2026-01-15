@@ -2707,9 +2707,12 @@ async def get_appointments(
                 'body_map_gender': spa.get('body_map_gender'),
                 'body_map_points': spa.get('body_map_points', []),
                 'therapist_id': spa.get('therapist_id'),
+                # 🏷️ CARD INFO (za print Usluga)
+                'card_id': spa.get('card_id'),
+                'card_title': spa.get('card_title') or normalized['service_name'],
                 # NORMALIZED SERVICE DATA (from normalize_spa_appt)
-                'service_name': normalized['service_name'],
-                'service_title': normalized['service_title'],  # Alias
+                'service_name': spa.get('card_title') or normalized['service_name'],  # Prioritet: card_title
+                'service_title': spa.get('card_title') or normalized['service_title'],
                 'service_description': normalized['service_description'],
                 'service_desc': normalized['service_desc'],  # Alias
                 'service_duration': normalized['duration_min'],
