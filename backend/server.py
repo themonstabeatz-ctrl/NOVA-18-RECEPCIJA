@@ -3089,27 +3089,89 @@ async def update_appointment(appointment_id: str, appointment: AppointmentCreate
             await db.spa_appointments.update_one({"id": appointment_id}, {"$set": update_data})
             logger.info(f"🧖 SPA_APPOINTMENT_UPDATED id={appointment_id} fields={list(update_data.keys())}")
         
-        # Vrati ažurirani dokument (konvertuj za Appointment model)
+        # Vrati ažurirani dokument sa SVIM print-friendly poljima
         updated = await db.spa_appointments.find_one({"id": appointment_id}, {"_id": 0})
-        # Mapiranje SPA -> Appointment response
-        return {
+        
+        # Izvuci pricing snapshot (NE MENJAJ - samo vrati!)
+        pricing = updated.get("pricing", {})
+        
+        # Izvuci service_name iz više izvora
+        service_name = (
+            updated.get("service_name") or 
+            updated.get("card_title") or 
+            pricing.get("service_name") or
+            "SPA Tretman"
+        )
+        
+        # Dobij therapist_name ako postoji
+        therapist_name = None
+        if updated.get("therapist_id"):
+            therapist_doc = await db.therapists.find_one({"id": updated["therapist_id"]})
+            if therapist_doc:
+                therapist_name = therapist_doc.get("name")
+        
+        # 🖨️ PRINT-FRIENDLY RESPONSE
+        response = {
+            # Core IDs
             "id": updated.get("id"),
+            "type": "spa",
+            
+            # Client info
             "client_first_name": updated.get("client_first_name", ""),
             "client_last_name": updated.get("client_last_name", ""),
+            "client_name": f"{updated.get('client_first_name', '')} {updated.get('client_last_name', '')}".strip(),
             "client_phone": updated.get("client_phone", ""),
             "client_email": updated.get("client_email", ""),
-            "therapist_id": updated.get("therapist_id"),
-            "service_id": updated.get("card_id") or updated.get("service_id", ""),
+            
+            # Time
             "start_time": datetime.fromisoformat(updated["start_time"]) if isinstance(updated.get("start_time"), str) else updated.get("start_time"),
             "end_time": datetime.fromisoformat(updated["end_time"]) if isinstance(updated.get("end_time"), str) else updated.get("end_time"),
             "created_at": datetime.fromisoformat(updated["created_at"]) if isinstance(updated.get("created_at"), str) else updated.get("created_at", datetime.now()),
+            
+            # Therapist
+            "therapist_id": updated.get("therapist_id"),
+            "therapist_name": therapist_name,
+            
+            # Service info (za print)
+            "service_id": updated.get("card_id") or updated.get("service_id", ""),
+            "service_name": service_name,
+            "service_title": service_name,  # alias
+            "duration_min": updated.get("duration_min", 60),
+            
+            # SPA specifična polja
+            "card_id": updated.get("card_id"),
+            "card_title": updated.get("card_title") or service_name,
+            "category": updated.get("spa_category", "SPA"),
+            
+            # Status
             "status": updated.get("status", "scheduled"),
             "is_viewed": updated.get("is_viewed", False),
-            "is_couples_booking": updated.get("is_couples_booking", False),
-            "snapshot_price": updated.get("pricing", {}).get("final_total"),
-            "snapshot_original_price": updated.get("pricing", {}).get("original_total"),
-            "snapshot_discount_percentage": updated.get("pricing", {}).get("discount_percent"),
+            "is_couples_booking": updated.get("spa_category") == "spa_special_couple",
+            
+            # 💰 PRICING SNAPSHOT (NE MENJAJ - samo vrati iz dokumenta!)
+            "pricing": {
+                "original_total": pricing.get("original_total", 0),
+                "final_total": pricing.get("final_total", 0),
+                "discount_percent": pricing.get("discount_percent", 0),
+                "has_discount": pricing.get("has_discount", False),
+                "discount_amount": pricing.get("discount_amount", 0),
+            },
+            
+            # Legacy snapshot fields (za kompatibilnost)
+            "snapshot_price": pricing.get("final_total"),
+            "snapshot_original_price": pricing.get("original_total"),
+            "snapshot_discount_percentage": pricing.get("discount_percent"),
+            "snapshot_discount_amount": pricing.get("discount_amount"),
+            "has_discount": pricing.get("has_discount", False),
+            
+            # Addons
+            "addons": updated.get("addons", []),
+            "addons_total": updated.get("addons_total", 0),
         }
+        
+        logger.info(f"🖨️ UPDATE_SPA_RESPONSE_PRINT_FIELDS id={appointment_id} service={service_name} pricing={response['pricing']}")
+        
+        return response
     
     # 💆 MASAŽA - originalna logika
     # Verify therapist exists (only if provided)
