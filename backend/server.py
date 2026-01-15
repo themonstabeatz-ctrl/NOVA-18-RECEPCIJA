@@ -3043,11 +3043,75 @@ async def get_appointment(appointment_id: str):
 
 @api_router.put("/appointments/{appointment_id}", response_model=Appointment)
 async def update_appointment(appointment_id: str, appointment: AppointmentCreate):
-    """Update an appointment"""
+    """Update an appointment (massage or SPA)"""
+    
+    # 🔍 PRONAĐI APPOINTMENT - prvo u masažama, pa u SPA
     existing = await db.appointments.find_one({"id": appointment_id})
+    is_spa = False
+    
+    if not existing:
+        # Pokušaj da nađeš u SPA appointments
+        existing = await db.spa_appointments.find_one({"id": appointment_id})
+        if existing:
+            is_spa = True
+    
     if not existing:
         raise HTTPException(status_code=404, detail="Appointment not found")
     
+    # 🧖 SPA TERMIN - posebna logika (ne diraj pricing!)
+    if is_spa:
+        # Za SPA termine, update samo dozvoljene fieldove
+        update_data = {}
+        
+        # Client info
+        if appointment.client_first_name:
+            update_data['client_first_name'] = appointment.client_first_name
+        if appointment.client_last_name:
+            update_data['client_last_name'] = appointment.client_last_name
+        if appointment.client_phone:
+            update_data['client_phone'] = appointment.client_phone
+        if appointment.client_email:
+            update_data['client_email'] = appointment.client_email
+        
+        # Time
+        if appointment.start_time:
+            start_time = appointment.start_time.replace(tzinfo=None) if appointment.start_time.tzinfo else appointment.start_time
+            duration_min = existing.get('duration_min', 60)
+            end_time = start_time + timedelta(minutes=duration_min)
+            update_data['start_time'] = start_time.isoformat()
+            update_data['end_time'] = end_time.isoformat()
+        
+        # Status
+        if appointment.status:
+            update_data['status'] = appointment.status
+        
+        if update_data:
+            await db.spa_appointments.update_one({"id": appointment_id}, {"$set": update_data})
+            logger.info(f"🧖 SPA_APPOINTMENT_UPDATED id={appointment_id} fields={list(update_data.keys())}")
+        
+        # Vrati ažurirani dokument (konvertuj za Appointment model)
+        updated = await db.spa_appointments.find_one({"id": appointment_id}, {"_id": 0})
+        # Mapiranje SPA -> Appointment response
+        return {
+            "id": updated.get("id"),
+            "client_first_name": updated.get("client_first_name", ""),
+            "client_last_name": updated.get("client_last_name", ""),
+            "client_phone": updated.get("client_phone", ""),
+            "client_email": updated.get("client_email", ""),
+            "therapist_id": updated.get("therapist_id"),
+            "service_id": updated.get("card_id") or updated.get("service_id", ""),
+            "start_time": datetime.fromisoformat(updated["start_time"]) if isinstance(updated.get("start_time"), str) else updated.get("start_time"),
+            "end_time": datetime.fromisoformat(updated["end_time"]) if isinstance(updated.get("end_time"), str) else updated.get("end_time"),
+            "created_at": datetime.fromisoformat(updated["created_at"]) if isinstance(updated.get("created_at"), str) else updated.get("created_at", datetime.now()),
+            "status": updated.get("status", "scheduled"),
+            "is_viewed": updated.get("is_viewed", False),
+            "is_couples_booking": updated.get("is_couples_booking", False),
+            "snapshot_price": updated.get("pricing", {}).get("final_total"),
+            "snapshot_original_price": updated.get("pricing", {}).get("original_total"),
+            "snapshot_discount_percentage": updated.get("pricing", {}).get("discount_percent"),
+        }
+    
+    # 💆 MASAŽA - originalna logika
     # Verify therapist exists (only if provided)
     if appointment.therapist_id:
         therapist = await db.therapists.find_one({"id": appointment.therapist_id})
