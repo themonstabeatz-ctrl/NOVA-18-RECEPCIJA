@@ -1506,6 +1506,11 @@ async def create_appointment(appointment: AppointmentCreate):
     appointment_dict['snapshot_price'] = round(final_price, 2)
     appointment_dict['snapshot_original_price'] = original_price
     appointment_dict['snapshot_discount_percentage'] = best_discount
+    # ✅ DODATO: discount_amount i has_discount za frontend "Poruka"
+    discount_amount = round(original_price - final_price, 2) if best_discount > 0 else 0
+    appointment_dict['snapshot_discount_amount'] = discount_amount
+    appointment_dict['discount_amount'] = discount_amount
+    appointment_dict['has_discount'] = best_discount > 0 and final_price < original_price
     appointment_obj = Appointment(**appointment_dict)
     
     doc = appointment_obj.model_dump()
