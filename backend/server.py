@@ -2703,6 +2703,10 @@ async def get_appointments(
                 'client_phone': normalized.get('client_phone', ''),
                 'client_email': normalized.get('client_email', ''),
                 'service_id': spa.get('spa_package_id') or spa.get('id'),
+                # 🖨️ BODY MAP & THERAPIST (za PRINT ikonu!)
+                'body_map_gender': spa.get('body_map_gender'),
+                'body_map_points': spa.get('body_map_points', []),
+                'therapist_id': spa.get('therapist_id'),
                 # NORMALIZED SERVICE DATA (from normalize_spa_appt)
                 'service_name': normalized['service_name'],
                 'service_title': normalized['service_title'],  # Alias
@@ -2744,6 +2748,12 @@ async def get_appointments(
                 'addons': spa.get('addons', []),
                 'addons_total': spa.get('addons_total', 0)
             }
+            
+            # Resolve therapist_name
+            if spa.get('therapist_id'):
+                therapist_doc = await db.therapists.find_one({"id": spa['therapist_id']})
+                if therapist_doc:
+                    normalized_spa['therapist_name'] = therapist_doc.get('name')
             
             appointments.append(normalized_spa)
         
