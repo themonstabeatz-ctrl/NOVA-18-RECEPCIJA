@@ -241,7 +241,8 @@ const Appointments = () => {
 
   const handlePrintMassageSheet = (appointment, language = 'sr') => {
     const printWindow = window.open('', '_blank');
-    const serviceName = getServiceName(appointment.service_id);
+    // 🔒 FIX: Za SPA termine koristi service_name/card_title direktno
+    const serviceName = getServiceName(appointment.service_id, appointment);
     const therapistName = getTherapistName(appointment.therapist_id);
     const appointmentDate = formatDateToDDMMYYYY(appointment.start_time.split('T')[0]);
     const appointmentTime = formatTime(appointment.start_time);
