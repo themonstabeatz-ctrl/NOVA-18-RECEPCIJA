@@ -3041,7 +3041,7 @@ async def get_appointment(appointment_id: str):
     
     return appointment
 
-@api_router.put("/appointments/{appointment_id}", response_model=Appointment)
+@api_router.put("/appointments/{appointment_id}")
 async def update_appointment(appointment_id: str, appointment: AppointmentCreate):
     """Update an appointment (massage or SPA)"""
     
