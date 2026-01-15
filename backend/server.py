@@ -2916,6 +2916,11 @@ async def get_unified_appointments_list(
             "client_last_name": apt.get('client_last_name', ''),
             "client_name": f"{apt.get('client_first_name', '')} {apt.get('client_last_name', '')}",
             "client_phone": apt.get('client_phone', ''),
+            # 🖨️ BODY MAP & THERAPIST (za PRINT ikonu!)
+            "body_map_gender": apt.get('body_map_gender'),
+            "body_map_points": apt.get('body_map_points', []),
+            "therapist_id": apt.get('therapist_id'),
+            "therapist_name": None,  # Will be resolved below
             # NORMALIZED SERVICE DATA (from normalize_spa_appt)
             "service_name": normalized['service_name'],
             "service_title": normalized['service_title'],  # Alias
@@ -2940,6 +2945,12 @@ async def get_unified_appointments_list(
             "addons": addons,
             "addons_total": addons_total
         })
+        
+        # Resolve therapist_name for SPA
+        if apt.get('therapist_id') and items:
+            therapist_doc = await db.therapists.find_one({"id": apt['therapist_id']})
+            if therapist_doc:
+                items[-1]['therapist_name'] = therapist_doc.get('name')
     
     # Sort by start_time
     items.sort(key=lambda x: x.get('start_time', ''))
