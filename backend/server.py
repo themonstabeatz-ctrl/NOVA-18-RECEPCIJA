@@ -323,6 +323,8 @@ class Appointment(AppointmentBase):
     original_total: Optional[float] = None
     discount_percentage: Optional[float] = None  # Same as snapshot_discount_percentage
     discount_amount: Optional[float] = None  # Same as snapshot_discount_amount
+    # ✅ DODATO: has_discount flag za frontend "Poruka" prikaz
+    has_discount: Optional[bool] = Field(default=False, description="True if discount is applied")
     # 🌐 LOCALIZATION fields
     lang: Optional[str] = Field(default="sr", description="Language code: sr, en, ru, th")
     message: Optional[str] = Field(default=None, description="Localized message/details from frontend")
