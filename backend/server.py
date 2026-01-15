@@ -3095,13 +3095,20 @@ async def update_appointment(appointment_id: str, appointment: AppointmentCreate
         # Izvuci pricing snapshot (NE MENJAJ - samo vrati!)
         pricing = updated.get("pricing", {})
         
-        # Izvuci service_name iz više izvora
+        # Izvuci service_name iz više izvora - PRIORITET: card_title
         service_name = (
-            updated.get("service_name") or 
             updated.get("card_title") or 
+            updated.get("service_name") or 
             pricing.get("service_name") or
             "SPA Tretman"
         )
+        
+        # Ako je service_name generički a imamo card_id, pokušaj iz SPA_CARDS
+        if service_name in ("SPA Tretman", "SPA tretman", "SPA") and updated.get("card_id"):
+            from spa_module import SPA_CARDS
+            card_config = SPA_CARDS.get(updated["card_id"], {})
+            if card_config:
+                service_name = card_config.get("title_sr") or card_config.get("title") or service_name
         
         # Dobij therapist_name ako postoji
         therapist_name = None
