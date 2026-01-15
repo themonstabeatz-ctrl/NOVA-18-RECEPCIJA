@@ -3149,6 +3149,10 @@ async def update_appointment(appointment_id: str, appointment: AppointmentCreate
             "therapist_id": updated.get("therapist_id"),
             "therapist_name": therapist_name,
             
+            # 🖨️ Body Map (za PRINT ikonu!)
+            "body_map_gender": updated.get("body_map_gender"),
+            "body_map_points": updated.get("body_map_points", []),
+            
             # Service info (za print)
             "service_id": updated.get("card_id") or updated.get("service_id", ""),
             "service_name": service_name,
