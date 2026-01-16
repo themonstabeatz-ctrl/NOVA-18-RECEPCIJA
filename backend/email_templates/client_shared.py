@@ -68,6 +68,9 @@ def render_client_shared(m: ClientEmailModel) -> tuple:
     """
     subject = f"✅ Uspešno zakazano - {m.salon_name}"
     
+    # 🌐 Get localized greeting
+    greeting = get_greeting(m.client_full_name, m.lang)
+    
     # Build items HTML rows
     items_html = ""
     for i, item in enumerate(m.items):
