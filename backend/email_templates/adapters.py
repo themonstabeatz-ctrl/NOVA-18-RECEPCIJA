@@ -403,8 +403,11 @@ def build_client_email_for_massage(appt: dict) -> tuple:
         footer_note=t['footer'],
         contact_email="bualuangthailandspa@gmail.com",
         contact_phone="+381 62 625 500",
-        address_line="Abebe Bikile 10A"
+        address_line="Abebe Bikile 10A",
+        lang=lang  # 🌐 CRITICAL: Pass lang for greeting translation
     )
+    
+    logger.info(f"📧 MASSAGE_EMAIL_MODEL lang={lang}, greeting will use: {lang}")
     
     return render_client_shared(m)
 
@@ -626,7 +629,10 @@ def build_client_email_for_couples(appt: dict) -> tuple:
         footer_note=t['footer'],
         contact_email="bualuangthailandspa@gmail.com",
         contact_phone="+381 62 625 500",
-        address_line="Abebe Bikile 10A"
+        address_line="Abebe Bikile 10A",
+        lang=lang  # 🌐 CRITICAL: Pass lang for greeting translation
     )
+    
+    logger.info(f"📧 COUPLES_EMAIL_MODEL lang={lang}, greeting will use: {lang}")
     
     return render_client_shared(m)
