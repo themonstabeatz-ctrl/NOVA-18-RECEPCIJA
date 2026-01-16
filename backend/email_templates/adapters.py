@@ -479,7 +479,8 @@ def build_client_email_for_spa(appt: dict) -> tuple:
     
     # 🌐 Translate SPA service name
     service_name_orig = appt.get('service_name') or 'SPA'
-    card_id = appt.get('card_id')
+    # Get card_id from direct field or from pricing snapshot
+    card_id = appt.get('card_id') or appt.get('pricing', {}).get('card_id')
     service_name = _translate_spa_service_name(service_name_orig, card_id, lang)
     
     logger.info(f"📧 SPA_SERVICE_TRANSLATED: '{service_name_orig}' -> '{service_name}' (lang={lang}, card_id={card_id})")
