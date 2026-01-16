@@ -687,14 +687,16 @@ def build_client_email_for_spa(appt: dict) -> tuple:
         LineItem("💆", t['treatment'], service_name)
     ]
     
-    # Add service description/variant if exists
+    # Add service description/variant if exists - TRANSLATE IT!
     if appt.get('service_description'):
-        items.append(LineItem("📋", t['details'], appt['service_description']))
+        translated_description = _translate_spa_option(appt['service_description'], lang)
+        items.append(LineItem("📋", t['details'], translated_description))
     
-    # Add SPA zone if exists
+    # Add SPA zone if exists - TRANSLATE IT!
     spa_zone = appt.get('spa_zone')
     if spa_zone:
-        items.append(LineItem("🧖", t['spa_zone'], spa_zone))
+        translated_spa_zone = _translate_spa_option(spa_zone, lang)
+        items.append(LineItem("🧖", t['spa_zone'], translated_spa_zone))
     
     # Add duration if exists
     duration = appt.get('duration_min')
