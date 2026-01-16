@@ -586,6 +586,44 @@ def _translate_spa_option(text: str, lang: str) -> str:
     return result
 
 
+# ============================================
+# 💕 ROMANTIC PACKAGE DESCRIPTIONS BY CARD_ID
+# ============================================
+ROMANTIC_PACKAGE_DESCRIPTIONS = {
+    "romantic_couple_package": {
+        "sr": "Savršen romantični doživljaj za dvoje",
+        "en": "A perfect romantic experience for two",
+        "ru": "Идеальный романтический опыт для двоих",
+        "th": "ประสบการณ์โรแมนติกที่สมบูรณ์แบบสำหรับคู่รัก"
+    },
+    "romantic_peeling_couple_package": {
+        "sr": "Luksuzni piling i masaža za parove",
+        "en": "Luxury peeling and massage for couples",
+        "ru": "Роскошный пилинг и массаж для пар",
+        "th": "พีลลิ่งและนวดหรูหราสำหรับคู่รัก"
+    }
+}
+
+
+def _get_romantic_package_description(card_id: str, lang: str) -> str:
+    """
+    Get description for romantic packages based on card_id and language.
+    Returns empty string if not a romantic package.
+    """
+    if not card_id:
+        return ""
+    
+    # Default to Serbian if unknown language
+    if lang not in ['sr', 'en', 'ru', 'th']:
+        lang = 'sr'
+    
+    desc_map = ROMANTIC_PACKAGE_DESCRIPTIONS.get(card_id)
+    if desc_map:
+        return desc_map.get(lang, desc_map.get('sr', ''))
+    
+    return ""
+
+
 def _format_date(dt: Any) -> str:
     """Format datetime to DD.MM.YYYY"""
     if isinstance(dt, str):
