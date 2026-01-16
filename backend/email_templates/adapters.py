@@ -190,7 +190,8 @@ def _format_time(dt: Any) -> str:
 
 def build_client_email_for_spa(appt: dict) -> tuple:
     """
-    🧖 SPA ADAPTER - Uses SAME template as MASSAGE!
+    🧖 SPA ADAPTER - Fully localized email based on lang field
+    🌐 Supports: sr, en, ru, th
     🔒 Uses resolve_pricing as single source of truth
     """
     import logging
@@ -201,35 +202,119 @@ def build_client_email_for_spa(appt: dict) -> tuple:
     raw_lang = appt.get('lang', 'sr')
     lang = normalize_lang(raw_lang)
     
+    # 🌐 LOCALIZATION DICTIONARIES FOR SPA
+    TRANSLATIONS = {
+        'sr': {
+            'title': 'Uspešno zakazano!',
+            'treatment': 'Tretman',
+            'details': 'Detalji',
+            'spa_zone': 'SPA zona',
+            'duration': 'Trajanje',
+            'date': 'Datum',
+            'time': 'Vreme',
+            'name': 'Ime',
+            'phone': 'Telefon',
+            'price': 'Cena',
+            'price_orig': 'Cena (orig)',
+            'discount': 'Popust',
+            'to_pay': 'Za naplatu',
+            'footer': 'Stignite 10 min pre termina. Otkazivanje 4h unapred.',
+            'minutes': 'min'
+        },
+        'en': {
+            'title': 'Successfully Booked!',
+            'treatment': 'Treatment',
+            'details': 'Details',
+            'spa_zone': 'SPA Zone',
+            'duration': 'Duration',
+            'date': 'Date',
+            'time': 'Time',
+            'name': 'Name',
+            'phone': 'Phone',
+            'price': 'Price',
+            'price_orig': 'Price (orig)',
+            'discount': 'Discount',
+            'to_pay': 'To pay',
+            'footer': 'Please arrive 10 min before your appointment. Cancellation 4h in advance.',
+            'minutes': 'min'
+        },
+        'ru': {
+            'title': 'Успешно забронировано!',
+            'treatment': 'Процедура',
+            'details': 'Детали',
+            'spa_zone': 'СПА зона',
+            'duration': 'Продолжительность',
+            'date': 'Дата',
+            'time': 'Время',
+            'name': 'Имя',
+            'phone': 'Телефон',
+            'price': 'Цена',
+            'price_orig': 'Цена (ориг)',
+            'discount': 'Скидка',
+            'to_pay': 'К оплате',
+            'footer': 'Пожалуйста, приходите за 10 минут до записи. Отмена за 4 часа.',
+            'minutes': 'мин'
+        },
+        'th': {
+            'title': 'จองสำเร็จแล้ว!',
+            'treatment': 'การรักษา',
+            'details': 'รายละเอียด',
+            'spa_zone': 'โซนสปา',
+            'duration': 'ระยะเวลา',
+            'date': 'วันที่',
+            'time': 'เวลา',
+            'name': 'ชื่อ',
+            'phone': 'โทรศัพท์',
+            'price': 'ราคา',
+            'price_orig': 'ราคา (เดิม)',
+            'discount': 'ส่วนลด',
+            'to_pay': 'ชำระเงิน',
+            'footer': 'กรุณามาถึงก่อนนัดหมาย 10 นาที ยกเลิกล่วงหน้า 4 ชั่วโมง',
+            'minutes': 'นาที'
+        }
+    }
+    
+    # Get translations for current language
+    if lang not in TRANSLATIONS:
+        lang = 'sr'
+    t = TRANSLATIONS[lang]
+    
     # 🔥 DEBUG LOG
     logger.info(f"📧 BUILD_SPA_EMAIL input: lang={lang} (raw={raw_lang}), pricing={appt.get('pricing')}, original_total={appt.get('original_total')}, final_total={appt.get('final_total')}, has_discount={appt.get('has_discount')}")
     
     full_name = f"{appt.get('client_first_name', '')} {appt.get('client_last_name', '')}".strip()
     
+    # 🌐 Translate SPA service name
+    service_name_orig = appt.get('service_name') or 'SPA'
+    card_id = appt.get('card_id')
+    service_name = _translate_spa_service_name(service_name_orig, card_id, lang)
+    
+    logger.info(f"📧 SPA_SERVICE_TRANSLATED: '{service_name_orig}' -> '{service_name}' (lang={lang}, card_id={card_id})")
+    
     items = [
-        LineItem("💆", "Tretman", appt.get('service_name') or 'SPA')
+        LineItem("💆", t['treatment'], service_name)
     ]
     
     # Add service description/variant if exists
     if appt.get('service_description'):
-        items.append(LineItem("📋", "Detalji", appt['service_description']))
+        items.append(LineItem("📋", t['details'], appt['service_description']))
     
     # Add SPA zone if exists
     spa_zone = appt.get('spa_zone')
     if spa_zone:
-        items.append(LineItem("🧖", "SPA zona", spa_zone))
+        items.append(LineItem("🧖", t['spa_zone'], spa_zone))
     
     # Add duration if exists
     duration = appt.get('duration_min')
     if duration:
-        items.append(LineItem("⏱", "Trajanje", f"{duration} min"))
+        items.append(LineItem("⏱", t['duration'], f"{duration} {t['minutes']}"))
     
     # Add standard fields
     items.extend([
-        LineItem("📅", "Datum", _format_date(appt.get('start_time'))),
-        LineItem("🕐", "Vreme", _format_time(appt.get('start_time'))),
-        LineItem("👤", "Ime", full_name),
-        LineItem("📞", "Telefon", appt.get('client_phone') or 'N/A'),
+        LineItem("📅", t['date'], _format_date(appt.get('start_time'))),
+        LineItem("🕐", t['time'], _format_time(appt.get('start_time'))),
+        LineItem("👤", t['name'], full_name),
+        LineItem("📞", t['phone'], appt.get('client_phone') or 'N/A'),
     ])
     
     # 🔒 USE resolve_pricing AS SINGLE SOURCE OF TRUTH
@@ -241,25 +326,25 @@ def build_client_email_for_spa(appt: dict) -> tuple:
     
     if has_discount:
         # Show: Cena (orig) precrtano + Popust + Za naplatu
-        items.append(LineItem("💰", "Cena (orig)", f"<s>{original_total:,}</s> RSD"))
-        items.append(LineItem("🏷️", "Popust", f"-{discount_percent}%"))
-        items.append(LineItem("✅", "Za naplatu", f"<b>{final_total:,}</b> RSD"))
+        items.append(LineItem("💰", t['price_orig'], f"<s>{original_total:,}</s> RSD"))
+        items.append(LineItem("🏷️", t['discount'], f"-{discount_percent}%"))
+        items.append(LineItem("✅", t['to_pay'], f"<b>{final_total:,}</b> RSD"))
     elif final_total:
-        items.append(LineItem("💰", "Cena", f"{final_total:,} RSD"))
+        items.append(LineItem("💰", t['price'], f"{final_total:,} RSD"))
     
     m = ClientEmailModel(
         salon_name="Bua Luang Thai Spa",
         client_full_name=full_name,
-        title="Uspešno zakazano!",
+        title=t['title'],
         items=items,
-        footer_note="Stignite 10 min pre termina. Otkazivanje 4h unapred.",
+        footer_note=t['footer'],
         contact_email="bualuangthailandspa@gmail.com",
         contact_phone="+381 62 625 500",
         address_line="Abebe Bikile 10A",
         lang=lang  # 🌐 Use normalized language
     )
     
-    logger.info(f"📧 SPA_EMAIL_MODEL lang={lang}, greeting will use: {lang}")
+    logger.info(f"📧 SPA_EMAIL_MODEL lang={lang}, title='{t['title']}', treatment_label='{t['treatment']}'")
     
     return render_client_shared(m)
 
