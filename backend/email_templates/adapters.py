@@ -162,6 +162,199 @@ def _translate_service_name(service_name: str, lang: str) -> str:
     return f"{prefix}{translated_base}{suffix}"
 
 
+# ============================================
+# 🧖 SPA SERVICE NAME TRANSLATIONS
+# ============================================
+SPA_SERVICE_TRANSLATIONS = {
+    # SPA Rituals
+    "Silky Body Ritual": {
+        "sr": "Silky Body Ritual",
+        "en": "Silky Body Ritual",
+        "ru": "Ритуал Шёлковое тело",
+        "th": "พิธีบำรุงผิวกายนุ่มลื่น"
+    },
+    "Gentle Touch Ritual": {
+        "sr": "Gentle Touch Ritual",
+        "en": "Gentle Touch Ritual",
+        "ru": "Ритуал Нежное прикосновение",
+        "th": "พิธีสัมผัสอ่อนโยน"
+    },
+    "Deep Renewal Ritual": {
+        "sr": "Deep Renewal Ritual",
+        "en": "Deep Renewal Ritual",
+        "ru": "Ритуал Глубокое обновление",
+        "th": "พิธีฟื้นฟูอย่างล้ำลึก"
+    },
+    "Silky Herbal Compress Ritual": {
+        "sr": "Silky Herbal Compress Ritual",
+        "en": "Silky Herbal Compress Ritual",
+        "ru": "Ритуал Шёлк и травяной компресс",
+        "th": "พิธีประคบสมุนไพรนุ่มลื่น"
+    },
+    "Thai Herbal Compress Ritual": {
+        "sr": "Thai Herbal Compress Ritual",
+        "en": "Thai Herbal Compress Ritual",
+        "ru": "Тайский ритуал травяного компресса",
+        "th": "พิธีประคบสมุนไพรไทย"
+    },
+    "Aroma Stone Harmony Ritual": {
+        "sr": "Aroma Stone Harmony Ritual",
+        "en": "Aroma Stone Harmony Ritual",
+        "ru": "Ритуал Гармония аромакамней",
+        "th": "พิธีหินร้อนอโรม่า"
+    },
+    # SPA Zone
+    "SPA Zone": {
+        "sr": "SPA zona",
+        "en": "SPA Zone",
+        "ru": "СПА зона",
+        "th": "โซนสปา"
+    },
+    "SPA zona": {
+        "sr": "SPA zona",
+        "en": "SPA Zone",
+        "ru": "СПА зона",
+        "th": "โซนสปา"
+    },
+    "SPA Tretman": {
+        "sr": "SPA tretman",
+        "en": "SPA Treatment",
+        "ru": "СПА процедура",
+        "th": "ทรีตเมนต์สปา"
+    },
+    # Romantic Packages
+    "Romantični paket za parove": {
+        "sr": "Romantični paket za parove",
+        "en": "Romantic Couple Package",
+        "ru": "Романтический пакет для пар",
+        "th": "แพ็คเกจคู่รักโรแมนติก"
+    },
+    "Romantični piling paket za parove": {
+        "sr": "Romantični piling paket za parove",
+        "en": "Romantic Peeling Couple Package",
+        "ru": "Романтический пилинг-пакет для пар",
+        "th": "แพ็คเกจพีลลิ่งคู่รักโรแมนติก"
+    },
+    # Zone items
+    "Sauna": {
+        "sr": "Sauna",
+        "en": "Sauna",
+        "ru": "Сауна",
+        "th": "ซาวน่า"
+    },
+    "Parno kupatilo": {
+        "sr": "Parno kupatilo",
+        "en": "Steam Room",
+        "ru": "Парная",
+        "th": "ห้องอบไอน้ำ"
+    },
+    "Jacuzzi": {
+        "sr": "Jacuzzi",
+        "en": "Jacuzzi",
+        "ru": "Джакузи",
+        "th": "จากุซซี่"
+    }
+}
+
+# card_id -> name translations (for when we have card_id but no service_name)
+SPA_CARD_TRANSLATIONS = {
+    "silky_body_ritual": {
+        "sr": "Silky Body Ritual",
+        "en": "Silky Body Ritual",
+        "ru": "Ритуал Шёлковое тело",
+        "th": "พิธีบำรุงผิวกายนุ่มลื่น"
+    },
+    "gentle_touch_ritual": {
+        "sr": "Gentle Touch Ritual",
+        "en": "Gentle Touch Ritual",
+        "ru": "Ритуал Нежное прикосновение",
+        "th": "พิธีสัมผัสอ่อนโยน"
+    },
+    "deep_renewal_ritual": {
+        "sr": "Deep Renewal Ritual",
+        "en": "Deep Renewal Ritual",
+        "ru": "Ритуал Глубокое обновление",
+        "th": "พิธีฟื้นฟูอย่างล้ำลึก"
+    },
+    "silky_herbal_compress_ritual": {
+        "sr": "Silky Herbal Compress Ritual",
+        "en": "Silky Herbal Compress Ritual",
+        "ru": "Ритуал Шёлк и травяной компресс",
+        "th": "พิธีประคบสมุนไพรนุ่มลื่น"
+    },
+    "thai_herbal_compress_ritual": {
+        "sr": "Thai Herbal Compress Ritual",
+        "en": "Thai Herbal Compress Ritual",
+        "ru": "Тайский ритуал травяного компресса",
+        "th": "พิธีประคบสมุนไพรไทย"
+    },
+    "aroma_stone_harmony_ritual": {
+        "sr": "Aroma Stone Harmony Ritual",
+        "en": "Aroma Stone Harmony Ritual",
+        "ru": "Ритуал Гармония аромакамней",
+        "th": "พิธีหินร้อนอโรม่า"
+    },
+    "spa_zone": {
+        "sr": "SPA zona",
+        "en": "SPA Zone",
+        "ru": "СПА зона",
+        "th": "โซนสปา"
+    },
+    "romantic_couple_package": {
+        "sr": "Romantični paket za parove",
+        "en": "Romantic Couple Package",
+        "ru": "Романтический пакет для пар",
+        "th": "แพ็คเกจคู่รักโรแมนติก"
+    },
+    "romantic_peeling_couple_package": {
+        "sr": "Romantični piling paket za parove",
+        "en": "Romantic Peeling Couple Package",
+        "ru": "Романтический пилинг-пакет для пар",
+        "th": "แพ็คเกจพีลลิ่งคู่รักโรแมนติก"
+    }
+}
+
+
+def _translate_spa_service_name(service_name: str, card_id: str, lang: str) -> str:
+    """
+    🌐 Translate SPA service name to specified language.
+    
+    Priority:
+    1. Look up by card_id in SPA_CARD_TRANSLATIONS
+    2. Look up by service_name in SPA_SERVICE_TRANSLATIONS
+    3. Fallback to original service_name
+    
+    Args:
+        service_name: Original service name (e.g., "Silky Body Ritual")
+        card_id: SPA card identifier (e.g., "silky_body_ritual")
+        lang: Target language code (sr, en, ru, th)
+    
+    Returns:
+        Translated service name
+    """
+    if not service_name and not card_id:
+        return "SPA"
+    
+    # Default to Serbian if unknown language
+    if lang not in ['sr', 'en', 'ru', 'th']:
+        lang = 'sr'
+    
+    # Priority 1: Try card_id translation
+    if card_id:
+        card_trans = SPA_CARD_TRANSLATIONS.get(card_id)
+        if card_trans and lang in card_trans:
+            return card_trans[lang]
+    
+    # Priority 2: Try service_name translation
+    if service_name:
+        service_trans = SPA_SERVICE_TRANSLATIONS.get(service_name)
+        if service_trans and lang in service_trans:
+            return service_trans[lang]
+    
+    # Fallback: Return original name
+    return service_name or "SPA"
+
+
 def _format_date(dt: Any) -> str:
     """Format datetime to DD.MM.YYYY"""
     if isinstance(dt, str):
