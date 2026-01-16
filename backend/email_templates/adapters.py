@@ -720,10 +720,18 @@ def build_client_email_for_spa(appt: dict) -> tuple:
         LineItem("💆", t['treatment'], service_name)
     ]
     
+    # 🌐 Get service description - with fallback for romantic packages
+    service_description = appt.get('service_description', '')
+    
+    # If no description but we have card_id for romantic packages, use default description
+    if not service_description and card_id:
+        service_description = _get_romantic_package_description(card_id, lang)
+    
     # Add service description/variant if exists - TRANSLATE IT!
-    if appt.get('service_description'):
-        translated_description = _translate_spa_option(appt['service_description'], lang)
+    if service_description:
+        translated_description = _translate_spa_option(service_description, lang)
         items.append(LineItem("📋", t['details'], translated_description))
+        logger.info(f"📧 SPA_DESCRIPTION: '{service_description}' -> '{translated_description}' (lang={lang})")
     
     # Add SPA zone if exists - TRANSLATE IT!
     spa_zone = appt.get('spa_zone')
