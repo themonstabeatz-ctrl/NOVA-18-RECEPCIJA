@@ -2,8 +2,8 @@
 
 ## Current URLs (Source of Truth)
 - **Backend**: https://multilingfix.preview.emergentagent.com
-- **Frontend (Public)**: https://multilingfix.preview.emergentagent.com
-- **Frontend (Admin)**: http://localhost:3000
+- **Frontend (Public)**: https://spabook-upgrade.preview.emergentagent.com
+- **Frontend (Admin)**: https://multilingfix.preview.emergentagent.com
 
 ## Verified Prices - Romantični Paketi (E2E Tested Jan 8, 2026)
 | Package | Duration | Price (RSD) |
@@ -15,8 +15,20 @@
 
 ## What's Been Implemented
 
+### January 16, 2026 - VIŠEJEZIČNI EMAIL POZDRAVI
+- [x] **Email greeting lokalizacija** - Pozdrav u emailu se sada prevodi prema `lang` parametru rezervacije
+- [x] **Normalizacija jezika** - "en-US" → "en", "ru_RU" → "ru", prazno → "sr"
+- [x] **Podržani jezici**:
+  - `sr`: "Poštovani/a {ime},"
+  - `en`: "Dear {ime},"
+  - `ru`: "Уважаемый/ая {ime},"
+  - `th`: "เรียนคุณ {ime},"
+- [x] **SPA model update** - Dodato `lang` polje u `SpaAppointmentCreate` i `SpaAppointment`
+- [x] **Adapters update** - `build_client_email_for_massage` i `build_client_email_for_couples` sada prosleđuju `lang` u `ClientEmailModel`
+- [x] **CORS update** - Dodat `spabook-upgrade.preview.emergentagent.com` u allowed origins
+
 ### January 8, 2026
-- [x] CORS lockdown - only `spa-booking-site-1` allowed
+- [x] CORS lockdown - only allowed origins
 - [x] **Duration fix in DB**: 180/150 → 210 min for romantic packages
 - [x] **Price fix in SPECIAL_PACKAGES**: 25,000 → 22,000/19,000 RSD
 - [x] **SPA_CARDS config**: Added `base_price` and `duration_min`
@@ -24,43 +36,41 @@
 - [x] Added `card_id` and `card_title` storage in SPA appointments
 - [x] E2E verification completed with 7 documented proofs
 
-## E2E Test Results (Jan 8, 2026)
-All tests passed:
-1. ✅ Public frontend shows correct prices (22,000/19,000 with discounts)
-2. ✅ Booking modal shows 210 min duration, 22,000 RSD original
-3. ✅ CEO Dashboard "Termini Sa Popustom" displays correctly
-4. ✅ Admin Usluge shows 210 min, correct prices
-5. ✅ Backend logs show correct pricing calculations
-6. ✅ Email sent to grujovicsavatije@gmail.com
-7. ✅ MongoDB document has correct pricing snapshot
-
 ## Technical Debt (P0 - CRITICAL)
 - [ ] **SPA_CARDS in-memory** → Must migrate to MongoDB (discounts lost on restart!)
 
 ## Architecture
 ```
 /app/backend/
-├── server.py          # Main FastAPI, CORS, analytics
-│                      # Functions: resolve_pricing_from_appointment, resolve_spa_display_name
-├── spa_module.py      # SPA booking logic
-│                      # Config: SPA_CARDS (in-memory!), SPECIAL_PACKAGES
+├── server.py              # Main FastAPI, CORS, analytics
+│                          # Functions: resolve_pricing_from_appointment, resolve_spa_display_name
+├── spa_module.py          # SPA booking logic
+│                          # Config: SPA_CARDS (in-memory!), SPECIAL_PACKAGES
+│                          # NEW: normalize_lang() helper, lang field in models
 └── email_templates/
+    ├── client_shared.py   # GREETINGS dict, get_greeting(), normalize_lang()
+    └── adapters.py        # build_client_email_for_spa/massage/couples - all pass lang
 ```
 
 ## Key Endpoints
-- `GET /api/spa/services` - All SPA services (from DB)
-- `POST /api/spa/quote` - Calculate quote with discount
-- `POST /api/spa/appointments` - Create booking
-- `PATCH /api/spa/cards/{card_id}/discount?discount=X` - Set discount (in-memory!)
+- `POST /api/appointments` - Massage booking (supports `lang`)
+- `POST /api/spa/appointments` - SPA booking (supports `lang`)
 - `GET /api/analytics/detailed` - CEO Dashboard data
+- `PUT /api/appointments/{id}` - Update appointment
 
-## Credentials
-- Dashboard password: `studio149`
-- Test email: `grujovicsavatije@gmail.com`
+## Email Localization Flow
+```
+1. Frontend sends: { "lang": "en" } in booking request
+2. Backend normalizes: normalize_lang("en-US") → "en"
+3. Saves to DB: doc['lang'] = "en"
+4. Email adapter: build_client_email_for_spa({ lang: "en" })
+5. ClientEmailModel: lang="en"
+6. render_client_shared: get_greeting(name, "en") → "Dear {name},"
+```
 
-## Backlog
-- [ ] Migrate SPA_CARDS to MongoDB
-- [ ] E2E testing of complete booking flow
-- [ ] POS/terminal integration
-- [ ] Reviews system
-- [ ] Loyalty program
+## Backlog / Future Tasks
+1. **P0**: Migrate SPA_CARDS to MongoDB (prevents discount reset on server restart)
+2. E2E testing of complete booking flow
+3. POS/kasa integration
+4. Reviews system
+5. Loyalty program
