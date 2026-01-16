@@ -27,11 +27,36 @@ class ClientEmailModel:
     contact_email: str
     contact_phone: str
     address_line: str
+    lang: str = "sr"                # Language code: sr, en, ru, th
     website_url: str = "https://www.bualuangthaispa.rs"
     logo_url: str = "https://customer-assets.emergentagent.com/job_spa-web-update/artifacts/3uhqente_Bua%20luang%20logo%20crna%20senka.png"
     background_url: str = "https://customer-assets.emergentagent.com/job_spa-web-update/artifacts/s08ovfd4_podloga.jpg"
     brand_bg: str = "#0d0d0d"
     brand_gold: str = "#c9a227"
+
+
+# ============================================
+# 🌐 GREETING TRANSLATIONS
+# ============================================
+def normalize_lang(raw: str) -> str:
+    """Normalize language code: 'en-US' -> 'en', 'sr_RS' -> 'sr'"""
+    if not raw:
+        return "sr"
+    raw = raw.lower()
+    return raw.split("-")[0].split("_")[0]
+
+GREETINGS = {
+    "sr": "Poštovani/a {client_name},",
+    "en": "Dear {client_name},",
+    "ru": "Уважаемый/ая {client_name},",
+    "th": "เรียนคุณ {client_name},",
+}
+
+def get_greeting(client_name: str, lang: str) -> str:
+    """Get localized greeting based on language"""
+    lang = normalize_lang(lang)
+    template = GREETINGS.get(lang, GREETINGS["sr"])
+    return template.format(client_name=client_name)
 
 
 def render_client_shared(m: ClientEmailModel) -> tuple:
