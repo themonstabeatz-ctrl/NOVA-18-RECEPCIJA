@@ -155,6 +155,60 @@ def normalize_lang(raw: str) -> str:
     return "sr"
 
 
+# ============================================
+# 🔒 MASTER DATA RESOLVER (SR = SOURCE OF TRUTH)
+# ============================================
+def get_card_master_data(card_id: str) -> dict:
+    """
+    Get MASTER data for a card - SR name and duration.
+    This is the SINGLE SOURCE OF TRUTH for admin/notifications/listing.
+    
+    Returns: {"name": str, "duration": int}
+    
+    Priority:
+    1. SPA_CARDS.title_sr for name
+    2. SPA_SERVICES matching name for duration
+    3. Fallback defaults if not found
+    """
+    result = {
+        "name": None,
+        "duration": None
+    }
+    
+    if not card_id:
+        return result
+    
+    # Get card config
+    card_config = SPA_CARDS.get(card_id)
+    if card_config:
+        result["name"] = card_config.get("title_sr")
+        # Some cards have duration_min directly (romantic packages)
+        if card_config.get("duration_min"):
+            result["duration"] = card_config["duration_min"]
+    
+    # If we have name but no duration, look up in SPA_SERVICES
+    if result["name"] and not result["duration"]:
+        for svc in SPA_SERVICES:
+            if svc["name"] == result["name"]:
+                result["duration"] = svc.get("duration")
+                break
+    
+    # If still no name, try to find service by card_id pattern
+    if not result["name"]:
+        # Convert card_id to potential service name: "silky_body_ritual" -> "Silky Body Ritual"
+        potential_name = card_id.replace("_", " ").title()
+        for svc in SPA_SERVICES:
+            if svc["name"].lower() == potential_name.lower():
+                result["name"] = svc["name"]
+                result["duration"] = svc.get("duration")
+                break
+    
+    # Log for debugging
+    logger.info(f"🔒 MASTER_DATA card_id={card_id} -> name='{result['name']}' duration={result['duration']}")
+    
+    return result
+
+
 def price_view(appt: dict) -> tuple:
     """
     🔒 BULLETPROOF pricing resolver for notifications and displays.
