@@ -4176,15 +4176,15 @@ async def api_root():
 # ============================================
 # 🔐 HARD-LOCKED URLs - ONLY THESE ARE VALID
 # ============================================
-BACKEND_PUBLIC_URL = "https://price-analyzer-8.preview.emergentagent.com"
-FRONTEND_PUBLIC_URL = "https://spabook-upgrade.preview.emergentagent.com"
+BACKEND_PUBLIC_URL = "https://multilingfix.preview.emergentagent.com"
+FRONTEND_PUBLIC_URL = "https://multilingfix.preview.emergentagent.com"
 
 # ============================================
 # 🌐 CORS ALLOWLIST - Dozvoljeni frontend origin-i
 # ============================================
 ALLOWED_ORIGINS = [
-    "https://spabook-upgrade.preview.emergentagent.com",  # ✅ NOVI JAVNI FRONTEND
-    "https://spa-booking-site-1.preview.emergentagent.com",  # Stari frontend (backup)
+    "https://multilingfix.preview.emergentagent.com",  # ✅ NOVI JAVNI FRONTEND
+    "https://multilingfix.preview.emergentagent.com",  # Stari frontend (backup)
     "http://localhost:3000",  # Development
 ]
 

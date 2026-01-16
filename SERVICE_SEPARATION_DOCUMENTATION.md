@@ -156,7 +156,7 @@ fetch('/api/services?service_type=single')
 
 ### Тест 1: Couple Endpoint
 ```bash
-curl -X GET "https://price-analyzer-8.preview.emergentagent.com/api/services/couples/list"
+curl -X GET "https://multilingfix.preview.emergentagent.com/api/services/couples/list"
 ```
 
 **Очекивано:**
@@ -168,7 +168,7 @@ curl -X GET "https://price-analyzer-8.preview.emergentagent.com/api/services/cou
 
 ### Тест 2: Single Endpoint
 ```bash
-curl -X GET "https://price-analyzer-8.preview.emergentagent.com/api/services/single/list"
+curl -X GET "https://multilingfix.preview.emergentagent.com/api/services/single/list"
 ```
 
 **Очекивано:**

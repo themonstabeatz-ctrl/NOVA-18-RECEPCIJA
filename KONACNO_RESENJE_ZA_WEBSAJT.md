@@ -25,7 +25,7 @@
 
 ```javascript
 // 1. Pozovi API
-const response = await fetch('https://price-analyzer-8.preview.emergentagent.com/api/services');
+const response = await fetch('https://multilingfix.preview.emergentagent.com/api/services');
 const allServices = await response.json();
 
 // 2. Filter samo [PAROVI] servise
@@ -136,7 +136,7 @@ const bookingData = {
 
 // Pošalji na backend:
 const response = await fetch(
-  'https://price-analyzer-8.preview.emergentagent.com/api/appointments/couple',
+  'https://multilingfix.preview.emergentagent.com/api/appointments/couple',
   {
     method: 'POST',
     headers: {
@@ -163,7 +163,7 @@ console.log('Rezervacija kreirana:', result);
 
 ### TEST 1: Proveri Backend Servise
 ```bash
-curl -s "https://price-analyzer-8.preview.emergentagent.com/api/services" | \
+curl -s "https://multilingfix.preview.emergentagent.com/api/services" | \
   grep -A 3 "\[PAROVI\]" | head -20
 
 # Trebalo bi da vidiš:
@@ -173,7 +173,7 @@ curl -s "https://price-analyzer-8.preview.emergentagent.com/api/services" | \
 ```
 
 ### TEST 2: Proveri Frontend Badge
-1. Otvori: https://price-analyzer-8.preview.emergentagent.com/massage
+1. Otvori: https://multilingfix.preview.emergentagent.com/massage
 2. Skroluj do kartice "Masaža za parove"
 3. Trebalo bi da vidiš badge sa **"-10%"**
 4. Trebalo bi da vidiš precrtane originalne cene
@@ -184,7 +184,7 @@ curl -s "https://price-analyzer-8.preview.emergentagent.com/api/services" | \
 2. Trebalo bi da vidiš: "Popust 10%: -1,000 RSD"
 3. Trebalo bi da vidiš: "Za plaćanje: 9,000 RSD"
 4. Kreiraj rezervaciju
-5. Proveri u Dashboard-u (https://price-analyzer-8.preview.emergentagent.com/)
+5. Proveri u Dashboard-u (https://multilingfix.preview.emergentagent.com/)
    - Lozinka: studio149
    - U "Termini" trebalo bi da vidiš rezervaciju sa cenom 9,000 RSD
    - U "Notifikacije" trebalo bi da vidiš detalje sa popustom 10%

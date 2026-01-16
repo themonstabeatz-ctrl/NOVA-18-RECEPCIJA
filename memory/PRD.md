@@ -1,8 +1,8 @@
 # SPA Booking System - PRD
 
 ## Current URLs (Source of Truth)
-- **Backend**: https://price-analyzer-8.preview.emergentagent.com
-- **Frontend (Public)**: https://spa-booking-site-1.preview.emergentagent.com
+- **Backend**: https://multilingfix.preview.emergentagent.com
+- **Frontend (Public)**: https://multilingfix.preview.emergentagent.com
 - **Frontend (Admin)**: http://localhost:3000
 
 ## Verified Prices - Romantični Paketi (E2E Tested Jan 8, 2026)

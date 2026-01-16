@@ -70,7 +70,7 @@ export default function CoupleBookingForm() {
 
   // Učitaj sve regularne usluge iz API-ja
   useEffect(() => {
-    fetch('https://price-analyzer-8.preview.emergentagent.com/api/services')
+    fetch('https://multilingfix.preview.emergentagent.com/api/services')
       .then(res => res.json())
       .then(data => {
         // Filtriraj da ne prikazuješ "parove" usluge (ne bi trebalo da ih ima)
@@ -101,7 +101,7 @@ export default function CoupleBookingForm() {
 
     try {
       const response = await fetch(
-        'https://price-analyzer-8.preview.emergentagent.com/api/appointments/couple',
+        'https://multilingfix.preview.emergentagent.com/api/appointments/couple',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

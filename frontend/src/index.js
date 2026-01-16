@@ -4,8 +4,8 @@ import "@/index.css";
 import App from "@/App";
 
 // 🔐 HARD-LOCKED URLs - ONLY THESE ARE VALID
-const BACKEND_PUBLIC_URL = "https://price-analyzer-8.preview.emergentagent.com";
-const FRONTEND_PUBLIC_URL = "https://price-analyzer-8.preview.emergentagent.com";
+const BACKEND_PUBLIC_URL = "https://multilingfix.preview.emergentagent.com";
+const FRONTEND_PUBLIC_URL = "https://multilingfix.preview.emergentagent.com";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL || BACKEND_PUBLIC_URL;
 console.log('🔐 LOCKED BACKEND_PUBLIC_URL =', BACKEND_PUBLIC_URL);

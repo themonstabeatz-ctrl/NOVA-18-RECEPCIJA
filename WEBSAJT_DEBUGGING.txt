@@ -31,7 +31,7 @@ U Developer Tools → Network tab:
 
 Kada klikneš "Pošaljite":
 1. Da li se šalje POST request?
-2. Koji je URL? (treba: https://price-analyzer-8.preview.emergentagent.com/api/book-couple-appointment)
+2. Koji je URL? (treba: https://multilingfix.preview.emergentagent.com/api/book-couple-appointment)
 3. Šta je u Request Payload?
 4. Koji je Response status? (200, 400, 404, 500?)
 5. Šta piše u Response?
@@ -65,7 +65,7 @@ PROVERI:
 
 GREŠKA 1: Pogrešan URL
 ❌ https://spabooking.emergent.host/api/book-couple-appointment
-✅ https://price-analyzer-8.preview.emergentagent.com/api/book-couple-appointment
+✅ https://multilingfix.preview.emergentagent.com/api/book-couple-appointment
 
 GREŠKA 2: client_name umesto client_first_name i client_last_name
 ❌ "client_name": "Milos Stanić"
@@ -95,12 +95,12 @@ BRZA PROVERA
 Dodaj console.log ODMAH PRE slanja requesta:
 
 console.log('🔍 DEBUGGING - Request data:', {
-  url: 'https://price-analyzer-8.preview.emergentagent.com/api/book-couple-appointment',
+  url: 'https://multilingfix.preview.emergentagent.com/api/book-couple-appointment',
   method: 'POST',
   body: bookingData
 });
 
-const response = await fetch('https://price-analyzer-8.preview.emergentagent.com/api/book-couple-appointment', {
+const response = await fetch('https://multilingfix.preview.emergentagent.com/api/book-couple-appointment', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(bookingData)
@@ -132,7 +132,7 @@ async function testBooking() {
   console.log('Testing with fixed data:', testData);
   
   const response = await fetch(
-    'https://price-analyzer-8.preview.emergentagent.com/api/book-couple-appointment',
+    'https://multilingfix.preview.emergentagent.com/api/book-couple-appointment',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
