@@ -1347,7 +1347,9 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
                 "client_first_name": doc.get("client_first_name", ""),
                 "client_last_name": doc.get("client_last_name", ""),
                 "client_email": doc.get("client_email", ""),
-                "client_phone": doc.get("client_phone", "")
+                "client_phone": doc.get("client_phone", ""),
+                # 🌐 LOCALIZATION - Pass lang for email greeting
+                "lang": doc.get("lang", "sr")
             }
             notify_result = await _dispatch_notifications(notification_payload)
         else:
