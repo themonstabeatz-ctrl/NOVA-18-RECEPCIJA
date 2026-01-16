@@ -4183,8 +4183,8 @@ FRONTEND_PUBLIC_URL = "https://multilingfix.preview.emergentagent.com"
 # 🌐 CORS ALLOWLIST - Dozvoljeni frontend origin-i
 # ============================================
 ALLOWED_ORIGINS = [
-    "https://multilingfix.preview.emergentagent.com",  # ✅ NOVI JAVNI FRONTEND
-    "https://multilingfix.preview.emergentagent.com",  # Stari frontend (backup)
+    "https://multilingfix.preview.emergentagent.com",  # ✅ Backend admin panel
+    "https://spabook-upgrade.preview.emergentagent.com",  # ✅ Javni frontend sajt
     "http://localhost:3000",  # Development
 ]
 
