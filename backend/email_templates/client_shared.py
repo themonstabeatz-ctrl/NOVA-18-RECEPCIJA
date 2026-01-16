@@ -42,8 +42,12 @@ def normalize_lang(raw: str) -> str:
     """Normalize language code: 'en-US' -> 'en', 'sr_RS' -> 'sr'"""
     if not raw:
         return "sr"
-    raw = raw.lower()
-    return raw.split("-")[0].split("_")[0]
+    raw = str(raw).lower()
+    normalized = raw.split("-")[0].split("_")[0]
+    # Validate against allowed languages
+    if normalized in ['sr', 'en', 'ru', 'th']:
+        return normalized
+    return "sr"
 
 GREETINGS = {
     "sr": "Poštovani/a {client_name},",
@@ -52,11 +56,25 @@ GREETINGS = {
     "th": "เรียนคุณ {client_name},",
 }
 
+# 🌐 EMAIL SUBJECT TRANSLATIONS
+SUBJECTS = {
+    "sr": "✅ Uspešno zakazano - {salon_name}",
+    "en": "✅ Successfully Booked - {salon_name}",
+    "ru": "✅ Успешно забронировано - {salon_name}",
+    "th": "✅ จองสำเร็จแล้ว - {salon_name}",
+}
+
 def get_greeting(client_name: str, lang: str) -> str:
     """Get localized greeting based on language"""
     lang = normalize_lang(lang)
     template = GREETINGS.get(lang, GREETINGS["sr"])
     return template.format(client_name=client_name)
+
+def get_subject(salon_name: str, lang: str) -> str:
+    """Get localized email subject based on language"""
+    lang = normalize_lang(lang)
+    template = SUBJECTS.get(lang, SUBJECTS["sr"])
+    return template.format(salon_name=salon_name)
 
 
 def render_client_shared(m: ClientEmailModel) -> tuple:
@@ -66,7 +84,8 @@ def render_client_shared(m: ClientEmailModel) -> tuple:
     
     Returns: (subject, html)
     """
-    subject = f"✅ Uspešno zakazano - {m.salon_name}"
+    # 🌐 Get localized subject
+    subject = get_subject(m.salon_name, m.lang)
     
     # 🌐 Get localized greeting
     greeting = get_greeting(m.client_full_name, m.lang)
