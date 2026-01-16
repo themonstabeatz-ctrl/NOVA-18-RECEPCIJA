@@ -1494,8 +1494,13 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
             "card_id": card_id
         }
         
+        # 🔒 GET MASTER DATA (SR = SOURCE OF TRUTH) - name and duration from card_id
+        master_data = get_card_master_data(card_id)
+        master_name = master_data["name"] or "SPA Tretman"
+        master_duration = master_data["duration"] or 60  # Fallback only if truly unknown
+        
         # 🔒 [PUBLIC_BOOKING] LOG for debugging
-        logger.info(f"[PUBLIC_BOOKING] source=minimal, card_id={card_id}, original_total={pricing_snapshot['original_total']}, final_total={pricing_snapshot['final_total']}, discount={pricing_snapshot['discount_percent']}%")
+        logger.info(f"[PUBLIC_BOOKING] source=minimal, card_id={card_id}, master_name={master_name}, master_duration={master_duration}, original_total={pricing_snapshot['original_total']}, final_total={pricing_snapshot['final_total']}, discount={pricing_snapshot['discount_percent']}%")
         
         spa_apt = SpaAppointment(
             client_first_name=appointment.client_first_name,
@@ -1505,7 +1510,7 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
             service_ids=[],
             services_snapshot=[],
             start_time=start_time,
-            end_time=start_time + timedelta(minutes=60),
+            end_time=start_time + timedelta(minutes=master_duration),  # 🔒 USE MASTER DURATION
             original_total=int(original_total),
             discount_percentage=float(discount_pct),
             discount_amount=int(discount_amount),
@@ -1520,9 +1525,13 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         doc['spa_category'] = appointment.spa_category or 'spa_zone'
         doc['is_viewed'] = False  # For notification badge on dashboard
         
-        # 🌐 LOCALIZATION - Normalize and store language
+        # 🔒 SET MASTER SERVICE NAME IMMEDIATELY (before normalize)
+        doc['service_name'] = master_name
+        doc['duration_min'] = master_duration
+        
+        # 🌐 LOCALIZATION - Normalize and store language (for email only, not core data)
         doc['lang'] = normalize_lang(appointment.lang)
-        logger.info(f"🌐 SPA_MINIMAL lang={doc['lang']} (raw={appointment.lang})")
+        logger.info(f"🌐 SPA_MINIMAL lang={doc['lang']} (raw={appointment.lang}) master_name={master_name} master_duration={master_duration}")
         
         # ✅ CARD ID & TITLE - za analytics "Termini sa popustom"
         doc['card_id'] = card_id
@@ -1536,8 +1545,15 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         # 1) INSERT into DB
         await db.spa_appointments.insert_one(doc)
         
-        # 2) NORMALIZE - parse notes to get proper fields
+        # 2) NORMALIZE - parse notes to get proper fields (but preserve master name/duration!)
+        saved_name = doc['service_name']  # Preserve master name
+        saved_duration = doc['duration_min']  # Preserve master duration
         doc = normalize_spa_appt(doc)
+        # Restore master values if normalize changed them
+        if doc['service_name'] == 'SPA Tretman' or not doc['service_name']:
+            doc['service_name'] = saved_name
+        if doc['duration_min'] == 120 or not doc['duration_min']:
+            doc['duration_min'] = saved_duration
         
         # 3) UPDATE DB with normalized fields AND pricing snapshot
         await db.spa_appointments.update_one(
@@ -1552,7 +1568,7 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
             }}
         )
         
-        logger.info(f"✅ SPA BOOKED id={doc['id']} name={doc['service_name']} email={appointment.client_email} pricing={pricing_snapshot}")
+        logger.info(f"✅ SPA BOOKED id={doc['id']} name={doc['service_name']} duration={doc['duration_min']} lang={doc['lang']} email={appointment.client_email} pricing={pricing_snapshot}")
         
         # 4) NOTIFICATIONS via CENTRAL DISPATCHER
         notify_result = {"email_sent": False, "notify_status": "pending"}
