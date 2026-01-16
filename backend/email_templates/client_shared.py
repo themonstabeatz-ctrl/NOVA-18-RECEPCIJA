@@ -113,7 +113,7 @@ def render_client_shared(m: ClientEmailModel) -> tuple:
                                     <td style="padding: 20px;">
                                         <!-- Greeting -->
                                         <p style="color: {m.brand_gold}; font-size: 16px; margin: 0 0 10px 0;">
-                                            Poštovani/a {m.client_full_name},
+                                            {greeting}
                                         </p>
                                         <p style="color: #4CAF50; font-size: 18px; font-weight: bold; margin: 0 0 20px 0;">
                                             ✅ {m.title}
