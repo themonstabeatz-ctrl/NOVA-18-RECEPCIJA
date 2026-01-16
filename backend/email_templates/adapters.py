@@ -256,8 +256,10 @@ def build_client_email_for_spa(appt: dict) -> tuple:
         contact_email="bualuangthailandspa@gmail.com",
         contact_phone="+381 62 625 500",
         address_line="Abebe Bikile 10A",
-        lang=appt.get('lang', 'sr')  # 🌐 Language from appointment
+        lang=lang  # 🌐 Use normalized language
     )
+    
+    logger.info(f"📧 SPA_EMAIL_MODEL lang={lang}, greeting will use: {lang}")
     
     return render_client_shared(m)
 
