@@ -1296,6 +1296,10 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         doc['addons_total'] = 0
         doc['is_viewed'] = False  # For notification badge on dashboard
         
+        # 🌐 LOCALIZATION - Normalize and store language
+        doc['lang'] = normalize_lang(appointment.lang)
+        logger.info(f"🌐 SPA_SPECIAL_COUPLE lang={doc['lang']} (raw={appointment.lang})")
+        
         # 1) INSERT into DB first
         await db.spa_appointments.insert_one(doc)
         
