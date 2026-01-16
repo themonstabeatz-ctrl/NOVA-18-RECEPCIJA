@@ -48,38 +48,45 @@ SPA_CARDS = {
         "title_sr": "Silky Body Ritual",
         "title_en": "Silky Body Ritual",
         "discount_percent": 0,
+        "duration_min": 150,  # 🔒 MASTER DURATION
     },
     "gentle_touch_ritual": {
         "title_sr": "Gentle Touch Ritual",
         "title_en": "Gentle Touch Ritual",
         "discount_percent": 0,
+        "duration_min": 180,  # 🔒 MASTER DURATION
     },
     "deep_renewal_ritual": {
         "title_sr": "Deep Renewal Ritual",
         "title_en": "Deep Renewal Ritual",
         "discount_percent": 0,
+        "duration_min": 210,  # 🔒 MASTER DURATION
     },
 
     "silky_herbal_compress_ritual": {
         "title_sr": "Silky Herbal Compress Ritual",
         "title_en": "Silky Herbal Compress Ritual",
         "discount_percent": 0,
+        "duration_min": 120,  # 🔒 MASTER DURATION
     },
     "thai_herbal_compress_ritual": {
         "title_sr": "Thai Herbal Compress Ritual",
         "title_en": "Thai Herbal Compress Ritual",
         "discount_percent": 0,
+        "duration_min": 120,  # 🔒 MASTER DURATION
     },
     "aroma_stone_harmony_ritual": {
         "title_sr": "Aroma Stone Harmony Ritual",
         "title_en": "Aroma Stone Harmony Ritual",
         "discount_percent": 0,
+        "duration_min": 120,  # 🔒 MASTER DURATION
     },
 
     "spa_zone": {
         "title_sr": "SPA Zone",
         "title_en": "SPA Zone",
         "discount_percent": 0,
+        "duration_min": 60,  # 🔒 DEFAULT DURATION (varies by selection)
     },
 
     "romantic_couple_package": {
