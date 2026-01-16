@@ -196,8 +196,13 @@ def build_client_email_for_spa(appt: dict) -> tuple:
     import logging
     logger = logging.getLogger(__name__)
     
+    # 🌐 LOCALIZATION - Get and normalize language
+    from .client_shared import normalize_lang
+    raw_lang = appt.get('lang', 'sr')
+    lang = normalize_lang(raw_lang)
+    
     # 🔥 DEBUG LOG
-    logger.info(f"📧 BUILD_SPA_EMAIL input: pricing={appt.get('pricing')}, original_total={appt.get('original_total')}, final_total={appt.get('final_total')}, has_discount={appt.get('has_discount')}")
+    logger.info(f"📧 BUILD_SPA_EMAIL input: lang={lang} (raw={raw_lang}), pricing={appt.get('pricing')}, original_total={appt.get('original_total')}, final_total={appt.get('final_total')}, has_discount={appt.get('has_discount')}")
     
     full_name = f"{appt.get('client_first_name', '')} {appt.get('client_last_name', '')}".strip()
     
