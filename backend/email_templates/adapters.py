@@ -468,6 +468,39 @@ SPA_OPTION_TRANSLATIONS = {
         "ru": "60 мин",
         "th": "60 นาที"
     },
+    # ============================================
+    # 💕 ROMANTIC PACKAGE DESCRIPTIONS
+    # ============================================
+    "Savršen romantični doživljaj za dvoje": {
+        "sr": "Savršen romantični doživljaj za dvoje",
+        "en": "A perfect romantic experience for two",
+        "ru": "Идеальный романтический опыт для двоих",
+        "th": "ประสบการณ์โรแมนติกที่สมบูรณ์แบบสำหรับคู่รัก"
+    },
+    "Romantični paket za 2 osobe": {
+        "sr": "Romantični paket za 2 osobe",
+        "en": "Romantic package for 2 people",
+        "ru": "Романтический пакет для 2 человек",
+        "th": "แพ็คเกจโรแมนติกสำหรับ 2 คน"
+    },
+    "Romantični piling paket za 2 osobe": {
+        "sr": "Romantični piling paket za 2 osobe",
+        "en": "Romantic peeling package for 2 people",
+        "ru": "Романтический пилинг-пакет для 2 человек",
+        "th": "แพ็คเกจพีลลิ่งโรแมนติกสำหรับ 2 คน"
+    },
+    "Luksuzni piling i masaža za parove": {
+        "sr": "Luksuzni piling i masaža za parove",
+        "en": "Luxury peeling and massage for couples",
+        "ru": "Роскошный пилинг и массаж для пар",
+        "th": "พีลลิ่งและนวดหรูหราสำหรับคู่รัก"
+    },
+    "Savršen romantični piling doživljaj za dvoje": {
+        "sr": "Savršen romantični piling doživljaj za dvoje",
+        "en": "A perfect romantic peeling experience for two",
+        "ru": "Идеальный романтический пилинг для двоих",
+        "th": "ประสบการณ์พีลลิ่งโรแมนติกที่สมบูรณ์แบบสำหรับคู่รัก"
+    },
 }
 
 
