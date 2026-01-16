@@ -389,6 +389,8 @@ class SpaAppointmentCreate(BaseModel):
     message: Optional[str] = None
     # 🎴 CARD-LEVEL DISCOUNT - source of truth
     card_id: Optional[str] = None  # e.g., "silky_body_ritual", "spa_zone"
+    # 🌐 LOCALIZATION - Language code for email greeting
+    lang: Optional[str] = "sr"  # Language code: sr, en, ru, th
 
 class SpaAppointment(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -414,6 +416,8 @@ class SpaAppointment(BaseModel):
     spa_category: Optional[str] = None  # "spa_zone", "spa_ritual", "spa_special_couple"
     # Service name for display
     service_name: Optional[str] = None  # Primary service name for listing
+    # 🌐 LOCALIZATION - Language code for email greeting
+    lang: Optional[str] = "sr"  # Language code: sr, en, ru, th
 
 
 # ============================================
