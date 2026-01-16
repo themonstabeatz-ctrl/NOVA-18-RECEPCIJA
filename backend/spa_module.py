@@ -134,6 +134,27 @@ def parse_spa_notes(notes: str) -> dict:
     return out
 
 
+# ============================================
+# 🌐 LANGUAGE NORMALIZER
+# ============================================
+def normalize_lang(raw: str) -> str:
+    """
+    Normalize language code: 
+    - 'en-US' -> 'en'
+    - 'ru_RU' -> 'ru'  
+    - empty/None -> 'sr'
+    """
+    if not raw:
+        return "sr"
+    raw = str(raw).lower().strip()
+    # Split by both '-' and '_' to handle all variants
+    normalized = raw.split("-")[0].split("_")[0]
+    # Validate against allowed languages
+    if normalized in ['sr', 'en', 'ru', 'th']:
+        return normalized
+    return "sr"
+
+
 def price_view(appt: dict) -> tuple:
     """
     🔒 BULLETPROOF pricing resolver for notifications and displays.
