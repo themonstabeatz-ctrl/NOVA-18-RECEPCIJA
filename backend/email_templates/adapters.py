@@ -355,6 +355,204 @@ def _translate_spa_service_name(service_name: str, card_id: str, lang: str) -> s
     return service_name or "SPA"
 
 
+# ============================================
+# 🧖 SPA OPTION/VARIANT TRANSLATIONS
+# ============================================
+SPA_OPTION_TRANSLATIONS = {
+    # Face massage options
+    "Bez masaže lica": {
+        "sr": "Bez masaže lica",
+        "en": "Without face massage",
+        "ru": "Без массажа лица",
+        "th": "ไม่มีนวดหน้า"
+    },
+    "Sa masažom lica (tokom body wrap-a)": {
+        "sr": "Sa masažom lica (tokom body wrap-a)",
+        "en": "With face massage (during body wrap)",
+        "ru": "С массажем лица (во время обёртывания)",
+        "th": "พร้อมนวดหน้า (ระหว่าง body wrap)"
+    },
+    "Sa masažom lica": {
+        "sr": "Sa masažom lica",
+        "en": "With face massage",
+        "ru": "С массажем лица",
+        "th": "พร้อมนวดหน้า"
+    },
+    # Body scrub options
+    "Sa pilingom tela": {
+        "sr": "Sa pilingom tela",
+        "en": "With body scrub",
+        "ru": "С пилингом тела",
+        "th": "พร้อมขัดผิวกาย"
+    },
+    "Bez pilinga tela": {
+        "sr": "Bez pilinga tela",
+        "en": "Without body scrub",
+        "ru": "Без пилинга тела",
+        "th": "ไม่มีขัดผิวกาย"
+    },
+    # Hot stone options
+    "Sa toplim kamenjem": {
+        "sr": "Sa toplim kamenjem",
+        "en": "With hot stones",
+        "ru": "С горячими камнями",
+        "th": "พร้อมหินร้อน"
+    },
+    "Bez toplog kamenja": {
+        "sr": "Bez toplog kamenja",
+        "en": "Without hot stones",
+        "ru": "Без горячих камней",
+        "th": "ไม่มีหินร้อน"
+    },
+    # Herbal compress options
+    "Sa biljnim kompresama": {
+        "sr": "Sa biljnim kompresama",
+        "en": "With herbal compress",
+        "ru": "С травяными компрессами",
+        "th": "พร้อมประคบสมุนไพร"
+    },
+    "Bez biljnih kompresa": {
+        "sr": "Bez biljnih kompresa",
+        "en": "Without herbal compress",
+        "ru": "Без травяных компрессов",
+        "th": "ไม่มีประคบสมุนไพร"
+    },
+    # Aromatherapy options
+    "Sa aromaterapijom": {
+        "sr": "Sa aromaterapijom",
+        "en": "With aromatherapy",
+        "ru": "С ароматерапией",
+        "th": "พร้อมอโรมาเธอราพี"
+    },
+    "Bez aromaterapije": {
+        "sr": "Bez aromaterapije",
+        "en": "Without aromatherapy",
+        "ru": "Без ароматерапии",
+        "th": "ไม่มีอโรมาเธอราพี"
+    },
+    # SPA Zone items
+    "Sauna": {
+        "sr": "Sauna",
+        "en": "Sauna",
+        "ru": "Сауна",
+        "th": "ซาวน่า"
+    },
+    "Parno kupatilo": {
+        "sr": "Parno kupatilo",
+        "en": "Steam room",
+        "ru": "Парная",
+        "th": "ห้องอบไอน้ำ"
+    },
+    "Jacuzzi": {
+        "sr": "Jacuzzi",
+        "en": "Jacuzzi",
+        "ru": "Джакузи",
+        "th": "จากุซซี่"
+    },
+    # Duration suffixes
+    "30 min": {
+        "sr": "30 min",
+        "en": "30 min",
+        "ru": "30 мин",
+        "th": "30 นาที"
+    },
+    "15 min": {
+        "sr": "15 min",
+        "en": "15 min",
+        "ru": "15 мин",
+        "th": "15 นาที"
+    },
+    "60 min": {
+        "sr": "60 min",
+        "en": "60 min",
+        "ru": "60 мин",
+        "th": "60 นาที"
+    },
+}
+
+
+def _translate_spa_option(text: str, lang: str) -> str:
+    """
+    🌐 Translate SPA option/variant text to specified language.
+    
+    Handles texts like:
+    - "Bez masaže lica"
+    - "Sa masažom lica (tokom body wrap-a) (+3.000 RSD)"
+    - "Sauna: 30 min - Parno kupatilo: 30 min"
+    
+    IMPORTANT: Preserves price suffixes like "(+3.000 RSD)" unchanged!
+    
+    Args:
+        text: Original option text in Serbian
+        lang: Target language code (sr, en, ru, th)
+    
+    Returns:
+        Translated option text
+    """
+    import re
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    if not text:
+        return text
+    
+    # Default to Serbian if unknown language
+    if lang not in ['sr', 'en', 'ru', 'th']:
+        lang = 'sr'
+    
+    # If already Serbian, return as-is
+    if lang == 'sr':
+        return text
+    
+    original_text = text
+    
+    # Step 1: Extract and preserve price suffix like "(+3.000 RSD)" or "(+3000 RSD)"
+    price_pattern = r'(\s*\(\+[\d.,]+\s*RSD\))'
+    price_match = re.search(price_pattern, text)
+    price_suffix = price_match.group(1) if price_match else ""
+    
+    # Remove price suffix for translation
+    text_without_price = re.sub(price_pattern, '', text).strip()
+    
+    # Step 2: Try direct translation lookup
+    if text_without_price in SPA_OPTION_TRANSLATIONS:
+        translated = SPA_OPTION_TRANSLATIONS[text_without_price].get(lang, text_without_price)
+        result = f"{translated}{price_suffix}"
+        logger.info(f"📧 SPA_OPTION_TRANSLATED: '{original_text}' -> '{result}' (lang={lang}, direct match)")
+        return result
+    
+    # Step 3: Handle compound options like "Sauna: 30 min - Parno kupatilo: 30 min - Jacuzzi: 60 min"
+    if " - " in text_without_price or ": " in text_without_price:
+        # Split by " - " first
+        parts = text_without_price.split(" - ")
+        translated_parts = []
+        
+        for part in parts:
+            translated_part = part
+            # Try to translate each component
+            for sr_key, translations in SPA_OPTION_TRANSLATIONS.items():
+                if sr_key in part:
+                    translated_part = part.replace(sr_key, translations.get(lang, sr_key))
+            translated_parts.append(translated_part)
+        
+        result = " - ".join(translated_parts) + price_suffix
+        logger.info(f"📧 SPA_OPTION_TRANSLATED: '{original_text}' -> '{result}' (lang={lang}, compound)")
+        return result
+    
+    # Step 4: Partial match - try to find and replace known Serbian strings
+    result = text_without_price
+    for sr_key, translations in SPA_OPTION_TRANSLATIONS.items():
+        if sr_key in result:
+            result = result.replace(sr_key, translations.get(lang, sr_key))
+    
+    result = f"{result}{price_suffix}"
+    
+    if result != original_text:
+        logger.info(f"📧 SPA_OPTION_TRANSLATED: '{original_text}' -> '{result}' (lang={lang}, partial)")
+    
+    return result
+
+
 def _format_date(dt: Any) -> str:
     """Format datetime to DD.MM.YYYY"""
     if isinstance(dt, str):
