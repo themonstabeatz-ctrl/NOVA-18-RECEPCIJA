@@ -4184,7 +4184,8 @@ FRONTEND_PUBLIC_URL = "https://multilingfix.preview.emergentagent.com"
 # ============================================
 ALLOWED_ORIGINS = [
     "https://multilingfix.preview.emergentagent.com",  # ✅ Backend admin panel
-    "https://spabook-upgrade.preview.emergentagent.com",  # ✅ Javni frontend sajt
+    "https://spabook-upgrade.preview.emergentagent.com",  # ✅ Javni frontend (backup)
+    "https://multi-lang-spa-1.preview.emergentagent.com",  # ✅ NOVI frontend
     "http://localhost:3000",  # Development
 ]
 
