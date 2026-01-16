@@ -250,7 +250,8 @@ def build_client_email_for_spa(appt: dict) -> tuple:
         footer_note="Stignite 10 min pre termina. Otkazivanje 4h unapred.",
         contact_email="bualuangthailandspa@gmail.com",
         contact_phone="+381 62 625 500",
-        address_line="Abebe Bikile 10A"
+        address_line="Abebe Bikile 10A",
+        lang=appt.get('lang', 'sr')  # 🌐 Language from appointment
     )
     
     return render_client_shared(m)
