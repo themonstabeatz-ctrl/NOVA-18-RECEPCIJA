@@ -1662,6 +1662,10 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
     doc['duration_min'] = total_duration if total_duration > 0 else 120  # Default 120 min if not calculated
     doc['is_viewed'] = False  # For notification badge on dashboard
     
+    # 🌐 LOCALIZATION - Normalize and store language
+    doc['lang'] = normalize_lang(appointment.lang)
+    logger.info(f"🌐 SPA_REGULAR lang={doc['lang']} (raw={appointment.lang})")
+    
     # 💰 PRICING SNAPSHOT - Immutable record of price at booking time
     doc['pricing'] = pricing_snapshot
     
