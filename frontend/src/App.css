@@ -155,3 +155,23 @@ button, a, input, select, textarea {
 .App-link {
   color: #61dafb;
 }
+
+/* 🔧 DEBUG/FIX: Ensure scroll works everywhere */
+html, body, #root, .App {
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y pinch-zoom !important;
+  height: auto !important;
+  min-height: 100% !important;
+}
+
+/* Remove any hidden overflow from main containers */
+body > div, #root > div {
+  overflow: visible !important;
+}
+
+/* Ensure no element blocks scrolling */
+* {
+  touch-action: inherit;
+}
