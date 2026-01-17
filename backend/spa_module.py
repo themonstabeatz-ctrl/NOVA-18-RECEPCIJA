@@ -1506,21 +1506,28 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         master_data = get_card_master_data(card_id)
         master_name = master_data["name"] or "SPA Tretman"
         
-        # 🔒 DURATION: Use frontend's total_duration if provided (includes SPA Zone)
-        # Otherwise fallback to card duration
-        if appointment.total_duration and appointment.total_duration > 0:
-            master_duration = appointment.total_duration
-            logger.info(f"🔒 DURATION from frontend total_duration={master_duration}")
+        # 🔒 DURATION: Frontend is SOURCE OF TRUTH for duration!
+        # Priority: duration > total_duration > base_duration > card duration > ERROR
+        frontend_duration = (
+            appointment.duration or 
+            appointment.total_duration or 
+            appointment.base_duration or 
+            0
+        )
+        
+        if frontend_duration > 0:
+            master_duration = frontend_duration
+            logger.info(f"🔒 DURATION from frontend: {master_duration} (duration={appointment.duration}, total_duration={appointment.total_duration}, base_duration={appointment.base_duration})")
         elif master_data["duration"]:
             master_duration = master_data["duration"]
-            logger.info(f"🔒 DURATION from card={master_duration}")
+            logger.warning(f"⚠️ DURATION fallback to card: {master_duration} (frontend sent nothing)")
         else:
-            # ERROR: No duration available - log and use minimal fallback
-            logger.error(f"❌ NO DURATION for card_id={card_id}! Using 60 min fallback")
-            master_duration = 60
+            # ERROR: No duration available - this should NEVER happen
+            logger.error(f"❌ NO DURATION for card_id={card_id}! Frontend: duration={appointment.duration}, total_duration={appointment.total_duration}")
+            master_duration = 60  # Last resort fallback
         
         # 🔒 [PUBLIC_BOOKING] LOG for debugging
-        logger.info(f"[PUBLIC_BOOKING] source=minimal, card_id={card_id}, master_name={master_name}, master_duration={master_duration}, frontend_total_duration={appointment.total_duration}, original_total={pricing_snapshot['original_total']}, final_total={pricing_snapshot['final_total']}, discount={pricing_snapshot['discount_percent']}%")
+        logger.info(f"[PUBLIC_BOOKING] source=minimal, card_id={card_id}, master_name={master_name}, master_duration={master_duration}, frontend_duration={frontend_duration}, original_total={pricing_snapshot['original_total']}, final_total={pricing_snapshot['final_total']}, discount={pricing_snapshot['discount_percent']}%")
         
         spa_apt = SpaAppointment(
             client_first_name=appointment.client_first_name,
