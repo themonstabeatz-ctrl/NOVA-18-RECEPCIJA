@@ -330,6 +330,13 @@ def normalize_spa_appt(appt: dict) -> dict:
     }
     appt["included_spa_zone_label"] = SPA_ZONE_LABELS.get(spa_zone_choice, "")
     
+    # 🔧 GUARDRAIL: Validate duration for "15 min included" options
+    if spa_zone_choice in ["SAUNA_15", "STEAM_15", "sauna_15", "steam_15"]:
+        duration = appt.get("duration_min", 0)
+        # Base Herbal ritual is 120 min, with 15 min zone = 135 min
+        if duration == 120:
+            logger.warning(f"⚠️ DURATION GUARDRAIL: spa_zone_choice={spa_zone_choice} but duration_min={duration}. Expected 135 min!")
+    
     # 6) services_snapshot - ensure at least one entry
     if not snap:
         snap = [{
