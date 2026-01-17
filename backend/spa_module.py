@@ -319,7 +319,18 @@ def normalize_spa_appt(appt: dict) -> dict:
     if not appt.get("spa_zone"):
         appt["spa_zone"] = parsed["spa_zone"] or ""
     
-    # 5) services_snapshot - ensure at least one entry
+    # 5) included_spa_zone_label - human readable label for listing
+    spa_zone_choice = appt.get("included_spa_zone", "none")
+    SPA_ZONE_LABELS = {
+        "none": "Bez SPA zone",
+        "SAUNA_15": "Sauna 15 min (uključeno)",
+        "STEAM_15": "Parno kupatilo 15 min (uključeno)",
+        "sauna_15": "Sauna 15 min (uključeno)",
+        "steam_15": "Parno kupatilo 15 min (uključeno)",
+    }
+    appt["included_spa_zone_label"] = SPA_ZONE_LABELS.get(spa_zone_choice, "")
+    
+    # 6) services_snapshot - ensure at least one entry
     if not snap:
         snap = [{
             "name": appt["service_name"],
