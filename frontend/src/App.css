@@ -16,12 +16,14 @@ body {
   padding: 0;
   width: 100%;
   overflow-x: auto;
+  overflow-y: auto;  /* 🔧 FIX: Enable vertical scroll */
 }
 
 /* Fix for iFrame rendering */
 html, body {
   min-width: 100%;
   overflow-x: auto;
+  overflow-y: auto;  /* 🔧 FIX: Enable vertical scroll */
 }
 
 /* Ensure content doesn't shift in iFrame */
@@ -29,12 +31,14 @@ html, body {
   width: 100%;
   min-width: 100%;
   overflow-x: auto;
+  overflow-y: visible;  /* 🔧 FIX: Allow content to scroll */
 }
 
 .App {
   min-height: 100vh;
   background-color: #f9fafb;
   overflow-x: auto;
+  overflow-y: visible;  /* 🔧 FIX: Allow content to scroll */
   width: 100%;
   position: relative;
 }
