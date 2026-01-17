@@ -1501,13 +1501,25 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
             "card_id": card_id
         }
         
-        # 🔒 GET MASTER DATA (SR = SOURCE OF TRUTH) - name and duration from card_id
+        # 🔒 GET MASTER DATA (SR = SOURCE OF TRUTH) - name from card_id
         master_data = get_card_master_data(card_id)
         master_name = master_data["name"] or "SPA Tretman"
-        master_duration = master_data["duration"] or 60  # Fallback only if truly unknown
+        
+        # 🔒 DURATION: Use frontend's total_duration if provided (includes SPA Zone)
+        # Otherwise fallback to card duration
+        if appointment.total_duration and appointment.total_duration > 0:
+            master_duration = appointment.total_duration
+            logger.info(f"🔒 DURATION from frontend total_duration={master_duration}")
+        elif master_data["duration"]:
+            master_duration = master_data["duration"]
+            logger.info(f"🔒 DURATION from card={master_duration}")
+        else:
+            # ERROR: No duration available - log and use minimal fallback
+            logger.error(f"❌ NO DURATION for card_id={card_id}! Using 60 min fallback")
+            master_duration = 60
         
         # 🔒 [PUBLIC_BOOKING] LOG for debugging
-        logger.info(f"[PUBLIC_BOOKING] source=minimal, card_id={card_id}, master_name={master_name}, master_duration={master_duration}, original_total={pricing_snapshot['original_total']}, final_total={pricing_snapshot['final_total']}, discount={pricing_snapshot['discount_percent']}%")
+        logger.info(f"[PUBLIC_BOOKING] source=minimal, card_id={card_id}, master_name={master_name}, master_duration={master_duration}, frontend_total_duration={appointment.total_duration}, original_total={pricing_snapshot['original_total']}, final_total={pricing_snapshot['final_total']}, discount={pricing_snapshot['discount_percent']}%")
         
         spa_apt = SpaAppointment(
             client_first_name=appointment.client_first_name,
