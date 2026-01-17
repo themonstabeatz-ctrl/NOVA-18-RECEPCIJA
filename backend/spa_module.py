@@ -459,6 +459,7 @@ class SpaAppointmentCreate(BaseModel):
     base_price: Optional[int] = None
     selected_addons: Optional[List[str]] = []
     total_duration: Optional[int] = None
+    duration: Optional[int] = None  # 🔒 Frontend sends total duration here
     total_original: Optional[int] = None
     final_price: Optional[int] = None
     # SPA_ZONE booking support
