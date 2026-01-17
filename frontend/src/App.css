@@ -6,7 +6,8 @@
 html {
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
-  touch-action: manipulation;
+  /* 🔧 FIX: Allow all touch actions including scroll */
+  touch-action: auto;
 }
 
 body {
@@ -15,30 +16,32 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  overflow-x: auto;
-  overflow-y: auto;  /* 🔧 FIX: Enable vertical scroll */
+  /* 🔧 FIX: Explicit scroll enablement */
+  overflow-x: hidden;
+  overflow-y: scroll !important;
+  touch-action: auto;
 }
 
 /* Fix for iFrame rendering */
 html, body {
   min-width: 100%;
-  overflow-x: auto;
-  overflow-y: auto;  /* 🔧 FIX: Enable vertical scroll */
+  height: 100%;
+  overflow-y: scroll !important;
 }
 
 /* Ensure content doesn't shift in iFrame */
 #root {
   width: 100%;
   min-width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;  /* 🔧 FIX: Allow content to scroll */
+  min-height: 100%;
+  overflow-y: visible;
 }
 
 .App {
   min-height: 100vh;
   background-color: #f9fafb;
-  overflow-x: auto;
-  overflow-y: visible;  /* 🔧 FIX: Allow content to scroll */
+  overflow-x: hidden;
+  overflow-y: visible;
   width: 100%;
   position: relative;
 }
