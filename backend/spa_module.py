@@ -1552,9 +1552,12 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         doc['spa_category'] = appointment.spa_category or 'spa_zone'
         doc['is_viewed'] = False  # For notification badge on dashboard
         
-        # 🔒 SET MASTER SERVICE NAME IMMEDIATELY (before normalize)
+        # 🔒 SET MASTER SERVICE NAME - prefer card name (SR master)
+        # Frontend may send "Silky Body Ritual - 270 min" but we want clean SR name
         doc['service_name'] = master_name
         doc['duration_min'] = master_duration
+        
+        logger.info(f"🔒 SAVED service_name={doc['service_name']} duration_min={doc['duration_min']}")
         
         # 🌐 LOCALIZATION - Normalize and store language (for email only, not core data)
         doc['lang'] = normalize_lang(appointment.lang)
