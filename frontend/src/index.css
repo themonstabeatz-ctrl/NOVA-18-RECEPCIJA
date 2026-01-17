@@ -7,8 +7,9 @@ body {
     padding: 0;
     width: 100%;
     min-width: 100%;
-    overflow-x: auto;
-    overflow-y: auto;  /* 🔧 FIX: Enable vertical scroll */
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll !important;  /* 🔧 FIX: Force vertical scroll */
     font-family:
         -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
         "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
@@ -21,8 +22,9 @@ html {
     margin: 0;
     padding: 0;
     width: 100%;
-    overflow-x: auto;
-    overflow-y: auto;  /* 🔧 FIX: Enable vertical scroll */
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll !important;  /* 🔧 FIX: Force vertical scroll */
 }
 
 code {
