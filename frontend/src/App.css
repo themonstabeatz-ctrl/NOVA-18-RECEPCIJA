@@ -1,13 +1,10 @@
 * {
   -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
 }
 
 html {
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
-  /* 🔧 FIX: Allow all touch actions including scroll */
-  touch-action: auto;
 }
 
 body {
@@ -16,17 +13,12 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  /* 🔧 FIX: Explicit scroll enablement */
-  overflow-x: hidden;
-  overflow-y: scroll !important;
-  touch-action: auto;
 }
 
 /* Fix for iFrame rendering */
 html, body {
   min-width: 100%;
   height: 100%;
-  overflow-y: scroll !important;
 }
 
 /* Ensure content doesn't shift in iFrame */
@@ -34,14 +26,11 @@ html, body {
   width: 100%;
   min-width: 100%;
   min-height: 100%;
-  overflow-y: visible;
 }
 
 .App {
   min-height: 100vh;
   background-color: #f9fafb;
-  overflow-x: hidden;
-  overflow-y: visible;
   width: 100%;
   position: relative;
 }
@@ -52,13 +41,11 @@ html, body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
-  touch-action: auto;
 }
 
-/* Touch friendly elements - but DON'T block scroll */
+/* Touch friendly elements */
 button, a, input, select, textarea {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
-  /* 🔧 FIX: Don't use touch-action: manipulation here - it blocks scroll */
 }
 
 /* Improved scrollbars for mobile */
@@ -154,24 +141,4 @@ button, a, input, select, textarea {
 
 .App-link {
   color: #61dafb;
-}
-
-/* 🔧 DEBUG/FIX: Ensure scroll works everywhere */
-html, body, #root, .App {
-  overflow-y: scroll !important;
-  overflow-x: hidden !important;
-  -webkit-overflow-scrolling: touch !important;
-  touch-action: pan-y pinch-zoom !important;
-  height: auto !important;
-  min-height: 100% !important;
-}
-
-/* Remove any hidden overflow from main containers */
-body > div, #root > div {
-  overflow: visible !important;
-}
-
-/* Ensure no element blocks scrolling */
-* {
-  touch-action: inherit;
 }
