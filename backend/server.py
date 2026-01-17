@@ -2944,7 +2944,7 @@ async def get_unified_appointments_list(
             "spa_zone": normalized.get('spa_zone', ''),
             # 🔧 SPA ZONE CHOICE - for listing display (replaces "Osnova")
             "included_spa_zone": apt.get('included_spa_zone') or normalized.get('included_spa_zone', 'none'),
-            "included_spa_zone_label": normalized.get('included_spa_zone_label', ''),
+            "included_spa_zone_label": _get_spa_zone_label(apt.get('included_spa_zone') or normalized.get('included_spa_zone', 'none')),
             # ✅ CARD TITLE - za edit modal "Usluga" prikaz
             "card_title": apt.get('card_title') or normalized['service_name'],
             "card_id": apt.get('card_id'),
