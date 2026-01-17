@@ -1671,6 +1671,8 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         response['spa_zone'] = doc.get('spa_zone', '')
         response['services_snapshot'] = doc['services_snapshot']
         response['pricing'] = pricing_snapshot  # Include pricing in response
+        response['included_spa_zone'] = doc.get('included_spa_zone', 'none')
+        response['included_spa_zone_label'] = doc.get('included_spa_zone_label', '')
         response['notify_status'] = notify_result.get("notify_status", "unknown")
         response['email_sent'] = notify_result.get("email_sent", False)
         response['email_sent_admin'] = notify_result.get("email_sent_admin", False)
