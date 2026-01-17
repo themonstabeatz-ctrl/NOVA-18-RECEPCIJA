@@ -348,6 +348,10 @@ def normalize_spa_appt(appt: dict) -> dict:
         }]
         appt["services_snapshot"] = snap
     
+    # 7) Aliases for backward compatibility
+    appt["service_title"] = appt["service_name"]
+    appt["service_desc"] = appt["service_description"]
+    
     return appt
 
 
