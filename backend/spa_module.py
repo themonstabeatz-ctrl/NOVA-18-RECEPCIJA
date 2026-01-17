@@ -1574,6 +1574,10 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
         card_config = SPA_CARDS.get(card_id)
         doc['card_title'] = card_config.get('title_sr') if card_config else None
         
+        # 🔧 SPA ZONE CHOICE - for listing display
+        doc['included_spa_zone'] = appointment.included_spa_zone or 'none'
+        logger.info(f"🔧 SPA_ZONE_CHOICE: {doc['included_spa_zone']}")
+        
         # 🔒 ADD PRICING SNAPSHOT TO DOC
         doc['pricing'] = pricing_snapshot
         doc['total'] = int(final_total)
