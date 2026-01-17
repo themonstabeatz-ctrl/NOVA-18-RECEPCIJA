@@ -49,9 +49,10 @@ html, body {
 /* Scroll container */
 .scroll-container {
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
+  touch-action: auto;
 }
 
 /* Touch friendly elements - but DON'T block scroll */
