@@ -1520,11 +1520,17 @@ async def create_spa_appointment(appointment: SpaAppointmentCreate):
             logger.info(f"🔒 DURATION from frontend: {master_duration} (duration={appointment.duration}, total_duration={appointment.total_duration}, base_duration={appointment.base_duration})")
         elif master_data["duration"]:
             master_duration = master_data["duration"]
-            logger.warning(f"⚠️ DURATION fallback to card: {master_duration} (frontend sent nothing)")
+            logger.warning(f"⚠️ INCONSISTENT SPA META: Frontend sent NO duration! Fallback to card: {master_duration}")
         else:
-            # ERROR: No duration available - this should NEVER happen
-            logger.error(f"❌ NO DURATION for card_id={card_id}! Frontend: duration={appointment.duration}, total_duration={appointment.total_duration}")
-            master_duration = 60  # Last resort fallback
+            # ERROR: No duration available - LOG but DO NOT invent values
+            logger.error(f"❌ INCONSISTENT SPA META: NO DURATION for card_id={card_id}! Frontend: duration={appointment.duration}, total_duration={appointment.total_duration}")
+            # Use card duration as absolute last resort, but LOG it clearly
+            master_duration = 60
+            logger.error(f"❌ GUARDRAIL TRIGGERED: Using fallback 60 min - THIS IS A BUG!")
+        
+        # 🔒 GUARDRAIL: Check for "SPA Tretman" or suspicious values
+        if master_name == "SPA Tretman" or not master_name:
+            logger.error(f"❌ INCONSISTENT SPA META: service_name is generic! card_id={card_id}, master_name={master_name}")
         
         # 🔒 [PUBLIC_BOOKING] LOG for debugging
         logger.info(f"[PUBLIC_BOOKING] source=minimal, card_id={card_id}, master_name={master_name}, master_duration={master_duration}, frontend_duration={frontend_duration}, original_total={pricing_snapshot['original_total']}, final_total={pricing_snapshot['final_total']}, discount={pricing_snapshot['discount_percent']}%")
