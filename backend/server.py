@@ -603,6 +603,21 @@ def generate_service_i18n(service_name: str) -> Dict[str, Dict[str, str]]:
 # ============================================
 # 🔒 UNIFIED PRICING RESOLVER - SINGLE SOURCE OF TRUTH
 # ============================================
+# 🔧 SPA ZONE LABEL HELPER
+# ============================================
+def _get_spa_zone_label(spa_zone_choice: str) -> str:
+    """Get human-readable label for SPA zone choice"""
+    SPA_ZONE_LABELS = {
+        "none": "Bez SPA zone",
+        "SAUNA_15": "Sauna 15 min (uključeno)",
+        "STEAM_15": "Parno kupatilo 15 min (uključeno)",
+        "sauna_15": "Sauna 15 min (uključeno)",
+        "steam_15": "Parno kupatilo 15 min (uključeno)",
+    }
+    return SPA_ZONE_LABELS.get(spa_zone_choice, "")
+
+
+# ============================================
 # Used by: CEO Dashboard, Analytics, Termini list, Reports
 # Works for: Masaže, Parovi, SPA - ALL appointment types
 # ============================================
